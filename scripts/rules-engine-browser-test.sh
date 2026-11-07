@@ -35,11 +35,13 @@ $AB open http://localhost:3000 >/dev/null 2>&1
 $AB eval "(() => { localStorage.setItem('adwa-lang', 'en'); return 'ok'; })()" >/dev/null 2>&1
 $AB reload >/dev/null 2>&1
 
-# wait for the login form (dev-mode cold compile can be slow)
+# wait for the FULL login form: the captcha input ("Security check") mounts
+# only after its fetch resolves — later than email/password. Waiting for just
+# "Email" races and yields an empty captcha ref.
 SNAP=""
-for i in $(seq 1 20); do
+for i in $(seq 1 25); do
   SNAP=$($AB snapshot -i 2>/dev/null)
-  echo "$SNAP" | grep -q 'textbox "Email"' && break
+  echo "$SNAP" | grep -q 'textbox "Email"' && echo "$SNAP" | grep -q 'textbox "Security check"' && break
   sleep 1
 done
 EMAIL_REF=$(ref_of "$(echo "$SNAP" | grep -m1 'textbox "Email"')")

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { evaluate, auditTimeComparison, pillarConfFromJson, type Answer } from "@/lib/engine";
+import { slaDueDate } from "@/lib/sla";
 import { requireAuthAny } from "@/lib/auth/guard";
 import { can } from "@/lib/auth/rbac";
 import { audit } from "@/lib/auth/audit";
@@ -45,11 +46,14 @@ export async function POST(req: NextRequest, ctx: { params: Promise<{ id: string
 
   const out = evaluate(engineRules, engineAnswers, pillarConfFromJson(scan.framework?.pillars));
 
+  const now = new Date();
+
   // Persist per-rule results
   for (const r of scan.results) {
     const res = out.results.find((x) => x.ruleCode === r.rule.code);
     const input = answerMap.get(r.rule.code);
     if (!res) continue;
+    const isFinding = res.answer === "no" || res.answer === "partial";
     await db.scanResult.update({
       where: { id: r.id },
       data: {
@@ -59,11 +63,15 @@ export async function POST(req: NextRequest, ctx: { params: Promise<{ id: string
         riskRank: res.riskRank,
         findingEn: res.findingEn,
         findingAm: res.findingAm,
+        // Stamp the remediation deadline exactly once, when the finding is
+        // born at scan completion: severity policy × now (Procl. 1426/2026 SLAs).
+        ...(isFinding && r.status === "open" && !r.dueAt
+          ? { dueAt: slaDueDate(r.rule.severity, now) }
+          : {}),
       },
     });
   }
 
-  const now = new Date();
   const minutes = Math.max(0.5, (now.getTime() - scan.startedAt.getTime()) / 60000);
   const updated = await db.scan.update({
     where: { id },

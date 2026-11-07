@@ -4,6 +4,7 @@ import { requireAuthAny } from "@/lib/auth/guard";
 import { can } from "@/lib/auth/rbac";
 import { audit } from "@/lib/auth/audit";
 import { clientIp } from "@/lib/auth/rate-limit";
+import { slaInfo, slaClosureNote } from "@/lib/sla";
 
 const VALID = ["open", "in_progress", "remediated", "waived"];
 
@@ -36,7 +37,7 @@ export async function PATCH(req: NextRequest, ctx: { params: Promise<{ id: strin
   const existing = await db.scanResult.findUnique({
     where: { id },
     include: {
-      rule: { select: { code: true, titleEn: true } },
+      rule: { select: { code: true, titleEn: true, severity: true } },
       scan: { select: { organizationId: true, name: true } },
     },
   });
@@ -47,13 +48,30 @@ export async function PATCH(req: NextRequest, ctx: { params: Promise<{ id: strin
     return NextResponse.json({ error: "This finding belongs to another organization" }, { status: 403 });
   }
 
+  const now = new Date();
+  // SLA bookkeeping:
+  //  - closing as remediated stamps remediatedAt (on-time vs late is then provable)
+  //  - reopening clears the stamp so a fresh closure re-measures honestly
+  const patch: { status: string; remediatedAt?: Date | null } = { status: body.status };
+  if (body.status === "remediated" && existing.status !== "remediated") {
+    patch.remediatedAt = now;
+  } else if (body.status !== "remediated" && existing.status === "remediated") {
+    patch.remediatedAt = null;
+  }
+
   const result = await db.scanResult.update({
     where: { id },
-    data: { status: body.status },
+    data: patch,
     include: { rule: true, scan: { include: { organization: true } } },
   });
 
   if (existing.status !== body.status) {
+    const sla = slaInfo({
+      status: body.status,
+      dueAt: result.dueAt,
+      remediatedAt: result.remediatedAt,
+      now,
+    });
     await audit({
       type: "FINDING_STATUS_CHANGED",
       userId: user.id,
@@ -61,7 +79,9 @@ export async function PATCH(req: NextRequest, ctx: { params: Promise<{ id: strin
       organizationId: existing.scan.organizationId,
       ip: clientIp(req.headers),
       userAgent: req.headers.get("user-agent"),
-      detail: `Finding ${existing.rule.code} (${existing.rule.titleEn}) on "${existing.scan.name}": ${existing.status} → ${body.status}${note ? ` — note: ${note}` : ""}.`,
+      detail: `Finding ${existing.rule.code} (${existing.rule.titleEn}) on "${existing.scan.name}": ${existing.status} → ${body.status}`
+        + (body.status === "remediated" ? ` — ${slaClosureNote(sla)}` : "")
+        + (note ? ` — note: ${note}` : ""),
     });
   }
 

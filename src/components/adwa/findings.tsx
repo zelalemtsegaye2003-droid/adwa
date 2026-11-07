@@ -9,10 +9,12 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
+import { AlertTriangle, Clock3, ShieldCheck, TimerOff } from "lucide-react";
 import { toast } from "sonner";
 import { useI18n } from "@/lib/i18n";
 import { api, ApiCallError } from "@/lib/auth-client";
-import { SeverityBadge, StatusBadge, FrameworkBadge, type ScanBriefDTO, type ScanDetailDTO, type ResultDTO } from "./shared";
+import { slaInfo } from "@/lib/sla";
+import { SeverityBadge, StatusBadge, FrameworkBadge, SlaBadge, type ScanBriefDTO, type ScanDetailDTO, type ResultDTO } from "./shared";
 
 export function FindingsView() {
   const { t, lang } = useI18n();
@@ -20,6 +22,7 @@ export function FindingsView() {
   const [scanFilter, setScanFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
   const [severityFilter, setSeverityFilter] = useState("all");
+  const [slaFilter, setSlaFilter] = useState("all");
   // Keyed data: rows are valid only while data.key === scanFilter (avoids sync setState in effect)
   const [data, setData] = useState<{ key: string; rows: ResultDTO[] } | null>(null);
   const [updating, setUpdating] = useState<string | null>(null);
@@ -58,33 +61,55 @@ export function FindingsView() {
 
   const rows = data?.key === scanFilter ? data.rows : null;
 
+  // SLA state per finding (computed client-side from dueAt/remediatedAt).
+  const slaOf = (r: ResultDTO) =>
+    slaInfo({ status: r.status, dueAt: r.dueAt ?? null, remediatedAt: r.remediatedAt ?? null });
+
   const filtered = useMemo(() => {
     if (!rows) return null;
     return rows.filter((r) => {
       if (statusFilter !== "all" && r.status !== statusFilter) return false;
       if (severityFilter !== "all" && r.rule.severity !== severityFilter) return false;
+      if (slaFilter !== "all" && slaOf(r).state !== slaFilter) return false;
       return true;
     });
-  }, [rows, statusFilter, severityFilter]);
+  }, [rows, statusFilter, severityFilter, slaFilter]);
+
+  // SLA summary chips over the (unfiltered-by-sla) current scan scope.
+  const slaCounts = useMemo(() => {
+    if (!rows) return null;
+    const c = { overdue: 0, dueSoon: 0, onTrack: 0, closedLate: 0, closedOnTime: 0, waived: 0, notTracked: 0 };
+    for (const r of rows) {
+      const s = slaOf(r).state;
+      if (s === "OVERDUE") c.overdue++;
+      else if (s === "DUE_SOON") c.dueSoon++;
+      else if (s === "ON_TRACK") c.onTrack++;
+      else if (s === "CLOSED_LATE") c.closedLate++;
+      else if (s === "CLOSED_ON_TIME") c.closedOnTime++;
+      else if (s === "WAIVED") c.waived++;
+      else c.notTracked++;
+    }
+    return c;
+  }, [rows]);
 
   const scanName = (id: string) => scans.find((s) => s.id === id)?.name ?? id;
 
   const updateStatus = async (id: string, status: string, note?: string) => {
     setUpdating(id);
     try {
-      await api(`/api/findings/${id}`, {
+      const res = await api<{ result: ResultDTO }>(`/api/findings/${id}`, {
         method: "PATCH", body: JSON.stringify({ status, note }),
       });
+      // merge the server-truth row (fresh remediatedAt / dueAt) back into the table
+      setData((prev) =>
+        prev ? { ...prev, rows: prev.rows.map((r) => (r.id === id ? { ...r, status: res.result?.status ?? status, dueAt: res.result?.dueAt ?? r.dueAt, remediatedAt: res.result?.remediatedAt ?? r.remediatedAt } : r)) } : prev
+      );
+      setUpdating(null);
+      toast.success(`${t("status")}: ${status}`);
     } catch (err) {
       setUpdating(null);
       toast.error(err instanceof ApiCallError ? err.message : "Error");
-      return;
     }
-    setUpdating(null);
-    setData((prev) =>
-      prev ? { ...prev, rows: prev.rows.map((r) => (r.id === id ? { ...r, status } : r)) } : prev
-    );
-    toast.success(`${t("status")}: ${status}`);
   };
 
   const requestStatus = (r: ResultDTO, status: string) => {
@@ -115,7 +140,57 @@ export function FindingsView() {
         <p className="text-muted-foreground">{t("findSub")}</p>
       </div>
 
-      <div className="grid gap-3 sm:grid-cols-3 max-w-3xl">
+      {/* Remediation SLA summary (Procl. 1426/2026 corrective-action timelines) */}
+      {slaCounts && (
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          <Card className="border-l-4 border-l-red-600">
+            <CardContent className="flex items-center gap-3 p-4">
+              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-red-100 text-red-700 dark:bg-red-950 dark:text-red-300">
+                <AlertTriangle className="h-4.5 w-4.5" aria-hidden />
+              </span>
+              <div>
+                <p className="text-xl font-bold tabular-nums leading-none">{slaCounts.overdue}</p>
+                <p className="mt-1 text-xs text-muted-foreground">{t("slaOverdueCard")}</p>
+              </div>
+            </CardContent>
+          </Card>
+          <Card className="border-l-4 border-l-amber-500">
+            <CardContent className="flex items-center gap-3 p-4">
+              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-amber-100 text-amber-700 dark:bg-amber-950 dark:text-amber-300">
+                <Clock3 className="h-4.5 w-4.5" aria-hidden />
+              </span>
+              <div>
+                <p className="text-xl font-bold tabular-nums leading-none">{slaCounts.dueSoon}</p>
+                <p className="mt-1 text-xs text-muted-foreground">{t("slaDueSoonCard")}</p>
+              </div>
+            </CardContent>
+          </Card>
+          <Card className="border-l-4 border-l-emerald-600">
+            <CardContent className="flex items-center gap-3 p-4">
+              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300">
+                <ShieldCheck className="h-4.5 w-4.5" aria-hidden />
+              </span>
+              <div>
+                <p className="text-xl font-bold tabular-nums leading-none">{slaCounts.onTrack}</p>
+                <p className="mt-1 text-xs text-muted-foreground">{t("slaOnTrack")}</p>
+              </div>
+            </CardContent>
+          </Card>
+          <Card className="border-l-4 border-l-orange-500">
+            <CardContent className="flex items-center gap-3 p-4">
+              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-orange-100 text-orange-700 dark:bg-orange-950 dark:text-orange-300">
+                <TimerOff className="h-4.5 w-4.5" aria-hidden />
+              </span>
+              <div>
+                <p className="text-xl font-bold tabular-nums leading-none">{slaCounts.closedLate}</p>
+                <p className="mt-1 text-xs text-muted-foreground">{t("slaClosedLateCard")}</p>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4 max-w-5xl">
         <Select value={scanFilter} onValueChange={setScanFilter}>
           <SelectTrigger aria-label={t("allScans")}><SelectValue /></SelectTrigger>
           <SelectContent>
@@ -144,6 +219,17 @@ export function FindingsView() {
             <SelectItem value="medium">{t("medium")}</SelectItem>
           </SelectContent>
         </Select>
+        <Select value={slaFilter} onValueChange={setSlaFilter}>
+          <SelectTrigger aria-label={t("slaAllStates")}><SelectValue /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">{t("slaAllStates")}</SelectItem>
+            <SelectItem value="OVERDUE">{t("slaOverdue")}</SelectItem>
+            <SelectItem value="DUE_SOON">{t("slaDueSoon")}</SelectItem>
+            <SelectItem value="ON_TRACK">{t("slaOnTrack")}</SelectItem>
+            <SelectItem value="CLOSED_LATE">{t("slaClosedLate")}</SelectItem>
+            <SelectItem value="CLOSED_ON_TIME">{t("slaClosedOnTime")}</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
 
       <Card>
@@ -160,6 +246,7 @@ export function FindingsView() {
                     <TableHead>{t("rule")}</TableHead>
                     <TableHead className="hidden md:table-cell">{t("navScans")}</TableHead>
                     <TableHead>{t("risk")}</TableHead>
+                    <TableHead>{t("slaTitle")}</TableHead>
                     <TableHead>{t("status")}</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -183,6 +270,13 @@ export function FindingsView() {
                         </div>
                       </TableCell>
                       <TableCell className="font-bold tabular-nums">{r.riskRank?.toFixed(1) ?? "—"}</TableCell>
+                      <TableCell>
+                        <SlaBadge
+                          state={slaOf(r).state}
+                          daysRemaining={slaOf(r).daysRemaining}
+                          dueAt={r.dueAt ?? null}
+                        />
+                      </TableCell>
                       <TableCell>
                         <div className="flex items-center gap-2">
                           <StatusBadge status={r.status} />
