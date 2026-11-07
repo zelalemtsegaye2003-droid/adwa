@@ -1,0 +1,58 @@
+/**
+ * Adwa Cyber — security audit trail for the identity layer.
+ * Every authentication-relevant event is recorded for compliance review
+ * (ISO 27037-style event logging; visible to tenant admins & auditors).
+ */
+import { db } from "@/lib/db";
+
+export type AuthEventType =
+  | "LOGIN_SUCCESS"
+  | "LOGIN_FAILED"
+  | "LOGIN_LOCKED"
+  | "MFA_CHALLENGE"
+  | "MFA_PASSED"
+  | "MFA_FAILED"
+  | "MFA_ENROLLMENT_STARTED"
+  | "MFA_ENABLED"
+  | "MFA_DISABLED"
+  | "CAPTCHA_FAILED"
+  | "LOGOUT"
+  | "TOKEN_REFRESHED"
+  | "TOKEN_REUSE_DETECTED"
+  | "SESSIONS_REVOKED"
+  | "REGISTER_ORG"
+  | "USER_CREATED"
+  | "USER_UPDATED"
+  | "USER_DISABLED"
+  | "GOOGLE_LOGIN"
+  | "GOOGLE_LOGIN_FAILED"
+  | "ACCESS_DENIED";
+
+export interface AuditInput {
+  type: AuthEventType;
+  userId?: string | null;
+  email: string;
+  organizationId?: string | null;
+  ip?: string | null;
+  userAgent?: string | null;
+  detail?: string | null;
+}
+
+/** Record an auth event. Never throws — audit must not break the request path. */
+export async function audit(input: AuditInput): Promise<void> {
+  try {
+    await db.authEvent.create({
+      data: {
+        type: input.type,
+        userId: input.userId ?? null,
+        email: input.email,
+        organizationId: input.organizationId ?? null,
+        ip: input.ip ?? null,
+        userAgent: input.userAgent?.slice(0, 250) ?? null,
+        detail: input.detail?.slice(0, 500) ?? null,
+      },
+    });
+  } catch (err) {
+    console.error("[audit] failed to record event", input.type, err);
+  }
+}

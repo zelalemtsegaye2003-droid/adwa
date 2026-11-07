@@ -1,9 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { evaluate, auditTimeComparison, type Answer } from "@/lib/engine";
+import { requireAuthAny } from "@/lib/auth/guard";
+import { can } from "@/lib/auth/rbac";
 
 // POST /api/scans/[id]/submit — run the compliance engine over collected answers
 export async function POST(req: NextRequest, ctx: { params: Promise<{ id: string }> }) {
+  const guard = await requireAuthAny(req, ["scans:run-org", "scans:run-any-org"]);
+  if (guard.error) return guard.error;
+  const { user } = guard;
   const { id } = await ctx.params;
   const body = await req.json();
   const answers: { ruleCode: string; answer: Answer; evidenceNote?: string }[] = body.answers ?? [];
@@ -13,6 +18,13 @@ export async function POST(req: NextRequest, ctx: { params: Promise<{ id: string
     include: { results: { include: { rule: true } } },
   });
   if (!scan) return NextResponse.json({ error: "Scan not found" }, { status: 404 });
+
+  // Tenant isolation.
+  const isSuper = can(user.role, "scans:run-any-org");
+  if (!isSuper && scan.organizationId !== user.orgId) {
+    return NextResponse.json({ error: "This assessment belongs to another organization" }, { status: 403 });
+  }
+
   if (scan.status === "complete") {
     return NextResponse.json({ error: "Scan already completed" }, { status: 409 });
   }

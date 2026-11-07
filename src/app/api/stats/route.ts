@@ -1,15 +1,33 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
+import { requireAuth } from "@/lib/auth/guard";
+import { can } from "@/lib/auth/rbac";
 
-export async function GET() {
+/**
+ * GET /api/stats — platform or tenant analytics.
+ * SUPER_ADMIN: platform-wide. Tenant users: scoped to their organization.
+ */
+export async function GET(req: NextRequest) {
+  const guard = await requireAuth(req);
+  if (guard.error) return guard.error;
+  const { user } = guard;
+
+  const isSuper = can(user.role, "orgs:view-all");
+  const orgFilter = isSuper ? {} : { id: user.orgId ?? "__none__" };
+  const scanFilter = isSuper ? {} : { organizationId: user.orgId ?? "__none__" };
+  const resultScanFilter = isSuper
+    ? { scan: { status: "complete" as const } }
+    : { scan: { status: "complete" as const, organizationId: user.orgId ?? "__none__" } };
+
   const [orgs, rules, scans, results] = await Promise.all([
-    db.organization.findMany({ include: { scans: { orderBy: { startedAt: "desc" } } } }),
+    db.organization.findMany({ where: orgFilter, include: { scans: { orderBy: { startedAt: "desc" } } } }),
     db.rule.findMany({ where: { isActive: true } }),
     db.scan.findMany({
+      where: scanFilter,
       orderBy: { startedAt: "desc" },
       include: { organization: { select: { name: true, sector: true } } },
     }),
-    db.scanResult.findMany({ where: { scan: { status: "complete" } }, include: { rule: true } }),
+    db.scanResult.findMany({ where: resultScanFilter, include: { rule: true } }),
   ]);
 
   const completed = scans.filter((s) => s.status === "complete");
@@ -49,6 +67,7 @@ export async function GET() {
       : 0;
 
   return NextResponse.json({
+    scope: isSuper ? "platform" : "tenant",
     organizations: orgs.length,
     sectors: [...new Set(orgs.map((o) => o.sector))],
     rules: rules.length,

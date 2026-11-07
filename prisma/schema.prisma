@@ -14,6 +14,7 @@ model Organization {
   id           String   @id @default(cuid())
   name         String
   nameAm       String   @default("")
+  slug         String?  @unique
   sector       String // Banking | Microfinance | Telecom | SME | ...
   tier         String   @default("mid-market") // enterprise | mid-market | sme
   contactEmail String?
@@ -22,6 +23,7 @@ model Organization {
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
   scans        Scan[]
+  users        User[]
 }
 
 // The 47-rule catalogue mapped to articles of Proclamation 1321/2024
@@ -85,4 +87,69 @@ model ScanResult {
   updatedAt    DateTime @updatedAt
 
   @@unique([scanId, ruleId])
+}
+
+// ── Identity & Access (multi-tenant RBAC) ─────────────────────────────────
+
+model User {
+  id               String    @id @default(cuid())
+  email            String    @unique
+  passwordHash     String? // null for Google-only accounts
+  name             String
+  avatarUrl        String?
+  role             String // SUPER_ADMIN | ORG_ADMIN | COMPLIANCE_OFFICER | AUDITOR | VIEWER
+  organizationId   String? // null only for SUPER_ADMIN
+  organization     Organization? @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  authProvider     String    @default("LOCAL") // LOCAL | GOOGLE
+  googleId         String?   @unique
+  status           String    @default("ACTIVE") // ACTIVE | DISABLED
+  mfaEnabled       Boolean   @default(false)
+  mfaSecret        String? // AES-256-GCM encrypted TOTP secret
+  mfaConfirmedAt   DateTime?
+  backupCodes      String? // JSON array of sha256-hashed one-time codes
+  failedAttempts   Int       @default(0)
+  lockedUntil      DateTime?
+  sessionsRevokedAt DateTime? // access tokens issued BEFORE this moment are dead
+  lastLoginAt      DateTime?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+  refreshTokens    RefreshToken[]
+  authEvents       AuthEvent[]
+}
+
+model RefreshToken {
+  id          String    @id @default(cuid())
+  tokenHash   String    @unique // sha256 of the opaque token
+  userId      String
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt   DateTime
+  revokedAt   DateTime?
+  replacedBy  String? // id of the token that replaced it (rotation chain)
+  userAgent   String?
+  ip          String?
+  createdAt   DateTime  @default(now())
+}
+
+model AuthEvent {
+  id             String   @id @default(cuid())
+  userId         String?
+  user           User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  email          String
+  organizationId String?
+  type           String // LOGIN_SUCCESS | LOGIN_FAILED | MFA_CHALLENGE | MFA_PASSED | MFA_FAILED | MFA_ENABLED | MFA_DISABLED | LOGOUT | TOKEN_REUSED | ACCOUNT_LOCKED | CAPTCHA_FAILED | USER_CREATED | USER_UPDATED | GOOGLE_LOGIN | REGISTER_ORG ...
+  ip             String?
+  userAgent      String?
+  detail         String?
+  createdAt      DateTime @default(now())
+
+  @@index([createdAt])
+  @@index([organizationId])
+}
+
+model CaptchaChallenge {
+  id         String    @id @default(cuid())
+  answerHash String // sha256(lowercased answer)
+  expiresAt  DateTime
+  consumedAt DateTime?
+  createdAt  DateTime  @default(now())
 }

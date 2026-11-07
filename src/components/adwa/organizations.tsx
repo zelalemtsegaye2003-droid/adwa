@@ -12,29 +12,33 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Building2, Plus, ScanLine } from "lucide-react";
 import { toast } from "sonner";
 import { useI18n } from "@/lib/i18n";
+import { api, ApiCallError } from "@/lib/auth-client";
+import { useAuth } from "@/components/auth/auth-gate";
 import { ScoreRing, fmtDate, type OrgDTO } from "./shared";
 
 export function OrganizationsView({ onNewScan }: { onNewScan: (orgId: string) => void }) {
   const { t, pick } = useI18n();
+  const { me } = useAuth();
+  const isSuper = me.user.role === "SUPER_ADMIN";
   const [orgs, setOrgs] = useState<OrgDTO[] | null>(null);
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState({ name: "", nameAm: "", sector: "Banking", tier: "mid-market", contactEmail: "", notes: "" });
 
-  const load = () => fetch("/api/organizations").then((r) => r.json()).then((d) => setOrgs(d.organizations)).catch(() => setOrgs([]));
+  const load = () => api<{ organizations: OrgDTO[] }>("/api/organizations").then((d) => setOrgs(d.organizations)).catch(() => setOrgs([]));
   useEffect(() => { load(); }, []);
 
   const submit = async () => {
     if (!form.name.trim()) { toast.error(t("orgName")); return; }
-    const res = await fetch("/api/organizations", {
-      method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(form),
-    });
-    if (res.ok) {
+    try {
+      await api("/api/organizations", {
+        method: "POST", body: JSON.stringify(form),
+      });
       toast.success(`${form.name} — ${t("save")}`);
       setOpen(false);
       setForm({ name: "", nameAm: "", sector: "Banking", tier: "mid-market", contactEmail: "", notes: "" });
       load();
-    } else {
-      toast.error((await res.json()).error ?? "Error");
+    } catch (err) {
+      toast.error(err instanceof ApiCallError ? err.message : "Error");
     }
   };
 
@@ -45,6 +49,7 @@ export function OrganizationsView({ onNewScan }: { onNewScan: (orgId: string) =>
           <h2 className="text-2xl font-bold tracking-tight">{t("orgTitle")}</h2>
           <p className="text-muted-foreground">{t("orgSub")}</p>
         </div>
+        {isSuper && (
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogTrigger asChild>
             <Button className="bg-emerald-700 hover:bg-emerald-800 text-white">
@@ -98,6 +103,7 @@ export function OrganizationsView({ onNewScan }: { onNewScan: (orgId: string) =>
             </DialogFooter>
           </DialogContent>
         </Dialog>
+        )}
       </div>
 
       {!orgs && (

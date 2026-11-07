@@ -13,6 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { toast } from "sonner";
 import { Building2, ChevronLeft, ChevronRight, Play, CheckCircle2, AlertTriangle } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
+import { api } from "@/lib/auth-client";
 import { SeverityBadge, PillarBadge, ScoreRing, scoreColor, AnswerBadge, type RuleDTO, type OrgDTO, type ResultDTO } from "./shared";
 
 type Answer = "yes" | "partial" | "no" | "na";
@@ -49,11 +50,11 @@ export function ScanWizard({
   const topRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    fetch("/api/organizations").then((r) => r.json()).then((d) => {
+    api<{ organizations: { id: string; name: string }[] }>("/api/organizations").then((d) => {
       setOrgs(d.organizations);
       if (preselectedOrgId) setOrgId(preselectedOrgId);
     }).catch(() => {});
-    fetch("/api/rules").then((r) => r.json()).then((d) => setRules(d.rules)).catch(() => setRules([]));
+    api<{ rules: RuleDTO[] }>("/api/rules").then((d) => setRules(d.rules)).catch(() => setRules([]));
   }, [preselectedOrgId]);
 
   const grouped = useMemo(() => {
@@ -72,12 +73,16 @@ export function ScanWizard({
 
   const startScan = async () => {
     if (!orgId) { toast.error(t("step1")); return; }
-    const res = await fetch("/api/scans", {
-      method: "POST", headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ organizationId: orgId, name: scanName || undefined }),
-    });
-    if (!res.ok) { toast.error((await res.json()).error ?? "Error"); return; }
-    const { scan } = await res.json();
+    let scan: { id: string };
+    try {
+      const data = await api<{ scan: { id: string } }>("/api/scans", {
+        method: "POST", body: JSON.stringify({ organizationId: orgId, name: scanName || undefined }),
+      });
+      scan = data.scan;
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Error");
+      return;
+    }
     setScanId(scan.id);
     setStep(2);
     topRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -93,17 +98,20 @@ export function ScanWizard({
         evidenceNote: notes[r.code] || undefined,
       })),
     };
-    const res = await fetch(`/api/scans/${scanId}/submit`, {
-      method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload),
-    });
-    setRunning(false);
-    if (!res.ok) { toast.error((await res.json()).error ?? "Engine error"); return; }
-    const data = await res.json();
-    setEngineOut(data.engine);
-    setDuration(data.time?.engineMinutes ?? null);
-    setStep(3);
-    topRef.current?.scrollIntoView({ behavior: "smooth" });
-    toast.success(`${t("overallScore")}: ${data.engine.overallScore}%`);
+    try {
+      const data = await api<{ engine: EngineOut; time?: { engineMinutes?: number } }>(`/api/scans/${scanId}/submit`, {
+        method: "POST", body: JSON.stringify(payload),
+      });
+      setRunning(false);
+      setEngineOut(data.engine);
+      setDuration(data.time?.engineMinutes ?? null);
+      setStep(3);
+      topRef.current?.scrollIntoView({ behavior: "smooth" });
+      toast.success(`${t("overallScore")}: ${data.engine.overallScore}%`);
+    } catch (err) {
+      setRunning(false);
+      toast.error(err instanceof Error ? err.message : "Engine error");
+    }
   };
 
   const setAnswer = (code: string, a: Answer) => {
