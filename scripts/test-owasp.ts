@@ -403,13 +403,29 @@ async function main() {
   console.log("\n══ A07 Identification & Authentication Failures ══");
   {
     // (a) identical error surface for unknown vs wrong password.
+    //     Both identities are per-run disposables so repeated suite runs never
+    //     collide with the per-account login limiter (10 / 5 min).
+    const runTag = Date.now();
+    const ghostEmail = `ghost-${runTag}@nowhere.et`;
+    const enumEmail = `owasp-enum-${runTag}@test.et`;
+    const enumOrg = await db.organization.create({ data: { name: `OWASP Enum Org ${runTag}`, sector: "Other" } });
+    await db.user.create({
+      data: { email: enumEmail, name: "Enum Probe", passwordHash: hashPassword("Enum#Probe2026!"), role: "VIEWER", organizationId: enumOrg.id, authProvider: "LOCAL" },
+    });
     const ipA = freshIp("7"), ipB = freshIp("7");
-    const unknown = await loginPost({ email: "ghost@nowhere.et", password: "Whatever#1234" }, ipA);
-    const wrongPw = await loginPost({ email: SUPER.email, password: "Wrong#Password1" }, ipB);
+    const unknown = await loginPost({ email: ghostEmail, password: "Whatever#1234" }, ipA);
+    const wrongPw = await loginPost({ email: enumEmail, password: "Wrong#Password1" }, ipB);
     ok("login errors are generic (no enumeration)",
        unknown.res.status === 401 && wrongPw.res.status === 401 &&
        unknown.body?.error?.code === wrongPw.body?.error?.code,
        `${unknown.body?.error?.code} == ${wrongPw.body?.error?.code}`);
+    const enumUser = await db.user.findUnique({ where: { email: enumEmail } });
+    if (enumUser) {
+      await db.refreshToken.deleteMany({ where: { userId: enumUser.id } });
+      await db.authEvent.deleteMany({ where: { userId: enumUser.id } });
+      await db.user.delete({ where: { id: enumUser.id } });
+    }
+    await db.organization.delete({ where: { id: enumOrg.id } }).catch(() => undefined);
 
     // (b) timing equalization (median of 3 interleaved runs) — probed against
     //     a disposable account so shared demo users are untouched.
@@ -421,7 +437,7 @@ async function main() {
     const times = { unknown: [] as number[], known: [] as number[] };
     for (let i = 0; i < 3; i++) {
       let t = Date.now();
-      await loginPost({ email: "ghost@nowhere.et", password: "Whatever#1234" }, freshIp("7"));
+      await loginPost({ email: ghostEmail, password: "Whatever#1234" }, freshIp("7"));
       times.unknown.push(Date.now() - t);
       t = Date.now();
       await loginPost({ email: timingEmail, password: "Wrong#Password2" }, freshIp("7"));

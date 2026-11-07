@@ -60,14 +60,14 @@ export function CatalogueView() {
           />
         </div>
         <Select value={article} onValueChange={setArticle}>
-          <SelectTrigger aria-label={t("allArticles")}><SelectValue /></SelectTrigger>
+          <SelectTrigger className="w-full" aria-label={t("allArticles")}><SelectValue /></SelectTrigger>
           <SelectContent>
             <SelectItem value="all">{t("allArticles")}</SelectItem>
             {articles.map((a) => <SelectItem key={a} value={a}>{a}</SelectItem>)}
           </SelectContent>
         </Select>
         <Select value={pillar} onValueChange={setPillar}>
-          <SelectTrigger aria-label={t("allPillars")}><SelectValue /></SelectTrigger>
+          <SelectTrigger className="w-full" aria-label={t("allPillars")}><SelectValue /></SelectTrigger>
           <SelectContent>
             <SelectItem value="all">{t("allPillars")}</SelectItem>
             {["Legal", "Technical", "Organisational", "Awareness"].map((p) => (
@@ -76,7 +76,7 @@ export function CatalogueView() {
           </SelectContent>
         </Select>
         <Select value={severity} onValueChange={setSeverity}>
-          <SelectTrigger aria-label={t("allSeverities")}><SelectValue /></SelectTrigger>
+          <SelectTrigger className="w-full" aria-label={t("allSeverities")}><SelectValue /></SelectTrigger>
           <SelectContent>
             <SelectItem value="all">{t("allSeverities")}</SelectItem>
             <SelectItem value="critical">{t("critical")}</SelectItem>
@@ -91,7 +91,7 @@ export function CatalogueView() {
       </p>
 
       {/* Rule list */}
-      <ScrollArea className="max-h-[calc(100vh-320px)] pr-3">
+      <ScrollArea className="max-h-[calc(100vh-320px)] pr-4">
         <div className="space-y-3">
           {!rules && Array.from({ length: 6 }).map((_, i) => <Skeleton key={i} className="h-28 rounded-xl" />)}
           {rules && filtered.map((r) => (
@@ -118,7 +118,7 @@ export function CatalogueView() {
                   <div className="flex flex-col items-end gap-1.5">
                     <SeverityBadge severity={r.severity} />
                     <PillarBadge pillar={r.pillar} />
-                    <span className="text-xs text-muted-foreground">{t("priority")}: {r.priority} · {t("weight")}: {r.weight}</span>
+                    <span className="whitespace-nowrap text-xs text-muted-foreground">{t("priority")}: {r.priority} · {t("weight")}: {r.weight}</span>
                   </div>
                 </div>
               </CardContent>

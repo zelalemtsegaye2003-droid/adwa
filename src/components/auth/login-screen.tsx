@@ -483,7 +483,7 @@ export function LoginScreen({ onAuthenticated }: { onAuthenticated: (me: MeRespo
                             </Button>
                             <Input
                               id="captcha" autoComplete="off" inputMode="text"
-                              placeholder={t("captchaPlaceholder")} className="flex-1 uppercase tracking-widest"
+                              placeholder={t("captchaPlaceholder")} className="flex-1 uppercase"
                               value={captchaAnswer} onChange={(e) => setCaptchaAnswer(e.target.value)}
                               disabled={busy} maxLength={8}
                             />

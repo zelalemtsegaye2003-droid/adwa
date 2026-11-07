@@ -86,7 +86,7 @@ export function DashboardView({ onOpenReport }: { onOpenReport: (scanId: string)
             <TrendingDown className="h-5 w-5" aria-hidden />
           </div>
           <div className="flex-1">
-            <p className="font-semibold">RQ1 — {t("timeComparison")}: {reduction}% audit-time reduction vs the 40–80-hour manual baseline</p>
+            <p className="font-semibold">{t("timeComparison")}: {reduction}% audit-time reduction vs the 40–80-hour manual baseline</p>
             <p className="text-sm text-muted-foreground">
               Automated audits average {stats.avgDurationMinutes} minutes across {stats.scansCompleted} completed scans — success threshold (&gt;70%) {reduction >= 70 ? "met ✓" : "on track"}.
             </p>
