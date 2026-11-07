@@ -1,0 +1,117 @@
+# Authentication & Multi-Tenant RBAC — Module Reference
+
+Phase 1 identity layer of the Adwa Cyber compliance platform
+(Proclamation No. 1321/2024 · NCSP 2024 · Digital Ethiopia 2030).
+
+## What is implemented
+
+| Capability | Details |
+|---|---|
+| **Password auth** | scrypt hashing (N=16384, per-user salt, timing-safe compare), 10+ char policy |
+| **JWT sessions** | HS256 access token (15 min) in httpOnly cookie + opaque refresh token (rotating, hashed at rest) |
+| **MFA (OTP)** | RFC 6238 TOTP (Google Authenticator / Authy / Aegis / 1Password), QR enrollment, 8 single-use backup codes (SHA-256 hashed), secrets encrypted at rest with AES-256-GCM |
+| **MFA precedence** | Accounts with platform MFA cannot sign in via Google — the native TOTP factor must be satisfied |
+| **Sign in with Google** | OAuth 2.0 / OIDC authorization-code flow: CSRF `state` cookie, ID token verified against Google's JWKS (issuer + audience + signature), `email_verified` required |
+| **Provisioning policy** | Google identities are auto-provisioned **only** for e-mail domains of known tenants (matched against `Organization.contactEmail`) and only as `VIEWER`; existing local accounts get their `googleId` linked |
+| **Captcha** | Built-in distorted SVG captcha (unambiguous charset, single-use server-side challenges) with pluggable hCaptcha / reCAPTCHA when keys are configured |
+| **Rate limiting & lockout** | Per-IP and per-account login limits, 5 failed passwords → 15 min lockout, limits on OAuth endpoints |
+| **Audit trail** | Every auth event (success/failure, MFA enable/disable, lockout, token reuse, user CRUD, Google logins) persisted with IP + user agent |
+| **Multi-tenant RBAC** | 5 roles — `SUPER_ADMIN` (platform), `ORG_ADMIN`, `COMPLIANCE_OFFICER`, `AUDITOR`, `VIEWER` — with permission matrix; every API scopes queries by `organizationId` |
+
+## Roles & permissions (`src/lib/auth/rbac.ts`)
+
+| Permission | SUPER_ADMIN | ORG_ADMIN | OFFICER | AUDITOR | VIEWER |
+|---|---|---|---|---|---|
+| catalogue:view | ✓ | ✓ | ✓ | ✓ | ✓ |
+| org:view-own / orgs:view-all | all | own | own | own | own |
+| orgs:manage / org:edit-own | all | own | – | – | – |
+| scans:view-org / view-all | all | org | org | org | org |
+| scans:run-org / run-any-org | any org | org | org | – | – |
+| findings:view-org / view-all | all | org | org | org | org |
+| findings:manage-org / manage-all | all | org | org | – | – |
+| users:view-org / view-all | all | org | – | – | – |
+| users:manage-org / manage-all | all | org | – | – | – |
+| audit:view-org / view-all | all | org | – | org | – |
+
+Tenant note: every non-SUPER_ADMIN user belongs to exactly one organization;
+SUPER_ADMIN is platform staff with cross-tenant rights.
+
+## Environment (`.env`)
+
+See `.env.example`. Required: `AUTH_SECRET` (64+ chars — signs JWTs and derives the
+AES-256-GCM key for TOTP secrets; rotating it invalidates sessions and MFA seeds —
+re-run `bun scripts/fix-mfa-secret.ts` afterwards).
+
+Optional: `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` for real Google sign-in
+(callback URL `{origin}/api/auth/google/callback`), `RECAPTCHA_*` / `HCAPTCHA_*`
+for external captcha providers.
+
+### Development mock provider
+
+`mini-services/mock-google` (port 3010) simulates Google's OAuth/OIDC endpoints so
+the full code path can be exercised without real credentials. Enable via the
+`GOOGLE_AUTH_BASE` / `GOOGLE_TOKEN_URL` / `GOOGLE_JWKS_URL` overrides in `.env`
+(see current `.env`), then start it with `cd mini-services/mock-google && bun run dev`.
+The login screen badges the Google button **DEMO PROVIDER** while the mock is active.
+Remove the overrides + set real credentials for production.
+
+## Demo accounts (after `bun scripts/seed-users.ts`)
+
+| Account | Role | Password | MFA |
+|---|---|---|---|
+| admin@adwacyber.et | SUPER_ADMIN | `Adwa#Admin2026!` | off |
+| admin@cbe.com.et | ORG_ADMIN (CBE) | `Adwa#Demo2026!` | off |
+| officer@cbe.com.et | COMPLIANCE_OFFICER (CBE) | `Adwa#Demo2026!` | **TOTP on** |
+| auditor@dashen.com.et | AUDITOR (Dashen) | `Adwa#Demo2026!` | off |
+| viewer@ethiotelecom.et | VIEWER (Ethio Telecom) | `Adwa#Demo2026!` | off |
+
+Officer TOTP seed (Google Authenticator): `UPRWOJXX2JVEYGDRDDXSWXDGCDIJLNLD`
+→ `otpauth://totp/Adwa%20Cyber:officer@cbe.com.et?secret=UPRWOJXX2JVEYGDRDDXSWXDGCDIJLNLD&issuer=Adwa%20Cyber&algorithm=SHA1&digits=6&period=30`
+
+## API surface (`src/app/api/auth/`)
+
+```
+POST /api/auth/register        tenant self-registration (org + first ORG_ADMIN)
+GET  /api/auth/captcha         issue SVG captcha challenge
+POST /api/auth/login           step 1: password (+captcha) → session or mfaToken
+POST /api/auth/mfa/verify      step 2: TOTP / backup code → session
+POST /api/auth/mfa/setup       generate TOTP secret + QR (auth required)
+POST /api/auth/mfa/enable      confirm code → enable, issue backup codes
+POST /api/auth/mfa/disable     password + code → disable, revoke all sessions
+POST /api/auth/refresh         rotate refresh token (reuse detection)
+POST /api/auth/logout          revoke session
+GET  /api/auth/me              identity + tenant + permissions
+GET  /api/auth/users           list tenant users (RBAC-scoped)
+POST /api/auth/users           create tenant user
+PATCH /api/auth/users/[id]     change role / status (RBAC-scoped)
+GET  /api/auth/audit           auth event log (RBAC-scoped)
+GET  /api/auth/google          start OAuth flow
+GET  /api/auth/google/callback finish OAuth flow
+GET  /api/auth/config          public capabilities (providers, captcha, policy)
+```
+
+## Tests
+
+```bash
+bun scripts/test-auth.ts     # 54 checks: captcha, login, MFA, RBAC matrix,
+                             # tenant isolation, rotation/reuse, lockout, logout
+bun scripts/test-google.ts   # 15 checks: full OAuth dance via the mock provider
+```
+
+Both suites run against the dev server (port 3000 / gateway 81).
+`test-google.ts` honors the 20-starts/5-min rate limit and waits if exhausted.
+
+## Key source files
+
+```
+src/lib/auth/crypto.ts       scrypt, AES-256-GCM, SHA-256, CSPRNG tokens
+src/lib/auth/jwt.ts          access/MFA token sign+verify (jose, HS256)
+src/lib/auth/session.ts      cookie handling, refresh rotation + reuse detection
+src/lib/auth/totp.ts         RFC 6238 TOTP + backup codes
+src/lib/auth/captcha.ts      built-in SVG captcha + hCaptcha/reCAPTCHA adapters
+src/lib/auth/google.ts       OAuth/OIDC helpers, endpoint overrides
+src/lib/auth/rbac.ts         role → permission matrix
+src/lib/auth/guard.ts        requireAuth / requirePermission middleware
+src/lib/auth/rate-limit.ts   in-memory sliding window limiter
+src/lib/auth/audit.ts        AuthEvent persistence
+```

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
-import { googleConfigured, exchangeCode, verifyGoogleIdToken } from "@/lib/auth/google";
+import { googleConfigured, exchangeCode, verifyGoogleIdToken, requestOrigin } from "@/lib/auth/google";
 import { issueSession, setAuthCookies } from "@/lib/auth/session";
 import { audit } from "@/lib/auth/audit";
 import { clientIp, rateLimit } from "@/lib/auth/rate-limit";
@@ -11,7 +11,7 @@ import { clientIp, rateLimit } from "@/lib/auth/rate-limit";
  * its JWKS, upserts the local account and issues a platform session.
  */
 export async function GET(req: NextRequest) {
-  const origin = req.nextUrl.origin;
+  const origin = requestOrigin(req.headers, req.nextUrl.origin);
   const fail = (reason: string) =>
     NextResponse.redirect(new URL(`/?authError=${encodeURIComponent(reason)}`, origin));
 

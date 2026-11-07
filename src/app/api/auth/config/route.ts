@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { googleConfigured } from "@/lib/auth/google";
+import { googleConfigured, googleMockMode } from "@/lib/auth/google";
 import { captchaConfig } from "@/lib/auth/captcha";
 
 /**
@@ -9,6 +9,7 @@ import { captchaConfig } from "@/lib/auth/captcha";
 export async function GET() {
   return NextResponse.json({
     googleEnabled: googleConfigured(),
+    googleMock: googleMockMode(),
     captcha: captchaConfig(),
     passwordPolicy: {
       minLength: 10,

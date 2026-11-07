@@ -51,6 +51,7 @@ export function LoginScreen({ onAuthenticated }: { onAuthenticated: (me: MeRespo
   const [error, setError] = useState<string | null>(null);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [googleEnabled, setGoogleEnabled] = useState(false);
+  const [googleMock, setGoogleMock] = useState(false);
   const [demoOpen, setDemoOpen] = useState(false);
   const otpRef = useRef<HTMLDivElement>(null);
 
@@ -76,7 +77,10 @@ export function LoginScreen({ onAuthenticated }: { onAuthenticated: (me: MeRespo
     loadCaptcha();
     fetch("/api/auth/config")
       .then((r) => r.json())
-      .then((c: { googleEnabled: boolean }) => setGoogleEnabled(c.googleEnabled))
+      .then((c: { googleEnabled: boolean; googleMock?: boolean }) => {
+        setGoogleEnabled(c.googleEnabled);
+        setGoogleMock(Boolean(c.googleMock));
+      })
       .catch(() => undefined);
   }, [loadCaptcha]);
 
@@ -410,6 +414,11 @@ export function LoginScreen({ onAuthenticated }: { onAuthenticated: (me: MeRespo
                             <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" />
                           </svg>
                           {t("continueWithGoogle")}
+                          {googleMock && (
+                            <Badge variant="secondary" className="ml-1.5 border border-amber-300 bg-amber-50 text-[10px] font-semibold text-amber-700 dark:border-amber-800 dark:bg-amber-950/50 dark:text-amber-300">
+                              DEMO PROVIDER
+                            </Badge>
+                          )}
                         </Button>
                         <div className="flex items-center gap-3">
                           <Separator className="flex-1" />
