@@ -223,7 +223,9 @@ export function LoginScreen({ onAuthenticated }: { onAuthenticated: (me: MeRespo
 
   const fillDemo = (acct: DemoAccount) => {
     setEmail(acct.email);
-    setPassword(acct.mfa || acct.email.includes("adwacyber.et") ? SUPER_DEMO_PASSWORD : ORG_DEMO_PASSWORD);
+    // Only the platform super admin uses the super password; every tenant
+    // account (MFA or not) is seeded with the org demo password.
+    setPassword(acct.email.includes("adwacyber.et") ? SUPER_DEMO_PASSWORD : ORG_DEMO_PASSWORD);
     setDemoOpen(false);
   };
 
