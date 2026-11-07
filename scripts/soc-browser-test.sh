@@ -165,11 +165,12 @@ NEW_ROW=$($AB eval "(() => document.body.innerText.includes('$TEST_DOM') ? 'ok' 
 [ "$NEW_ROW" = "ok" ] && ok "contributed indicator appears in hub" "$TEST_DOM" || bad "contributed indicator missing"
 $AB screenshot /tmp/soc-6-contributed.png >/dev/null 2>&1
 
-# report upward (anonymised) — toast carries the sha256 hash prefix
+# report upward (anonymised) — toast carries the exchange receipt (LIVE
+# binding) or the sha256 hash prefix (pilot fixture, no exchange configured)
 $AB find role button click --name "Report upward (anonymised)" >/dev/null 2>&1
 sleep 2.5
-REPORTED=$($AB eval "(() => { const t = [...document.querySelectorAll('[data-sonner-toast], [role=status], body')]; const all = t.map(x => x.textContent).join(' '); return /sha256 [a-f0-9]{6,}/i.test(all) ? 'ok' : 'no'; })()" 2>/dev/null | tail -1 | tr -d '"')
-[ "$REPORTED" = "ok" ] && ok "upward report toast with sha256 hash" || bad "upward report toast missing"
+REPORTED=$($AB eval "(() => { const t = [...document.querySelectorAll('[data-sonner-toast], [role=status], body')]; const all = t.map(x => x.textContent).join(' '); return /sha256 [a-f0-9]{6,}/i.test(all) || /EC-RCPT-[A-Z0-9]+/.test(all) ? 'ok' : 'no'; })()" 2>/dev/null | tail -1 | tr -d '"')
+[ "$REPORTED" = "ok" ] && ok "upward report toast with receipt/sha256" || bad "upward report toast missing"
 $AB screenshot /tmp/soc-7-report.png >/dev/null 2>&1
 
 echo "── 4. Wasasa admin: peer share + anonymised hub origin ──"

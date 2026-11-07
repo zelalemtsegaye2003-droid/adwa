@@ -56,8 +56,13 @@ INCIDENT_LOG · ASSESSMENT · CONFIG_EXPORT · OTHER` (bilingual labels).
 
 ## Demo artefacts (seeded)
 
-`bun scripts/seed-evidence.ts` (idempotent) creates 8 realistic artefacts for
+`bun scripts/seed-evidence.ts` (idempotent) creates 10 realistic artefacts for
 CBE and Wasasa MFI — policies, training CSV, a version chain (ICT Risk
 Appetite Statement v1.0 → v2.0), an archived firewall export, a real PDF
-certificate and incident drill debriefs — each with an on-disk file and a
-recorded SHA-256.
+certificate, the branch access-review log and the disaster-recovery plan —
+each with an on-disk file and a recorded SHA-256.
+
+`bun scripts/seed-evidence.ts --heal` restores artefact files that were lost
+on disk while their DB rows survived (e.g. after a sandbox recycle): the
+deterministic content is rewritten and `fileSize`/`checksum` refreshed, so
+the integrity gate stays self-consistent.

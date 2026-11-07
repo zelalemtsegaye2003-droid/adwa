@@ -1,0 +1,9 @@
+{
+  "name": "adwa-mock-ethiocert",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Development mock of the Ethio-CERT national exchange API for Adwa Cyber e2e testing",
+  "scripts": {
+    "dev": "bun --hot index.ts"
+  }
+}

@@ -392,7 +392,10 @@ model IncidentIndicator {
 model SyncRun {
   id             String   @id @default(cuid())
   direction      String // INGEST | REPORT
-  status         String   @default("success")
+  status         String   @default("success") // success | failed
+  source         String   @default("FIXTURE") // LIVE = Ethio-CERT exchange API binding | FIXTURE = bundled pilot fixture
+  endpoint       String? // exchange endpoint the run bound to (LIVE only)
+  receiptId      String? // exchange acknowledgement for upward REPORTs (LIVE only)
   ingested       Int      @default(0)
   updated        Int      @default(0)
   reported       Int      @default(0)

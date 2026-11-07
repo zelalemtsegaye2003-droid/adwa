@@ -358,9 +358,111 @@ const DOCS: SeedDoc[] = [
     downloads: 5,
     lastVerifiedAt: daysAgo(12),
   },
+  {
+    title: "Branch Access Review Log Q4 2026",
+    description:
+      "Quarterly branch user-access review log covering all 1,400+ CBE branches; access-review evidence for PD-1321 Art. 17 and NBE-IT access governance.",
+    category: "POLICY",
+    tags: "ART17-02, access-review",
+    fileName: "CBE_Branch_Access_Review_Log_Q4_2026.txt",
+    ext: "txt",
+    content: () =>
+      Buffer.from(
+        [
+          "COMMERCIAL BANK OF ETHIOPIA (CBE)",
+          "BRANCH USER-ACCESS REVIEW LOG — Q4 2026",
+          "Reviewer: Branch Security Directorate · Period: 01 Jul – 30 Sep 2026",
+          "",
+          "Scope: 1,412 branches · 18,306 active branch users",
+          "Reviewed: privileged accounts 412 · teller profiles 15,887 · supervisor 2,007",
+          "",
+          "Findings:",
+          " - 96 dormant accounts (>90d unused) — disabled during review.",
+          " - 11 segregated-duties conflicts — all resolved within the quarter.",
+          " - MFA coverage on branch supervisor profiles: 100%.",
+          "",
+          "Next review due: January 2027 (quarterly cycle per ISMS policy §3.2).",
+          "— Demo artefact, Adwa Cyber pilot —",
+        ].join("\n"),
+        "utf8"
+      ),
+    uploaderEmail: "officer@cbe.com.et",
+    orgName: "Commercial Bank of Ethiopia (CBE)",
+    createdAt: daysAgo(12),
+    downloads: 2,
+    lastVerifiedAt: daysAgo(6),
+  },
+  {
+    title: "CBE Disaster Recovery Plan 2026",
+    description:
+      "Board-approved disaster recovery and business continuity plan; recovery time objectives per critical system (NBE SBB/83/2022 continuity duty).",
+    category: "POLICY",
+    tags: "NBE-28, continuity, board-approved",
+    fileName: "CBE_Disaster_Recovery_Plan_2026.pdf",
+    ext: "pdf",
+    content: () =>
+      buildPdf("CBE DISASTER RECOVERY PLAN 2026", [
+        "Classification: Internal — Board ICT Committee, approved 03 February 2026",
+        "",
+        "Critical systems and recovery objectives:",
+        " - Core banking (Temenos): RTO 2h / RPO 15min — active-active DC pair",
+        "   (Addis Ababa primary, Adama secondary).",
+        " - Payment switches (Eth-Switch): RTO 1h / RPO 0 — dual site.",
+        " - Retail channels (mobile/internet banking): RTO 4h / RPO 30min.",
+        " - Interbank settlement interface: RTO 2h / RPO 15min.",
+        "",
+        "Testing: full failover exercised 28 September 2026 (results within",
+        "objectives); next exercise scheduled March 2027.",
+        "Crisis management and Ethio-CERT escalation paths attached as Annex B.",
+        "",
+        "Demo artefact — Adwa Cyber pilot.",
+      ]),
+    uploaderEmail: "admin@cbe.com.et",
+    orgName: "Commercial Bank of Ethiopia (CBE)",
+    createdAt: daysAgo(100),
+    downloads: 8,
+    lastVerifiedAt: daysAgo(15),
+  },
 ];
 
+/**
+ * Heal mode (`--heal`): after a sandbox recycle the on-disk artefacts can be
+ * lost while the DB rows survive. For every seeded doc whose file is missing,
+ * regenerate the deterministic content, rewrite the file and refresh
+ * fileSize/checksum so the vault stays self-consistent.
+ */
+async function heal() {
+  const orgs = await db.organization.findMany();
+  const orgByName = new Map(orgs.map((o) => [o.name, o]));
+  let healed = 0;
+  let absent = 0;
+  for (const d of DOCS) {
+    const org = orgByName.get(d.orgName);
+    if (!org) continue;
+    const doc = await db.evidenceDocument.findFirst({ where: { title: d.title, organizationId: org.id } });
+    if (!doc) {
+      absent++;
+      console.log(`  ? "${d.title}" — no DB row (run the full seed on an empty vault)`);
+      continue;
+    }
+    const p = path.join(STORAGE_ROOT, org.id, doc.storedName);
+    if (fs.existsSync(p)) continue;
+    const buf = d.content();
+    fs.mkdirSync(path.join(STORAGE_ROOT, org.id), { recursive: true });
+    fs.writeFileSync(p, buf, { mode: 0o600 });
+    await db.evidenceDocument.update({
+      where: { id: doc.id },
+      data: { fileSize: buf.length, checksum: sha256(buf) },
+    });
+    healed++;
+    console.log(`  ♻ healed "${d.title}" — file rewritten, checksum refreshed`);
+  }
+  console.log(`Heal complete — ${healed} file(s) restored, ${absent} row(s) absent.`);
+}
+
 async function main() {
+  if (process.argv.includes("--heal")) return heal();
+
   const existing = await db.evidenceDocument.count();
   if (existing > 0) {
     console.log(`Evidence seed skipped — ${existing} document(s) already present.`);

@@ -5,6 +5,7 @@ import { can } from "@/lib/auth/rbac";
 import {
   notificationLatency, lifecycleTimes, predictThreats, RQ3_TARGET_MINUTES,
 } from "@/lib/soc-engine";
+import { bindingStatus } from "@/lib/ethiocert-client";
 
 export const runtime = "nodejs";
 
@@ -49,7 +50,7 @@ export async function GET(req: NextRequest) {
       where: organizationId ? { organizationId } : {},
       orderBy: { createdAt: "desc" },
       take: 5,
-      select: { id: true, direction: true, ingested: true, updated: true, reported: true, createdAt: true, detail: true },
+      select: { id: true, direction: true, ingested: true, updated: true, reported: true, createdAt: true, detail: true, source: true, receiptId: true, status: true },
     }),
     db.indicatorShare.groupBy({
       by: ["mode"],
@@ -112,5 +113,6 @@ export async function GET(req: NextRequest) {
     },
     forecast: forecast.slice(0, 5),
     recentSyncs,
+    binding: bindingStatus(),
   });
 }
