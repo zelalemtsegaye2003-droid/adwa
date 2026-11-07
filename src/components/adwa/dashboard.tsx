@@ -37,7 +37,7 @@ export function DashboardView({ onOpenReport }: { onOpenReport: (scanId: string)
   const [stats, setStats] = useState<Stats | null>(null);
 
   useEffect(() => {
-    api("/api/stats").then(setStats).catch(() => {});
+    api<Stats>("/api/stats").then(setStats).catch(() => {});
   }, []);
 
   if (!stats) {
@@ -241,9 +241,8 @@ function PillarRadar() {
   const { t } = useI18n();
 
   useEffect(() => {
-    api("/api/scans")
-      
-      .then(({ scans }: { scans: { status: string; pillarScores: string | null }[] }) => {
+    api<{ scans: { status: string; pillarScores: string | null }[] }>("/api/scans")
+      .then(({ scans }) => {
         const done = scans.filter((s) => s.status === "complete" && s.pillarScores);
         if (!done.length) { setData([]); return; }
         const acc: Record<string, number[]> = {};
