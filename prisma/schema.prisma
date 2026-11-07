@@ -1,0 +1,88 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// ── Adwa Cyber — Phase 1 Compliance Platform ──────────────────────────────
+// Organizations assessed against Proclamation No. 1321/2024
+
+model Organization {
+  id           String   @id @default(cuid())
+  name         String
+  nameAm       String   @default("")
+  sector       String // Banking | Microfinance | Telecom | SME | ...
+  tier         String   @default("mid-market") // enterprise | mid-market | sme
+  contactEmail String?
+  status       String   @default("onboarding") // onboarding | active | pilot-complete
+  notes        String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  scans        Scan[]
+}
+
+// The 47-rule catalogue mapped to articles of Proclamation 1321/2024
+model Rule {
+  id             String   @id @default(cuid())
+  code           String   @unique // e.g. ART22-01
+  sortOrder      Int
+  article        String // "Art. 2"
+  articleSubject String
+  titleEn        String
+  titleAm        String
+  statementEn    String
+  statementAm    String
+  questionEn     String
+  questionAm     String
+  checkLogic     String
+  remediationEn  String
+  remediationAm  String
+  pillar         String // Legal | Technical | Organisational | Awareness
+  severity       String // critical | high | medium
+  priority       String // P0 | P1
+  penaltyRef     String
+  weight         Int // 3 critical / 2 high / 1 medium
+  version        String   @default("1.0")
+  isActive       Boolean  @default(true)
+  results        ScanResult[]
+}
+
+model Scan {
+  id               String    @id @default(cuid())
+  organizationId   String
+  organization     Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  name             String
+  mode             String    @default("full")
+  status           String    @default("in_progress") // in_progress | complete
+  auditorName      String    @default("Adwa Compliance Engine")
+  overallScore     Float?
+  pillarScores     String? // JSON: {"Legal": 72.5, ...}
+  findingsCount    Int       @default(0)
+  criticalFindings Int       @default(0)
+  startedAt        DateTime  @default(now())
+  completedAt      DateTime?
+  durationMinutes  Float?
+  results          ScanResult[]
+}
+
+model ScanResult {
+  id           String   @id @default(cuid())
+  scanId       String
+  scan         Scan     @relation(fields: [scanId], references: [id], onDelete: Cascade)
+  ruleId       String
+  rule         Rule     @relation(fields: [ruleId], references: [id], onDelete: Cascade)
+  answer       String // yes | partial | no | na
+  evidenceNote String?
+  score        Float // 0 | 50 | 100 (na excluded)
+  riskRank     Float?
+  findingEn    String?
+  findingAm    String?
+  status       String   @default("open") // open | in_progress | remediated | waived
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@unique([scanId, ruleId])
+}

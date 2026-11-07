@@ -1,0 +1,72 @@
+import { NextRequest, NextResponse } from "next/server";
+import { db } from "@/lib/db";
+import { evaluate, auditTimeComparison, type Answer } from "@/lib/engine";
+
+// POST /api/scans/[id]/submit — run the compliance engine over collected answers
+export async function POST(req: NextRequest, ctx: { params: Promise<{ id: string }> }) {
+  const { id } = await ctx.params;
+  const body = await req.json();
+  const answers: { ruleCode: string; answer: Answer; evidenceNote?: string }[] = body.answers ?? [];
+
+  const scan = await db.scan.findUnique({
+    where: { id },
+    include: { results: { include: { rule: true } } },
+  });
+  if (!scan) return NextResponse.json({ error: "Scan not found" }, { status: 404 });
+  if (scan.status === "complete") {
+    return NextResponse.json({ error: "Scan already completed" }, { status: 409 });
+  }
+
+  const answerMap = new Map(answers.map((a) => [a.ruleCode, a]));
+  const engineRules = scan.results.map((r) => ({
+    code: r.rule.code, article: r.rule.article, titleEn: r.rule.titleEn, titleAm: r.rule.titleAm,
+    statementEn: r.rule.statementEn, statementAm: r.rule.statementAm,
+    remediationEn: r.rule.remediationEn, remediationAm: r.rule.remediationAm,
+    pillar: r.rule.pillar, severity: r.rule.severity, penaltyRef: r.rule.penaltyRef, weight: r.rule.weight,
+  }));
+  const engineAnswers = scan.results.map((r) => ({
+    ruleCode: r.rule.code,
+    answer: answerMap.get(r.rule.code)?.answer ?? "na",
+  }));
+
+  const out = evaluate(engineRules, engineAnswers);
+
+  // Persist per-rule results
+  for (const r of scan.results) {
+    const res = out.results.find((x) => x.ruleCode === r.rule.code);
+    const input = answerMap.get(r.rule.code);
+    if (!res) continue;
+    await db.scanResult.update({
+      where: { id: r.id },
+      data: {
+        answer: res.answer,
+        evidenceNote: input?.evidenceNote ?? r.evidenceNote,
+        score: res.score,
+        riskRank: res.riskRank,
+        findingEn: res.findingEn,
+        findingAm: res.findingAm,
+      },
+    });
+  }
+
+  const now = new Date();
+  const minutes = Math.max(0.5, (now.getTime() - scan.startedAt.getTime()) / 60000);
+  const updated = await db.scan.update({
+    where: { id },
+    data: {
+      status: "complete",
+      completedAt: now,
+      durationMinutes: Math.round(minutes * 10) / 10,
+      overallScore: out.overallScore,
+      pillarScores: JSON.stringify(out.pillarScores),
+      findingsCount: out.findingsCount,
+      criticalFindings: out.criticalFindings,
+    },
+  });
+
+  return NextResponse.json({
+    scan: updated,
+    engine: out,
+    time: auditTimeComparison(minutes),
+  });
+}
