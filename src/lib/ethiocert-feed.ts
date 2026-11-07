@@ -1,12 +1,14 @@
 /**
- * Adwa Cyber — simulated Ethio-CERT national threat feed (pilot).
+ * Adwa Cyber — Ethio-CERT national threat feed: bundled pilot fixture.
  *
  * The proposal's Phase 2 includes an Ethio-CERT API synchronisation layer:
  * national intelligence flows DOWN to member organisations, anonymised
- * private-sector intelligence flows UP. The production integration will bind
- * to the Ethio-CERT exchange API; this module is the pilot fixture that the
- * /api/threats/sync?direction=ingest endpoint consumes so the full downward
- * pipeline (fetch → dedupe → classify → publish to the tenant hub) is
+ * private-sector intelligence flows UP. The live binding is implemented in
+ * src/lib/ethiocert-client.ts (ETHIOCERT_API_URL + ETHIOCERT_API_KEY); this
+ * module is the pilot fixture used when no exchange endpoint is configured,
+ * and the reference content the development exchange mock
+ * (mini-services/mock-ethiocert) serves — so the full downward pipeline
+ * (fetch → validate → dedupe → classify → publish to the tenant hub) is
  * exercised end-to-end without live credentials.
  *
  * Entries follow the categories documented in INTERPOL's Africa Cyberthreat

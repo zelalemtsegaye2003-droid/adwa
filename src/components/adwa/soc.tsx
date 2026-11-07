@@ -16,7 +16,7 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import {
   Activity, AlertTriangle, Radar, ShieldCheck, Timer, Zap, Radio, ArrowRight,
-  BellRing, Flame, Gauge, RefreshCw, Send, Eye, Users2, FileJson,
+  BellRing, Flame, Gauge, RefreshCw, Send, Eye, Users2, FileJson, PlugZap, Database,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useI18n } from "@/lib/i18n";
@@ -72,7 +72,8 @@ export interface MetricsDTO {
   lifecycle: { mttaMin: number | null; mttcMin: number | null; mttrMin: number | null };
   threatIntel: { activeIndicators: number; bySource: Record<string, number>; shares: { hub: number; peer: number } };
   forecast: { category: string; riskIndex: number; activeIndicators: number; recentIncidents: number; drivers: string[] }[];
-  recentSyncs: { id: string; direction: string; ingested: number; updated: number; reported: number; createdAt: string; detail: string | null }[];
+  recentSyncs: { id: string; direction: string; status: string; source: string; endpoint: string | null; receiptId: string | null; ingested: number; updated: number; reported: number; createdAt: string; detail: string | null }[];
+  binding: { mode: "live" | "fixture"; endpoint: string | null; hasKey: boolean };
 }
 
 const INCIDENT_STATUSES = ["detected", "triaged", "contained", "eradicated", "recovered", "closed"];
@@ -225,7 +226,7 @@ function SocOverview({ metrics }: { metrics: MetricsDTO | null }) {
     return <div className="space-y-3">{Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-24" />)}</div>;
   }
 
-  const { incidents, rq3, lifecycle, threatIntel, forecast, recentSyncs } = metrics;
+  const { incidents, rq3, lifecycle, threatIntel, forecast, recentSyncs, binding } = metrics;
   const criticalOpen = incidents.openBySeverity.critical ?? 0;
 
   return (
@@ -396,6 +397,18 @@ function SocOverview({ metrics }: { metrics: MetricsDTO | null }) {
             <h3 className="font-semibold flex items-center gap-2">
               <RefreshCw className="h-4 w-4 text-teal-600" aria-hidden />
               {t("socSyncPanel")}
+              <Badge
+                variant="outline"
+                title={binding.mode === "live" ? t("socSyncBindingLiveHint") : t("socSyncBindingFixtureHint")}
+                className={`ml-auto whitespace-nowrap ${
+                  binding.mode === "live"
+                    ? "bg-emerald-50 text-emerald-800 border-emerald-300 dark:bg-emerald-950/60 dark:text-emerald-300 dark:border-emerald-800"
+                    : "bg-amber-50 text-amber-800 border-amber-300 dark:bg-amber-950/60 dark:text-amber-300 dark:border-amber-800"
+                }`}
+              >
+                {binding.mode === "live" ? <PlugZap className="mr-1 h-3 w-3" aria-hidden /> : <Database className="mr-1 h-3 w-3" aria-hidden />}
+                {binding.mode === "live" ? `${t("socSyncBindingLive")} · ${(() => { try { return new URL(binding.endpoint ?? "").host; } catch { return binding.endpoint ?? ""; } })()}` : t("socSyncBindingFixture")}
+              </Badge>
             </h3>
             {recentSyncs.length === 0 ? (
               <p className="text-sm text-muted-foreground">—</p>
@@ -407,9 +420,21 @@ function SocOverview({ metrics }: { metrics: MetricsDTO | null }) {
                       {r.direction === "INGEST" ? <ArrowRight className="mr-1 h-3 w-3" aria-hidden /> : <Send className="mr-1 h-3 w-3" aria-hidden />}
                       {r.direction}
                     </Badge>
+                    <Badge variant="outline" className={`mt-0.5 whitespace-nowrap ${
+                      r.status === "failed"
+                        ? "bg-red-50 text-red-800 border-red-300 dark:bg-red-950/60 dark:text-red-300 dark:border-red-800"
+                        : r.source === "LIVE"
+                          ? "bg-emerald-50 text-emerald-800 border-emerald-300 dark:bg-emerald-950/60 dark:text-emerald-300 dark:border-emerald-800"
+                          : "bg-muted text-muted-foreground border-border"
+                    }`}>
+                      {r.status === "failed" ? t("socSyncFailed") : r.source === "LIVE" ? t("socSyncSourceLive") : t("socSyncSourceFixture")}
+                    </Badge>
                     <div className="min-w-0">
-                      <p className="truncate text-xs">{r.detail}</p>
-                      <p className="text-[10px] text-muted-foreground">{new Date(r.createdAt).toLocaleString("en-GB")}</p>
+                      <p className="truncate text-xs" title={r.detail ?? undefined}>{r.detail}</p>
+                      <p className="text-[10px] text-muted-foreground">
+                        {new Date(r.createdAt).toLocaleString("en-GB")}
+                        {r.receiptId ? ` · ${t("socSyncReceipt", r.receiptId)}` : ""}
+                      </p>
                     </div>
                   </div>
                 ))}
@@ -794,9 +819,13 @@ function ThreatsTab({ canManage, canSync, isSuperAdmin, onChanged }: {
   const [createOpen, setCreateOpen] = useState(false);
   const [shareTarget, setShareTarget] = useState<IndicatorRowDTO | null>(null);
   const [syncing, setSyncing] = useState(false);
+  const [binding, setBinding] = useState<{ mode: "live" | "fixture"; endpoint: string | null } | null>(null);
 
   const load = useCallback(() => {
     api<{ indicators: IndicatorRowDTO[] }>("/api/threats").then((d) => setRows(d.indicators)).catch(() => setRows([]));
+    api<{ binding: { mode: "live" | "fixture"; endpoint: string | null } }>("/api/threats/sync")
+      .then((d) => setBinding(d.binding))
+      .catch(() => setBinding(null));
   }, []);
   useEffect(() => { load(); }, [load]);
 
@@ -825,13 +854,17 @@ function ThreatsTab({ canManage, canSync, isSuperAdmin, onChanged }: {
   const doSync = async (direction: "ingest" | "report") => {
     setSyncing(true);
     try {
-      const res = await api<{ ingested?: number; updated?: number; reported?: number; payloadHash?: string }>("/api/threats/sync", {
+      const res = await api<{ ingested?: number; updated?: number; reported?: number; payloadHash?: string; delivery?: { mode: string; receiptId: string | null } }>("/api/threats/sync", {
         method: "POST", body: JSON.stringify({ direction }),
       });
       if (direction === "ingest") {
         toast.success(t("socSyncIngested", String(res.ingested ?? 0), String(res.updated ?? 0)));
       } else {
-        toast.success(`Ethio-CERT ← ${res.reported ?? 0} · sha256 ${(res.payloadHash ?? "").slice(0, 12)}…`);
+        toast.success(
+          res.delivery?.receiptId
+            ? `Ethio-CERT ← ${res.reported ?? 0} · ${t("socSyncReceipt", res.delivery.receiptId)}`
+            : `Ethio-CERT ← ${res.reported ?? 0} · sha256 ${(res.payloadHash ?? "").slice(0, 12)}…`
+        );
       }
       load();
       onChanged();
@@ -857,6 +890,20 @@ function ThreatsTab({ canManage, canSync, isSuperAdmin, onChanged }: {
           <CardContent className="flex flex-wrap items-center gap-3 p-4">
             <RefreshCw className={`h-4 w-4 text-teal-600 ${syncing ? "animate-spin" : ""}`} aria-hidden />
             <span className="text-sm font-medium">{t("socSyncPanel")}</span>
+            {binding && (
+              <Badge
+                variant="outline"
+                title={binding.mode === "live" ? t("socSyncBindingLiveHint") : t("socSyncBindingFixtureHint")}
+                className={`whitespace-nowrap ${
+                  binding.mode === "live"
+                    ? "bg-emerald-50 text-emerald-800 border-emerald-300 dark:bg-emerald-950/60 dark:text-emerald-300 dark:border-emerald-800"
+                    : "bg-amber-50 text-amber-800 border-amber-300 dark:bg-amber-950/60 dark:text-amber-300 dark:border-amber-800"
+                }`}
+              >
+                {binding.mode === "live" ? <PlugZap className="mr-1 h-3 w-3" aria-hidden /> : <Database className="mr-1 h-3 w-3" aria-hidden />}
+                {binding.mode === "live" ? `${t("socSyncBindingLive")} · ${(() => { try { return new URL(binding.endpoint ?? "").host; } catch { return binding.endpoint ?? ""; } })()}` : t("socSyncBindingFixture")}
+              </Badge>
+            )}
             <div className="ml-auto flex flex-wrap gap-2">
               {isSuperAdmin && (
                 <Button size="sm" variant="outline" onClick={() => doSync("ingest")} disabled={syncing} className="border-teal-300 text-teal-800 hover:bg-teal-50 dark:border-teal-800 dark:text-teal-300 dark:hover:bg-teal-950">
