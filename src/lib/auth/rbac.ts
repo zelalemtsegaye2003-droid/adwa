@@ -50,7 +50,15 @@ export type Permission =
   | "evidence:view-all"
   | "evidence:upload"
   | "evidence:manage-org"
-  | "evidence:manage-all";
+  | "evidence:manage-all"
+  // SOC / CERT-as-a-Service (proposal Phase 2)
+  | "soc:view-org"
+  | "soc:view-all"
+  | "soc:manage-org"
+  | "soc:manage-all"
+  | "threats:view"
+  | "threats:contribute"
+  | "threats:sync";
 
 const MATRIX: Record<AppRole, Permission[]> = {
   SUPER_ADMIN: [
@@ -67,6 +75,11 @@ const MATRIX: Record<AppRole, Permission[]> = {
     "evidence:view-all",
     "evidence:upload",
     "evidence:manage-all",
+    "soc:view-all",
+    "soc:manage-all",
+    "threats:view",
+    "threats:contribute",
+    "threats:sync",
   ],
   ORG_ADMIN: [
     "org:view-own",
@@ -82,6 +95,11 @@ const MATRIX: Record<AppRole, Permission[]> = {
     "evidence:view-org",
     "evidence:upload",
     "evidence:manage-org",
+    "soc:view-org",
+    "soc:manage-org",
+    "threats:view",
+    "threats:contribute",
+    "threats:sync",
   ],
   COMPLIANCE_OFFICER: [
     "org:view-own",
@@ -92,6 +110,11 @@ const MATRIX: Record<AppRole, Permission[]> = {
     "findings:manage-org",
     "evidence:view-org",
     "evidence:upload",
+    "soc:view-org",
+    "soc:manage-org",
+    "threats:view",
+    "threats:contribute",
+    "threats:sync",
   ],
   AUDITOR: [
     "org:view-own",
@@ -100,8 +123,10 @@ const MATRIX: Record<AppRole, Permission[]> = {
     "findings:view-org",
     "audit:view-org",
     "evidence:view-org",
+    "soc:view-org",
+    "threats:view",
   ],
-  VIEWER: ["org:view-own", "catalogue:view", "scans:view-org", "findings:view-org", "evidence:view-org"],
+  VIEWER: ["org:view-own", "catalogue:view", "scans:view-org", "findings:view-org", "evidence:view-org", "soc:view-org", "threats:view"],
 };
 
 export function can(role: AppRole | string | undefined, permission: Permission): boolean {

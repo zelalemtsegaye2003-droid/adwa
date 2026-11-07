@@ -12,7 +12,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { useTheme } from "next-themes";
 import {
   Moon, Sun, ShieldCheck, LayoutDashboard, ScrollText, Building2, ScanLine, Flag,
-  FileText, Languages, Users, LogOut, KeyRound, ChevronUp, FolderLock,
+  FileText, Languages, Users, LogOut, KeyRound, ChevronUp, FolderLock, Radar,
 } from "lucide-react";
 import { I18nProvider, useI18n } from "@/lib/i18n";
 import { DashboardView } from "@/components/adwa/dashboard";
@@ -22,13 +22,14 @@ import { ScanWizard } from "@/components/adwa/scan-wizard";
 import { FindingsView } from "@/components/adwa/findings";
 import { ExecutiveReport } from "@/components/adwa/executive-report";
 import { EvidenceView } from "@/components/adwa/evidence-view";
+import { SocView } from "@/components/adwa/soc";
 import { AuthGate, useAuth } from "@/components/auth/auth-gate";
 import { MfaSetupDialog, MfaBadge } from "@/components/auth/mfa-setup";
 import { UsersView } from "@/components/auth/users-view";
 import { AuditView } from "@/components/auth/audit-view";
 import { ROLE_COLORS, ROLE_SHORT } from "@/lib/auth-client";
 
-type View = "dashboard" | "catalogue" | "organizations" | "scan" | "findings" | "evidence" | "report" | "team" | "audit";
+type View = "dashboard" | "catalogue" | "organizations" | "scan" | "findings" | "evidence" | "report" | "soc" | "team" | "audit";
 
 function Shell() {
   const { t, lang, setLang } = useI18n();
@@ -53,6 +54,7 @@ function Shell() {
     { id: "scan", label: t("navScans"), icon: ScanLine, show: perms.has("scans:view-org") || perms.has("scans:view-all") },
     { id: "findings", label: t("navFindings"), icon: Flag, show: perms.has("findings:view-org") || perms.has("findings:view-all") },
     { id: "evidence", label: t("navEvidence"), icon: FolderLock, show: perms.has("evidence:view-org") || perms.has("evidence:view-all") },
+    { id: "soc", label: t("navSoc"), icon: Radar, show: perms.has("soc:view-org") || perms.has("soc:view-all") },
     { id: "report", label: t("navReport"), icon: FileText, show: perms.has("scans:view-org") || perms.has("scans:view-all") },
     { id: "team", label: t("team"), icon: Users, show: perms.has("users:view-org") || perms.has("users:view-all") },
     { id: "audit", label: t("auditLog"), icon: KeyRound, show: canSeeAudit },
@@ -214,6 +216,13 @@ function Shell() {
               />
             )}
             {view === "report" && <ExecutiveReport scanId={reportScanId} />}
+            {view === "soc" && (
+              <SocView
+                canManage={perms.has("soc:manage-org") || perms.has("soc:manage-all")}
+                canSync={perms.has("threats:sync")}
+                isSuperAdmin={isSuper}
+              />
+            )}
             {view === "team" && <UsersView canManage={canManageUsers} isSuperAdmin={isSuper} />}
             {view === "audit" && <AuditView isSuperAdmin={isSuper} />}
           </div>
