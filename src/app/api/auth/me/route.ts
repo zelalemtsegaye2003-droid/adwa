@@ -28,6 +28,7 @@ export async function GET(req: NextRequest) {
       orgStatus: full?.organization?.status ?? null,
       mfaEnabled: full?.mfaEnabled ?? false,
       authProvider: full?.authProvider ?? "LOCAL",
+      googleLinked: Boolean(full?.googleId),
       lastLoginAt: full?.lastLoginAt ?? null,
       createdAt: full?.createdAt ?? null,
       avatarUrl: full?.avatarUrl ?? null,

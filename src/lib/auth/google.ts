@@ -10,6 +10,14 @@
  *   GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET
  * The redirect URI is derived from the request origin:
  *   {origin}/api/auth/google/callback
+ *
+ * Endpoint overrides (for dev/test deployments — defaults hit real Google):
+ *   GOOGLE_AUTH_BASE  authorization endpoint. When it starts with "/" it is
+ *                     treated as a same-origin gateway path (e.g.
+ *                     "/mock-google/auth?XTransformPort=3010") so the
+ *                     browser can reach an in-sandbox mock provider.
+ *   GOOGLE_TOKEN_URL  token endpoint (server-to-server).
+ *   GOOGLE_JWKS_URL   JSON Web Key Set endpoint (server-to-server).
  */
 import { createRemoteJWKSet, jwtVerify } from "jose";
 
@@ -25,11 +33,29 @@ export function googleConfigured(): boolean {
   return Boolean(process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET);
 }
 
+/** True when a non-Google authorization endpoint is wired in (dev mock). */
+export function googleMockMode(): boolean {
+  return googleConfigured() && Boolean(process.env.GOOGLE_AUTH_BASE);
+}
+
 export function redirectUri(origin: string): string {
   return `${origin}/api/auth/google/callback`;
 }
 
-/** Build the Google OAuth 2.0 authorization URL. */
+/**
+ * Public origin of a request. Behind the gateway/any reverse proxy the app
+ * port differs from the public one, so forwarded headers win when present.
+ */
+export function requestOrigin(headers: Headers, fallbackOrigin: string): string {
+  const host = headers.get("x-forwarded-host")?.split(",")[0].trim() || headers.get("host");
+  if (host) {
+    const proto = headers.get("x-forwarded-proto")?.split(",")[0].trim() || "http";
+    return `${proto}://${host}`;
+  }
+  return fallbackOrigin;
+}
+
+/** Build the OAuth 2.0 authorization URL (Google, or override endpoint). */
 export function googleAuthUrl(origin: string, state: string): string {
   const params = new URLSearchParams({
     client_id: process.env.GOOGLE_CLIENT_ID!,
@@ -41,7 +67,14 @@ export function googleAuthUrl(origin: string, state: string): string {
     prompt: "select_account",
     state,
   });
-  return `https://accounts.google.com/o/oauth2/v2/auth?${params.toString()}`;
+  const base = process.env.GOOGLE_AUTH_BASE?.trim();
+  if (base && base.startsWith("/")) {
+    // Same-origin gateway path (dev mock provider behind Caddy XTransformPort).
+    const sep = base.includes("?") ? "&" : "?";
+    return `${origin}${base}${sep}${params.toString()}`;
+  }
+  const authBase = base && /^https?:\/\//.test(base) ? base : "https://accounts.google.com/o/oauth2/v2/auth";
+  return `${authBase}?${params.toString()}`;
 }
 
 interface TokenResponse {
@@ -53,7 +86,8 @@ interface TokenResponse {
 
 /** Exchange the authorization code for tokens. */
 export async function exchangeCode(code: string, origin: string): Promise<TokenResponse> {
-  const res = await fetch("https://oauth2.googleapis.com/token", {
+  const tokenUrl = process.env.GOOGLE_TOKEN_URL?.trim() || "https://oauth2.googleapis.com/token";
+  const res = await fetch(tokenUrl, {
     method: "POST",
     headers: { "Content-Type": "application/x-www-form-urlencoded" },
     body: new URLSearchParams({
@@ -67,8 +101,10 @@ export async function exchangeCode(code: string, origin: string): Promise<TokenR
   return (await res.json()) as TokenResponse;
 }
 
-// Google's JWKS endpoint (cached by jose).
-const JWKS = createRemoteJWKSet(new URL("https://www.googleapis.com/oauth2/v3/certs"));
+// Google's JWKS endpoint (cached by jose) — overridable for dev/test.
+const JWKS = createRemoteJWKSet(
+  new URL(process.env.GOOGLE_JWKS_URL?.trim() || "https://www.googleapis.com/oauth2/v3/certs")
+);
 
 /** Verify a Google ID token's signature, issuer and audience. */
 export async function verifyGoogleIdToken(idToken: string): Promise<GoogleIdClaims | null> {

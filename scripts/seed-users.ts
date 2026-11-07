@@ -6,7 +6,6 @@
  * Run: bun scripts/seed-users.ts
  */
 import { PrismaClient } from "@prisma/client";
-import { randomBytes } from "crypto";
 
 // reuse the platform's crypto/TOTP implementations (relative import, bun runs TS natively)
 import { hashPassword, encryptSecret, sha256 } from "../src/lib/auth/crypto";
@@ -16,18 +15,6 @@ const db = new PrismaClient();
 
 const SUPER_PASSWORD = "Adwa#Admin2026!";
 const ORG_PASSWORD = "Adwa#Demo2026!";
-
-function base32(buf: Buffer): string {
-  const A = "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567";
-  let bits = 0, value = 0, out = "";
-  for (const byte of buf) {
-    value = (value << 8) | byte;
-    bits += 8;
-    while (bits >= 5) { out += A[(value >>> (bits - 5)) & 31]; bits -= 5; }
-  }
-  if (bits > 0) out += A[(value << (5 - bits)) & 31];
-  return out;
-}
 
 async function main() {
   // ── 1. Backfill organization slugs + contact domains ────────────────────
@@ -94,7 +81,9 @@ async function main() {
   }
 
   // ── 4. MFA demo account: officer@cbe.com.et ─────────────────────────────
-  const secret = base32(randomBytes(20));
+  // Fixed demo TOTP seed (matches scripts/test-auth.ts). A stable seed keeps
+  // the documented authenticator entry and the e2e tests valid across re-seeds.
+  const secret = "UPRWOJXX2JVEYGDRDDXSWXDGCDIJLNLD";
   const backup = generateBackupCodes();
   await db.user.update({
     where: { email: "officer@cbe.com.et" },

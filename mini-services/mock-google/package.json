@@ -1,0 +1,9 @@
+{
+  "name": "adwa-mock-google",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Development mock of Google's OAuth 2.0 / OIDC provider for Adwa Cyber e2e testing",
+  "scripts": {
+    "dev": "bun --hot index.ts"
+  }
+}
