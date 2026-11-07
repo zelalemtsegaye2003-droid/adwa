@@ -3,6 +3,8 @@ import { db } from "@/lib/db";
 import { evaluate, auditTimeComparison, pillarConfFromJson, type Answer } from "@/lib/engine";
 import { requireAuthAny } from "@/lib/auth/guard";
 import { can } from "@/lib/auth/rbac";
+import { audit } from "@/lib/auth/audit";
+import { clientIp } from "@/lib/auth/rate-limit";
 
 // POST /api/scans/[id]/submit — run the compliance engine over collected answers
 export async function POST(req: NextRequest, ctx: { params: Promise<{ id: string }> }) {
@@ -73,7 +75,18 @@ export async function POST(req: NextRequest, ctx: { params: Promise<{ id: string
       pillarScores: JSON.stringify(out.pillarScores),
       findingsCount: out.findingsCount,
       criticalFindings: out.criticalFindings,
+      auditorName: user.name, // who actually submitted the assessment
     },
+  });
+
+  await audit({
+    type: "SCAN_COMPLETED",
+    userId: user.id,
+    email: user.email,
+    organizationId: scan.organizationId,
+    ip: clientIp(req.headers),
+    userAgent: req.headers.get("user-agent"),
+    detail: `Assessment "${scan.name}" completed — score ${out.overallScore}%, ${out.findingsCount} findings (${out.criticalFindings} critical), ${Math.round(minutes * 10) / 10} min.`,
   });
 
   return NextResponse.json({

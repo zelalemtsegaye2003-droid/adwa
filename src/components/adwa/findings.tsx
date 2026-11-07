@@ -6,6 +6,9 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Textarea } from "@/components/ui/textarea";
+import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { useI18n } from "@/lib/i18n";
 import { api, ApiCallError } from "@/lib/auth-client";
@@ -20,6 +23,10 @@ export function FindingsView() {
   // Keyed data: rows are valid only while data.key === scanFilter (avoids sync setState in effect)
   const [data, setData] = useState<{ key: string; rows: ResultDTO[] } | null>(null);
   const [updating, setUpdating] = useState<string | null>(null);
+  // Waiver flow: a justification note is required before the status becomes "waived".
+  const [waiveTarget, setWaiveTarget] = useState<ResultDTO | null>(null);
+  const [waiveNote, setWaiveNote] = useState("");
+  const [waiveBusy, setWaiveBusy] = useState(false);
 
   useEffect(() => {
     api<{ scans: typeof scans }>("/api/scans").then((d) => setScans(d.scans)).catch(() => {});
@@ -62,11 +69,11 @@ export function FindingsView() {
 
   const scanName = (id: string) => scans.find((s) => s.id === id)?.name ?? id;
 
-  const updateStatus = async (id: string, status: string) => {
+  const updateStatus = async (id: string, status: string, note?: string) => {
     setUpdating(id);
     try {
       await api(`/api/findings/${id}`, {
-        method: "PATCH", body: JSON.stringify({ status }),
+        method: "PATCH", body: JSON.stringify({ status, note }),
       });
     } catch (err) {
       setUpdating(null);
@@ -78,6 +85,27 @@ export function FindingsView() {
       prev ? { ...prev, rows: prev.rows.map((r) => (r.id === id ? { ...r, status } : r)) } : prev
     );
     toast.success(`${t("status")}: ${status}`);
+  };
+
+  const requestStatus = (r: ResultDTO, status: string) => {
+    if (status === "waived") {
+      setWaiveTarget(r);
+      setWaiveNote("");
+      return;
+    }
+    updateStatus(r.id, status);
+  };
+
+  const confirmWaive = async () => {
+    if (!waiveTarget) return;
+    if (waiveNote.trim().length < 5) {
+      toast.error(t("noteRequired"));
+      return;
+    }
+    setWaiveBusy(true);
+    await updateStatus(waiveTarget.id, "waived", waiveNote.trim());
+    setWaiveBusy(false);
+    setWaiveTarget(null);
   };
 
   return (
@@ -158,7 +186,7 @@ export function FindingsView() {
                       <TableCell>
                         <div className="flex items-center gap-2">
                           <StatusBadge status={r.status} />
-                          <Select value={r.status} onValueChange={(v) => updateStatus(r.id, v)} disabled={updating === r.id}>
+                          <Select value={r.status} onValueChange={(v) => requestStatus(r, v)} disabled={updating === r.id}>
                             <SelectTrigger className="h-7 w-7 border-0 p-0 justify-center" aria-label={`${t("status")} ${r.rule.code}`}>
                               <span className="text-xs text-muted-foreground">⋯</span>
                             </SelectTrigger>
@@ -179,6 +207,38 @@ export function FindingsView() {
           )}
         </CardContent>
       </Card>
+
+      {/* Waiver justification dialog */}
+      <Dialog open={waiveTarget !== null} onOpenChange={(open) => { if (!open) setWaiveTarget(null); }}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>{t("waiveTitle")}</DialogTitle>
+            <DialogDescription>{t("waiveDesc")}</DialogDescription>
+          </DialogHeader>
+          {waiveTarget && (
+            <p className="rounded-lg bg-muted px-3 py-2 text-sm">
+              <code className="font-semibold">{waiveTarget.rule.code}</code>{" "}
+              {lang === "en" ? waiveTarget.rule.titleEn : waiveTarget.rule.titleAm}
+            </p>
+          )}
+          <div className="grid gap-2">
+            <label htmlFor="waive-note" className="text-sm font-medium">{t("waiveLabel")}</label>
+            <Textarea
+              id="waive-note"
+              rows={3}
+              value={waiveNote}
+              onChange={(e) => setWaiveNote(e.target.value)}
+              placeholder={t("waivePh")}
+            />
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setWaiveTarget(null)} disabled={waiveBusy}>Cancel</Button>
+            <Button onClick={confirmWaive} disabled={waiveBusy} className="bg-emerald-700 hover:bg-emerald-800 text-white">
+              {t("stWaived")}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

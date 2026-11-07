@@ -37,6 +37,7 @@ function Shell() {
   const [view, setView] = useState<View>("dashboard");
   const [reportScanId, setReportScanId] = useState<string | null>(null);
   const [scanOrgId, setScanOrgId] = useState<string | null>(null);
+  const [resumeScanId, setResumeScanId] = useState<string | null>(null);
   const [scanKey, setScanKey] = useState(0);
   const [mfaOpen, setMfaOpen] = useState(false);
 
@@ -57,7 +58,10 @@ function Shell() {
     { id: "audit", label: t("auditLog"), icon: KeyRound, show: canSeeAudit },
   ];
 
-  const go = (v: View) => { setView(v); };
+  const go = (v: View) => {
+    setView(v);
+    if (v !== "scan") setResumeScanId(null); // leaving the wizard clears any resume target
+  };
   const initials = me.user.name.split(" ").map((p) => p[0]).slice(0, 2).join("").toUpperCase();
 
   return (
@@ -84,7 +88,10 @@ function Shell() {
                     <SidebarMenuItem key={item.id}>
                       <SidebarMenuButton
                         isActive={view === item.id}
-                        onClick={() => go(item.id)}
+                        onClick={() => {
+                          if (item.id === "scan") setResumeScanId(null); // sidebar entry always starts fresh
+                          go(item.id);
+                        }}
                         className={view === item.id ? "bg-emerald-700 text-white hover:bg-emerald-800" : ""}
                       >
                         <item.icon aria-hidden />
@@ -180,16 +187,21 @@ function Shell() {
 
           <div className="flex-1 p-4 sm:p-6">
             {view === "dashboard" && (
-              <DashboardView onOpenReport={(id) => { setReportScanId(id); go("report"); }} />
+              <DashboardView
+                onOpenReport={(id) => { setReportScanId(id); go("report"); }}
+                onResumeScan={(id) => { setScanOrgId(null); setResumeScanId(id); setScanKey((k) => k + 1); go("scan"); }}
+                canRunScans={perms.has("scans:run-org") || perms.has("scans:run-any-org")}
+              />
             )}
             {view === "catalogue" && <CatalogueView />}
             {view === "organizations" && (
-              <OrganizationsView onNewScan={(orgId) => { setScanOrgId(orgId); setScanKey((k) => k + 1); go("scan"); }} />
+              <OrganizationsView onNewScan={(orgId) => { setScanOrgId(orgId); setResumeScanId(null); setScanKey((k) => k + 1); go("scan"); }} />
             )}
             {view === "scan" && (
               <ScanWizard
                 key={scanKey}
                 preselectedOrgId={scanOrgId}
+                resumeScanId={resumeScanId}
                 onDone={(id) => { setReportScanId(id); go("report"); }}
               />
             )}

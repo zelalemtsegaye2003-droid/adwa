@@ -2,10 +2,13 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { requireAuthAny } from "@/lib/auth/guard";
 import { can } from "@/lib/auth/rbac";
+import { audit } from "@/lib/auth/audit";
+import { clientIp } from "@/lib/auth/rate-limit";
 
 /**
  * GET /api/scans — assessment history.
  * SUPER_ADMIN sees all scans; tenant users see only their organization's.
+ * in_progress scans carry answeredCount so the UI can offer "Continue".
  */
 export async function GET(req: NextRequest) {
   const guard = await requireAuthAny(req, ["scans:view-org", "scans:view-all"]);
@@ -19,9 +22,15 @@ export async function GET(req: NextRequest) {
     include: {
       organization: { select: { id: true, name: true, nameAm: true, sector: true, tier: true } },
       framework: { select: { code: true, name: true, instrumentNo: true } },
+      results: { select: { answer: true } },
     },
   });
-  return NextResponse.json({ scans });
+  return NextResponse.json({
+    scans: scans.map(({ results, ...s }) => ({
+      ...s,
+      answeredCount: results.filter((r) => r.answer !== "na").length,
+    })),
+  });
 }
 
 /** POST /api/scans — start an assessment (tenant-scoped, framework-scoped). */
@@ -79,5 +88,16 @@ export async function POST(req: NextRequest) {
   await db.scanResult.createMany({
     data: rules.map((r) => ({ scanId: scan.id, ruleId: r.id, answer: "na", score: 0 })),
   });
+
+  await audit({
+    type: "SCAN_STARTED",
+    userId: user.id,
+    email: user.email,
+    organizationId,
+    ip: clientIp(req.headers),
+    userAgent: req.headers.get("user-agent"),
+    detail: `Assessment "${scan.name}" started (${framework.code}, ${rules.length} obligations) for ${org.name}.`,
+  });
+
   return NextResponse.json({ scan }, { status: 201 });
 }

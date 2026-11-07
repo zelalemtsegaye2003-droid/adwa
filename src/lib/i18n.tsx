@@ -70,6 +70,23 @@ const DICT: Record<string, [string, string]> = {
   overallScore: ["Overall compliance score", "አጠቃላይ የቅጥ ውጤት"],
   remediationPlan: ["Smart remediation plan (risk-ranked)", "የማስተካከያ ዕቅድ (በአደጋ ተራ)"],
   timeComparison: ["Audit time — RQ1", "የፍተሻ ጊዜ — RQ1"],
+  // Scan lifecycle (drafts, resume, abandon)
+  autoSaving: ["Saving…", "በማስቀመጥ ላይ…"],
+  autoSaved: ["Draft saved", "ረቂቅ ተቀምጧል"],
+  autoSaveOff: ["Autosave", "በራስ-ማስቀመጥ"],
+  discardScan: ["Discard draft", "ረቂቁን ይጥሉ"],
+  discardConfirm: ["Discard this draft assessment? All saved answers will be permanently deleted.", "ይህን ረቂቅ ግምገማ ይጥላሉ? የተቀመጡ መልሶች ሁሉ በቋሚነት ይጠፋሉ።"],
+  resumeScan: ["Continue", "ቀጥል"],
+  inProgressScans: ["In-progress assessments", "በሂደት ላይ ያሉ ግምገማዎች"],
+  startedOn: ["Started", "የተጀመረው"],
+  resumedDraft: ["Resumed saved draft — answers restored", "የተቀመጠ ረቂቅ ተመልሷል — መልሶች ተመልሰዋል"],
+  completedRecord: ["This assessment is already complete.", "ይህ ግምገማ ተጠናቋል።"],
+  // Findings — waiver justification
+  waiveTitle: ["Waiver justification", "የውልቀት ማብራሪያ"],
+  waiveDesc: ["Record why this finding is waived. The justification is written to the audit trail.", "ይህ ግኝት ለምን እንደተወገደ ይመዝጉ። ማብራሪያው ወደ ኦዲት ምዝገባ ይጻፋል።"],
+  waiveLabel: ["Justification (required)", "ማብራሪያ (ያስፈልጋል)"],
+  waivePh: ["e.g. Risk accepted by CISO until the Q3 budget cycle", "ለምሳሌ፡ እስከ ሦስተኛ ኩዋርተር በጀት ስጋቱ በCISO ተቀብሏል"],
+  noteRequired: ["A waiver requires a justification note.", "ውልቀት ማብራሪያ ማስገባት አለብዎት።"],
   // Findings
   findTitle: ["Findings & Remediation", "ግኝቶች እና ማስተካከያ"],
   findSub: ["Track remediation across all completed scans", "ማስተካከያዎችን በሁሉም ፍተሻዎች ይከታተሉ"],

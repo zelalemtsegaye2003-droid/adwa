@@ -11,7 +11,7 @@ import { Progress } from "@/components/ui/progress";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
-import { Building2, ChevronLeft, ChevronRight, Play, CheckCircle2, AlertTriangle, FileCheck2, FolderLock } from "lucide-react";
+import { Building2, ChevronLeft, ChevronRight, Play, CheckCircle2, AlertTriangle, FileCheck2, FolderLock, Trash2, CloudUpload, CloudCheck, RotateCcw } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
 import { api } from "@/lib/auth-client";
 import { SeverityBadge, PillarBadge, ScoreRing, scoreColor, AnswerBadge, FrameworkBadge, type RuleDTO, type OrgDTO, type ResultDTO, type FrameworkDTO } from "./shared";
@@ -51,10 +51,20 @@ interface EngineOut {
   }[];
 }
 
+interface ScanDetailForResume {
+  id: string;
+  status: string;
+  name: string;
+  organizationId: string;
+  frameworkId: string | null;
+  results: { answer: string; evidenceNote: string | null; rule: { code: string } }[];
+}
+
 export function ScanWizard({
-  preselectedOrgId, onDone,
+  preselectedOrgId, resumeScanId, onDone,
 }: {
   preselectedOrgId?: string | null;
+  resumeScanId?: string | null;
   onDone: (scanId: string) => void;
 }) {
   const { t, lang } = useI18n();
@@ -74,7 +84,18 @@ export function ScanWizard({
   const [duration, setDuration] = useState<number | null>(null);
   const [coverage, setCoverage] = useState<Map<string, RuleCoverageDto> | null>(null);
   const [coverageSummary, setCoverageSummary] = useState<CoverageResponse["summary"] | null>(null);
+  const [saveState, setSaveState] = useState<"idle" | "saving" | "saved">("idle");
+  const [discarding, setDiscarding] = useState(false);
   const topRef = useRef<HTMLDivElement>(null);
+  // Autosave plumbing: dirty rule codes + refs mirroring the latest answers/notes.
+  const dirtyRef = useRef<Set<string>>(new Set());
+  const answersRef = useRef(answers);
+  const notesRef = useRef(notes);
+  const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const scanIdRef = useRef<string | null>(null);
+  answersRef.current = answers;
+  notesRef.current = notes;
+  scanIdRef.current = scanId;
 
   useEffect(() => {
     api<{ organizations: OrgDTO[] }>("/api/organizations").then((d) => {
@@ -96,6 +117,83 @@ export function ScanWizard({
       .catch(() => { if (!cancelled) setRulesData({ key: fwCode, rules: [] }); });
     return () => { cancelled = true; };
   }, [fwCode]);
+
+  // ── Resume: load a saved in-progress assessment ─────────────────────────
+  useEffect(() => {
+    if (!resumeScanId) return;
+    let cancelled = false;
+    api<{ scan: ScanDetailForResume }>(`/api/scans/${resumeScanId}`)
+      .then(({ scan }) => {
+        if (cancelled || !scan) return;
+        if (scan.status === "complete") {
+          // Nothing to resume — straight to the report.
+          onDone(scan.id);
+          return;
+        }
+        setScanId(scan.id);
+        setScanName(scan.name);
+        setOrgId(scan.organizationId);
+        const restoredAnswers: Record<string, Answer> = {};
+        const restoredNotes: Record<string, string> = {};
+        for (const r of scan.results) {
+          if (r.answer && r.answer !== "na") restoredAnswers[r.rule.code] = r.answer as Answer;
+          if (r.evidenceNote) restoredNotes[r.rule.code] = r.evidenceNote;
+        }
+        setAnswers(restoredAnswers);
+        setNotes(restoredNotes);
+        setStep(2);
+        toast.success(t("resumedDraft"));
+        // Coverage panel for the resumed org (framework inferred from scan rows).
+        api<CoverageResponse>(`/api/rules/coverage?org=${scan.organizationId}`)
+          .then((d) => {
+            if (cancelled) return;
+            setCoverage(new Map(d.coverage.map((c) => [c.ruleCode, c])));
+            setCoverageSummary(d.summary);
+          })
+          .catch(() => {});
+        topRef.current?.scrollIntoView({ behavior: "smooth" });
+      })
+      .catch(() => { if (!cancelled) toast.error(t("noData")); });
+    return () => { cancelled = true; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [resumeScanId]);
+
+  // ── Autosave: flush dirty answers 1.5s after the last edit ────────────────
+  const flushDraft = async () => {
+    const id = scanIdRef.current;
+    const dirty = [...dirtyRef.current];
+    if (!id || dirty.length === 0) return;
+    dirtyRef.current = new Set();
+    setSaveState("saving");
+    try {
+      await api(`/api/scans/${id}/answers`, {
+        method: "POST",
+        body: JSON.stringify({
+          answers: dirty.map((code) => ({
+            ruleCode: code,
+            answer: answersRef.current[code] ?? "na",
+            evidenceNote: notesRef.current[code] || undefined,
+          })),
+        }),
+      });
+      setSaveState("saved");
+    } catch {
+      // Draft save is best-effort; the submit payload is the source of truth.
+      setSaveState("idle");
+    }
+  };
+
+  const markDirty = (code: string) => {
+    if (!scanIdRef.current) return;
+    dirtyRef.current.add(code);
+    setSaveState("saving");
+    if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
+    saveTimerRef.current = setTimeout(flushDraft, 1500);
+  };
+
+  useEffect(() => () => {
+    if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
+  }, []);
 
   const rules = rulesData?.key === fwCode ? rulesData.rules : null;
 
@@ -128,6 +226,7 @@ export function ScanWizard({
       return;
     }
     setScanId(scan.id);
+    dirtyRef.current = new Set();
     setStep(2);
     // Fetch evidence coverage for the scanned org + framework (Rules Engine).
     api<CoverageResponse>(`/api/rules/coverage?org=${orgId}&framework=${encodeURIComponent(fwCode)}`)
@@ -142,6 +241,9 @@ export function ScanWizard({
   const runEngine = async () => {
     if (!scanId || !rules) return;
     setRunning(true);
+    // Cancel any pending draft save — the submit payload is authoritative.
+    if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
+    dirtyRef.current = new Set();
     const payload = {
       answers: rules.map((r) => ({
         ruleCode: r.code,
@@ -167,6 +269,7 @@ export function ScanWizard({
 
   const setAnswer = (code: string, a: Answer) => {
     setAnswers((prev) => ({ ...prev, [code]: a }));
+    markDirty(code);
   };
 
   // Rules Engine: attach an evidence reference to the note for one rule.
@@ -177,7 +280,39 @@ export function ScanWizard({
       if (current.includes(e.title)) return prev; // already referenced
       return { ...prev, [code]: current ? `${current} | ${ref}` : ref };
     });
+    markDirty(code);
     toast.success(`${e.title} → ${code}`);
+  };
+
+  const setNote = (code: string, value: string) => {
+    setNotes((prev) => ({ ...prev, [code]: value }));
+    markDirty(code);
+  };
+
+  // Discard an in-progress draft assessment (DELETE /api/scans/[id]).
+  const discardDraft = async () => {
+    if (!scanId || discarding) return;
+    if (!window.confirm(t("discardConfirm"))) return;
+    setDiscarding(true);
+    if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
+    dirtyRef.current = new Set();
+    try {
+      await api(`/api/scans/${scanId}`, { method: "DELETE" });
+    } catch (err) {
+      setDiscarding(false);
+      toast.error(err instanceof Error ? err.message : "Error");
+      return;
+    }
+    setDiscarding(false);
+    setScanId(null);
+    setAnswers({});
+    setNotes({});
+    setEngineOut(null);
+    setCoverage(null);
+    setCoverageSummary(null);
+    setSaveState("idle");
+    setStep(1);
+    toast.success(t("discardScan") + " ✓");
   };
 
   return (
@@ -283,6 +418,22 @@ export function ScanWizard({
             <span className="text-sm text-muted-foreground tabular-nums whitespace-nowrap">
               {answeredCount}/{rules?.length ?? "…"} {t("answered")}
             </span>
+            {scanId && (
+              <span
+                className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium whitespace-nowrap ${
+                  saveState === "saving" ? "bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300"
+                  : saveState === "saved" ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300"
+                  : "bg-muted text-muted-foreground"
+                }`}
+                aria-live="polite"
+              >
+                {saveState === "saving"
+                  ? <><CloudUpload className="h-3.5 w-3.5 animate-pulse" aria-hidden /> {t("autoSaving")}</>
+                  : saveState === "saved"
+                  ? <><CloudCheck className="h-3.5 w-3.5" aria-hidden /> {t("autoSaved")}</>
+                  : <><CloudUpload className="h-3.5 w-3.5" aria-hidden /> {t("autoSaveOff")}</>}
+              </span>
+            )}
           </div>
           {coverageSummary && (
             <div className="flex flex-wrap items-center gap-2 rounded-lg border border-emerald-200 bg-emerald-50/60 px-3 py-2 text-sm dark:border-emerald-900 dark:bg-emerald-950/40">
@@ -390,7 +541,7 @@ export function ScanWizard({
                             rows={1}
                             placeholder={t("evidenceNote")}
                             value={notes[r.code] ?? ""}
-                            onChange={(e) => setNotes((p) => ({ ...p, [r.code]: e.target.value }))}
+                            onChange={(e) => setNote(r.code, e.target.value)}
             aria-label={`${t("evidenceNote")} ${r.code}`}
                           />
                         </CardContent>
@@ -402,8 +553,21 @@ export function ScanWizard({
               ))}
             </div>
           </ScrollArea>
-          <div className="flex justify-between">
-            <Button variant="outline" onClick={() => setStep(1)}><ChevronLeft className="h-4 w-4" aria-hidden /> {t("step1")}</Button>
+          <div className="flex justify-between gap-2">
+            <div className="flex gap-2">
+              <Button variant="outline" onClick={() => setStep(1)}><ChevronLeft className="h-4 w-4" aria-hidden /> {t("step1")}</Button>
+              {scanId && (
+                <Button
+                  variant="outline"
+                  onClick={discardDraft}
+                  disabled={discarding || running}
+                  className="text-red-700 border-red-200 hover:bg-red-50 hover:text-red-800 dark:text-red-300 dark:border-red-900 dark:hover:bg-red-950/50"
+                >
+                  {discarding ? <RotateCcw className="h-4 w-4 animate-spin" aria-hidden /> : <Trash2 className="h-4 w-4" aria-hidden />}
+                  {t("discardScan")}
+                </Button>
+              )}
+            </div>
             <Button onClick={runEngine} disabled={running || answeredCount === 0} className="bg-emerald-700 hover:bg-emerald-800 text-white">
               {running ? <><AlertTriangle className="h-4 w-4 animate-pulse" aria-hidden /> {t("running")}</> : <><Play className="h-4 w-4" aria-hidden /> {t("runEngine")}</>}
             </Button>

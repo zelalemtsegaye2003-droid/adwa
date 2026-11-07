@@ -38,6 +38,7 @@ export interface ScanBriefDTO {
   id: string; name: string; status: string; overallScore: number | null;
   findingsCount: number; criticalFindings: number;
   startedAt: string; completedAt: string | null; durationMinutes: number | null;
+  answeredCount?: number; // in_progress drafts: how many obligations are answered
   organization?: { id: string; name: string; nameAm: string; sector: string; tier: string };
   organizationId?: string;
   framework?: FrameworkBrief | null;
