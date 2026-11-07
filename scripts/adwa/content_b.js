@@ -22,7 +22,7 @@ function build() {
 
   c.push(h2("6.3 Regulatory Engagement: INSA and Ethio-CERT"));
   c.push(p(
-    "Cybersecurity services, threat-intelligence sharing, and especially any monitoring of networks touch regulated territory. The proposal already assumes deep technical integration with Ethio-CERT (API synchronisation is implemented) and an observation role for INSA in the pilot design — both are the right instincts. The roadmap adds a formal step: before selling monitoring services beyond the pilot scope, the company should obtain written confirmation from INSA of the authorisation or licensing pathway applicable to private cybersecurity service providers, and structure its data-handling (metadata-only audits, privacy-preserving sharing protocols, Ethiopian-soil storage under Article 22 of Proclamation 1321/2024) to match. The specific permits, if any, required for a private SOC operating in Ethiopia should be confirmed with counsel rather than assumed; this item is flagged as requiring verification in the risk register."
+    "Cybersecurity services, threat-intelligence sharing, and especially any monitoring of networks touch regulated territory. The proposal assumes deep technical integration with Ethio-CERT (API synchronisation is a planned post-MVP enhancement in the Phase 2 build) and an observation role for INSA in the pilot design — both are the right instincts. The roadmap adds a formal step: before selling monitoring services beyond the pilot scope, the company should obtain written confirmation from INSA of the authorisation or licensing pathway applicable to private cybersecurity service providers, and structure its data-handling (metadata-only audits, privacy-preserving sharing protocols, Ethiopian-soil storage under Article 22 of Proclamation 1321/2024) to match. The specific permits, if any, required for a private SOC operating in Ethiopia should be confirmed with counsel rather than assumed; this item is flagged as requiring verification in the risk register."
   ));
 
   c.push(h2("6.4 Governance Structure"));
@@ -45,13 +45,13 @@ function build() {
     widths: [23, 8, 8, 16, 14, 31],
     rows: [
       ["Founder / CEO (Solomon Asalif)", "1", "Q1*", "500–1,000", "4,500–9,000", "Strategy, fundraising, anchor sales, university and INSA relationships"],
-      ["CTO / Senior Security Engineer", "1", "Q1", "1,500–2,500", "18,000–30,000", "Production platform, compliance engine, security architecture, ISO 27001 programme"],
-      ["SOC Manager", "1", "Q2", "1,200–2,000", "10,800–18,000", "24/7 operations, incident response, escalation, pilot delivery"],
-      ["Compliance Engineer", "1", "Q2", "800–1,500", "7,200–13,500", "Phase 1 engine maintenance, rule updates, customer onboarding scans"],
+      ["CTO / Senior Security Engineer", "1", "Q1", "1,500–2,500", "18,000–30,000", "Phase 1 build leadership: architecture, rule engine, security hardening, production deployment; ISO 27001 programme"],
+      ["Full-stack Engineer", "1", "Q2", "800–1,500", "7,200–13,500", "Phase 1 development: scan engine, web / executive / Amharic dashboards, rule-catalogue implementation"],
+      ["SOC Manager", "1", "Q3", "1,200–2,000", "7,200–12,000", "SOC stand-up on the platform infrastructure, pilot monitoring, incident response, escalation"],
       ["Partnerships & Sales Lead", "1", "Q3", "600–1,200", "3,600–7,200", "Pipeline beyond anchors, SME segment, partner channel"],
-      ["SOC Analysts (three shifts)", "3", "Q3", "400–800 each", "7,200–14,400", "24/7 monitoring, triage, threat-intelligence operations"],
+      ["SOC Analysts (three shifts)", "3", "Q3", "400–800 each", "7,200–14,400", "Pilot-customer monitoring, triage, threat-intelligence operations; roster builds toward 24/7 coverage in Year 2"],
       ["Operations & Administration", "1", "Q2", "300–500", "2,700–4,500", "Finance, HR, procurement, grant reporting"],
-      [{ t: "Total", b: true }, { t: "9", b: true }, "—", { t: "—", b: true }, { t: "54,000–96,600", b: true }, { t: "Plus supervised BDU student interns", b: true }],
+      [{ t: "Total", b: true }, { t: "9", b: true }, "—", { t: "—", b: true }, { t: "50,400–90,600", b: true }, { t: "Plus supervised BDU student interns", b: true }],
     ],
   }));
   c.push(note("* Founder draw begins Q2, after first revenue or grant receipt; Year 1 costs reflect in-year months only. Ranges are indicative Ethiopian market estimates for validation against actual offers."));
@@ -68,7 +68,7 @@ function build() {
 
   c.push(h2("8.1 Year 1 Budget"));
   c.push(p(
-    "The Year 1 budget is deliberately lean: it funds the credibility infrastructure (production deployment, certification, legal setup), the delivery team, and the pilots — nothing else. Figures are planning estimates in USD; birr conversions should use the prevailing National Bank of Ethiopia rate at the time of each expenditure, and the budget should be re-based quarterly as actuals arrive."
+    "The Year 1 budget is deliberately lean: it funds the from-scratch Phase 1 build and its production deployment, the delivery team, certification, legal setup, and the pilots — nothing else. Figures are planning estimates in USD; birr conversions should use the prevailing National Bank of Ethiopia rate at the time of each expenditure, and the budget should be re-based quarterly as actuals arrive."
   ));
 
   c.push(tableTitle("Year 1 operating budget (indicative, USD)"));
@@ -77,15 +77,15 @@ function build() {
     widths: [28, 12, 12, 48],
     vPad: 45,
     rows: [
-      ["Personnel (9 FTE, Section 7)", "54,000", "96,600", "In-year cost of three hiring waves; founder draw from Q2"],
-      ["Hosting & infrastructure", "10,000", "18,000", "Ethiopian cloud hosting per Art. 22 data-sovereignty rules; SOC tooling; monitoring"],
+      ["Personnel (9 FTE, Section 7)", "50,400", "90,600", "In-year cost of three hiring waves; founder draw from Q2; build team front-loaded"],
+      ["Hosting & infrastructure", "10,000", "18,000", "Ethiopian cloud hosting per Art. 22 data-sovereignty rules; development and staging environments; SOC tooling (Wazuh, MISP); monitoring"],
       ["ISO 27001 certification", "15,000", "30,000", "Gap assessment, remediation, Stage 1 and 2 audits (indicative range for a small firm)"],
-      ["Legal & professional services", "6,000", "12,000", "PLC registration, BDU agreement, pilot contracts, ongoing counsel"],
+      ["Legal & professional services", "6,000", "12,000", "PLC registration, BDU agreement, pilot contracts, rule-catalogue legal validation, ongoing counsel"],
       ["Pilot operations", "8,000", "15,000", "Travel, participant coordination, evaluation data collection"],
       ["Marketing & business development", "5,000", "10,000", "Case-study production, events, sales materials"],
-      ["Subtotal", "98,000", "181,600", "Sum of the rows above"],
-      ["Contingency (10%)", "9,800", "18,160", "FX movement, hiring delays, audit re-work"],
-      [{ t: "Total Year 1", b: true }, { t: "107,800", b: true }, { t: "199,760", b: true }, { t: "≈ USD 108k–200k; midpoint ≈ USD 154k", b: true }],
+      ["Subtotal", "94,400", "175,600", "Sum of the rows above"],
+      ["Contingency (10%)", "9,440", "17,560", "FX movement, hiring delays, build re-work, audit re-work"],
+      [{ t: "Total Year 1", b: true }, { t: "103,840", b: true }, { t: "193,160", b: true }, { t: "≈ USD 104k–193k; midpoint ≈ USD 148,500", b: true }],
     ],
   }));
   c.push(note("All figures are planning estimates to be validated; the totals are arithmetic sums of the ranges above."));
@@ -119,16 +119,16 @@ function build() {
     headers: ["Metric", "Year 1 (2027)", "Year 2 (2028)", "Year 3 (2029)"],
     widths: [34, 22, 22, 22],
     rows: [
-      ["Compliance subscribers (cumulative)", "5–10", "15–35", "60–120"],
-      ["CERT / MDR retainer clients (cumulative)", "2–4", "5–10", "12–20"],
-      ["Commercial revenue", "25k–60k", "120k–320k", "400k–850k"],
+      ["Compliance subscribers (cumulative)", "3–6", "12–30", "50–110"],
+      ["CERT / MDR retainer clients (cumulative)", "1–2", "4–8", "12–20"],
+      ["Commercial revenue", "15k–45k", "100k–280k", "380k–820k"],
       ["Grant & institutional funding (Tracks B/C)", "50k–150k", "100k–250k", "150k–400k"],
-      ["Operating cost", "108k–200k", "220k–400k", "450k–800k"],
+      ["Operating cost", "104k–193k", "220k–400k", "450k–800k"],
       ["Headcount (FTE)", "9", "18–22", "28–35"],
       ["Position", "Grant-subsidised loss", "Near break-even", "Break-even to modest profit on commercial revenue alone"],
     ],
   }));
-  c.push(note("Scenarios assume pilot-to-annual conversion of 50–70%, USD-indexed pricing, and hiring that lags validated demand. They are planning aids to be re-based quarterly."));
+  c.push(note("Scenarios assume a Month-6 pilot start, pilot-to-annual conversion of 50–70%, USD-indexed pricing, and hiring that lags validated demand. They are planning aids to be re-based quarterly."));
 
   c.push(p(
     "Two features of this model deserve emphasis. First, the business reaches viability on commercial revenue alone by Year 3 in the base scenario, with grants accelerating rather than substituting — the posture development partners themselves prefer to fund. Second, the revenue is concentrated in exactly the segments the proposal's pilot table already names, which means the Year 1 sales plan requires no speculative customer acquisition: it requires converting interest that already exists into signed, priced engagements."
@@ -188,17 +188,17 @@ function build() {
 
   c.push(h2("10.2 The Sales Motion"));
   c.push(p(
-    "The motion from first contact to contract has five steps, each with an exit criterion. One: an anchored introduction through INSA, Ethio-CERT, BDU, or a peer CISO — warm channels already implicit in the proposal's design. Two: a free, scoped compliance scan against a subset of the 47 rules, producing a findings report the prospect keeps — the single most persuasive artifact the platform can generate, and a natural productisation of the implemented engine. Three: a six-month paid pilot with metrics agreed up front (the proposal's pilot design already specifies participants, phases, and durations). Four: a steering-committee rhythm during the pilot that builds the internal champions who will defend renewal. Five: conversion to an annual contract at pilot pricing plus a defined step. Free pilots are explicitly rejected: they signal low value, attract non-committed participants, and consume the same delivery capacity as paid ones."
+    "The motion from first contact to contract has five steps, each with an exit criterion. One: an anchored introduction through INSA, Ethio-CERT, BDU, or a peer CISO — warm channels already implicit in the proposal's design. Two: a free, scoped compliance scan against a subset of the 47 rules, producing a findings report the prospect keeps — the single most persuasive artifact the platform can generate, and a natural productisation of the Phase 1 engine once the MVP is live. Three: a six-month paid pilot with metrics agreed up front (the proposal's pilot design already specifies participants, phases, and durations). Four: a steering-committee rhythm during the pilot that builds the internal champions who will defend renewal. Five: conversion to an annual contract at pilot pricing plus a defined step. Free pilots are explicitly rejected: they signal low value, attract non-committed participants, and consume the same delivery capacity as paid ones."
   ));
 
   c.push(h2("10.3 Partnership Architecture"));
   c.push(p(
-    "Four partnership tiers carry the go-to-market. Bahir Dar University provides the academic legitimacy and the student pipeline; its name opens ministry and school-system doors that a startup alone cannot. INSA and Ethio-CERT provide the regulatory integration and, over time, the endorsement without which security sales to state-adjacent buyers stall — the implemented Ethio-CERT API synchronisation is the technical foundation of this tier. The anchor banks are design partners whose case studies become the reference assets for the wider financial sector. Hosting and telecom partners (Ethio Telecom, Ethiopian cloud providers) supply the sovereign infrastructure the data-residency rules require, and can become channel partners reselling compliance scanning to their enterprise customers. Phase 4 and 5 partnerships — the EMA, the CII operators — belong to Track C and follow its gates; they are cultivated quietly through Year 1 but carry no revenue expectations."
+    "Four partnership tiers carry the go-to-market. Bahir Dar University provides the academic legitimacy and the student pipeline; its name opens ministry and school-system doors that a startup alone cannot. INSA and Ethio-CERT provide the regulatory integration and, over time, the endorsement without which security sales to state-adjacent buyers stall — the planned Ethio-CERT API synchronisation (a Phase 2 build deliverable) is the intended technical foundation of this tier. The anchor banks are design partners whose case studies become the reference assets for the wider financial sector. Hosting and telecom partners (Ethio Telecom, Ethiopian cloud providers) supply the sovereign infrastructure the data-residency rules require, and can become channel partners reselling compliance scanning to their enterprise customers. Phase 4 and 5 partnerships — the EMA, the CII operators — belong to Track C and follow its gates; they are cultivated quietly through Year 1 but carry no revenue expectations."
   ));
 
   c.push(h2("10.4 Competitive Positioning"));
   c.push(p(
-    "Against international vendors, Adwa Cyber's position is not cheaper security but native security: law-native (47 rules mapped to the actual proclamation, not to GDPR), language-native (Amharic dashboards and curriculum), and sovereignty-native (Ethiopian-soil hosting, indigenous IP — the exact argument the proposal's discussion section makes). Against local consultancies, the position is product over person-days: repeatable software and a 24/7 service rather than audit reports that age. This positioning should be stated consistently in every artifact — website, case studies, grant applications — and is the brand answer to the question every buyer and funder will ask: why not buy foreign? The proposal has already written the answer; the go-to-market's job is to prove it with paying customers."
+    "Against international vendors, Adwa Cyber's position is not cheaper security but native security: law-native (47 obligations of the actual proclamation encoded as rules, not GDPR mappings), language-native (Amharic dashboards and curriculum), and sovereignty-native (Ethiopian-soil hosting, indigenous IP — the exact argument the proposal's discussion section makes). Against local consultancies, the position is product over person-days: repeatable software and a 24/7 service rather than audit reports that age. This positioning should be stated consistently in every artifact — website, case studies, grant applications — and is the brand answer to the question every buyer and funder will ask: why not buy foreign? The proposal has already written the answer; the go-to-market's job is to prove it with paying customers."
   ));
 
   return c;
