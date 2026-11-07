@@ -57,7 +57,9 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  if (!verifyTotp(secret, body.code ?? "")) {
+  // A03/A04: type guard + length cap before crypto work.
+  const code = typeof body.code === "string" ? body.code.slice(0, 20) : "";
+  if (!verifyTotp(secret, code)) {
     await audit({
       type: "MFA_FAILED",
       userId: user.id,
