@@ -42,7 +42,8 @@ export type AuthEventType =
   | "SCAN_STARTED"
   | "SCAN_COMPLETED"
   | "SCAN_DELETED"
-  | "FINDING_STATUS_CHANGED";
+  | "FINDING_STATUS_CHANGED"
+  | "REPORT_EXPORTED";
 
 export interface AuditInput {
   type: AuthEventType;

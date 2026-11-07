@@ -8,9 +8,10 @@ import { Progress } from "@/components/ui/progress";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Tooltip, PieChart, Pie, Cell } from "recharts";
-import { Printer, FileText } from "lucide-react";
+import { Printer, FileText, Download, Loader2 } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
-import { api } from "@/lib/auth-client";
+import { api, ApiCallError } from "@/lib/auth-client";
+import { toast } from "sonner";
 import { SeverityBadge, ScoreRing, FrameworkBadge, scoreColor, fmtDate, type ScanBriefDTO, type ScanDetailDTO, type ResultDTO } from "./shared";
 
 export function ExecutiveReport({ scanId }: { scanId?: string | null }) {
@@ -47,6 +48,41 @@ export function ExecutiveReport({ scanId }: { scanId?: string | null }) {
     () => [...findings].sort((a, b) => (b.riskRank ?? 0) - (a.riskRank ?? 0)).slice(0, 10),
     [findings]
   );
+
+  // Server-side PDF export (bilingual; respects the current UI language).
+  const [pdfBusy, setPdfBusy] = useState(false);
+  const downloadPdf = async () => {
+    if (!selected || pdfBusy) return;
+    setPdfBusy(true);
+    try {
+      const res = await fetch(`/api/scans/${selected}/report?lang=${lang}`, {
+        method: "GET",
+        headers: { Accept: "application/pdf" },
+      });
+      if (!res.ok) {
+        let message = `Export failed (${res.status})`;
+        try {
+          const body = await res.json();
+          if (body?.error) message = body.error;
+        } catch {}
+        throw new ApiCallError(res.status, { code: "EXPORT_FAILED", message });
+      }
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download =`Adwa_Report_${detail?.organization?.name?.replace(/[^A-Za-z0-9]+/g, "-") ?? "scan"}_${detail?.completedAt?.slice(0, 10) ?? ""}_${lang.toUpperCase()}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 5_000);
+      toast.success(t("repPdfReady"));
+    } catch (err) {
+      toast.error(err instanceof ApiCallError ? err.message : "Export failed");
+    } finally {
+      setPdfBusy(false);
+    }
+  };
 
   const pillarScores: Record<string, number> = useMemo(
     () => (detail?.pillarScores ? JSON.parse(detail.pillarScores) : {}),
@@ -107,6 +143,10 @@ export function ExecutiveReport({ scanId }: { scanId?: string | null }) {
           </Select>
           <Button variant="outline" onClick={() => window.print()}>
             <Printer className="h-4 w-4" aria-hidden /> {t("print")}
+          </Button>
+          <Button onClick={downloadPdf} disabled={pdfBusy || !detail || detail.id !== selected} className="bg-emerald-700 text-white hover:bg-emerald-800">
+            {pdfBusy ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden /> : <Download className="h-4 w-4" aria-hidden />}
+            {t("repDownloadPdf")}
           </Button>
         </div>
       </div>
