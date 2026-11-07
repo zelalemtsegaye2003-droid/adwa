@@ -9,7 +9,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { toast } from "sonner";
 import { useI18n } from "@/lib/i18n";
 import { api, ApiCallError } from "@/lib/auth-client";
-import { SeverityBadge, StatusBadge, type ScanBriefDTO, type ResultDTO } from "./shared";
+import { SeverityBadge, StatusBadge, FrameworkBadge, type ScanBriefDTO, type ResultDTO } from "./shared";
 
 export function FindingsView() {
   const { t, lang } = useI18n();
@@ -92,7 +92,9 @@ export function FindingsView() {
           <SelectTrigger aria-label={t("allScans")}><SelectValue /></SelectTrigger>
           <SelectContent>
             <SelectItem value="all">{t("allScans")}</SelectItem>
-            {completed.map((s) => <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>)}
+            {completed.map((s) => (
+              <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>
+            ))}
           </SelectContent>
         </Select>
         <Select value={statusFilter} onValueChange={setStatusFilter}>
@@ -146,7 +148,12 @@ export function FindingsView() {
                           {r.rule.article} · {r.rule.penaltyRef}
                         </p>
                       </TableCell>
-                      <TableCell className="hidden md:table-cell text-sm text-muted-foreground">{scanName(r.scanId)}</TableCell>
+                      <TableCell className="hidden md:table-cell">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <FrameworkBadge code={scans.find((s) => s.id === r.scanId)?.framework?.code} />
+                          <span className="text-sm text-muted-foreground">{scanName(r.scanId)}</span>
+                        </div>
+                      </TableCell>
                       <TableCell className="font-bold tabular-nums">{r.riskRank?.toFixed(1) ?? "—"}</TableCell>
                       <TableCell>
                         <div className="flex items-center gap-2">

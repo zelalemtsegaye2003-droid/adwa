@@ -1,9 +1,12 @@
 // ─────────────────────────────────────────────────────────────────────────────
-// Adwa Cyber — Compliance Engine v1.0
-// Evaluates evidence answers against the 47-rule catalogue and produces
-// pillar-weighted scores, findings, risk ranking, and remediation plans
-// (proposal Table 18: Automated Scoring, Predictive Violation Detection,
+// Adwa Cyber — Compliance Engine v1.1
+// Evaluates evidence answers against a framework's obligation catalogue and
+// produces pillar-weighted scores, findings, risk ranking, and remediation
+// plans (proposal Table 18: Automated Scoring, Predictive Violation Detection,
 // Smart Remediation Engine, Risk Prioritisation).
+// v1.1: pillars and pillar weights are supplied per regulatory framework
+// (PD-1321: Legal/Technical/Organisational/Awareness · NBE-IT: Governance/
+// Automation/Risk Management/Cyber Security/Continuity).
 // ─────────────────────────────────────────────────────────────────────────────
 
 export type Answer = "yes" | "partial" | "no" | "na";
@@ -51,6 +54,33 @@ export const PILLAR_WEIGHTS: Record<PillarName, number> = {
   Awareness: 0.15,
 };
 
+/** Pillar configuration for a framework — pillars + their weights. */
+export interface PillarConf {
+  pillars: string[];
+  weights: Record<string, number>;
+}
+
+/** Default (PD-1321) pillar configuration. */
+export const DEFAULT_PILLAR_CONF: PillarConf = {
+  pillars: [...PILLARS],
+  weights: { ...PILLAR_WEIGHTS },
+};
+
+/** Parse a Framework.pillars JSON column into an engine PillarConf. */
+export function pillarConfFromJson(json: string | null | undefined): PillarConf {
+  if (!json) return DEFAULT_PILLAR_CONF;
+  try {
+    const arr = JSON.parse(json) as { name: string; weight: number }[];
+    if (!Array.isArray(arr) || arr.length === 0) return DEFAULT_PILLAR_CONF;
+    return {
+      pillars: arr.map((p) => p.name),
+      weights: Object.fromEntries(arr.map((p) => [p.name, p.weight])),
+    };
+  } catch {
+    return DEFAULT_PILLAR_CONF;
+  }
+}
+
 const ANSWER_SCORE: Record<Answer, number> = { yes: 100, partial: 50, no: 0, na: 0 };
 
 // Penalty exposure factor — turnover-based and longest custodial penalties rank highest
@@ -84,7 +114,8 @@ export interface EngineOutput {
 
 export function evaluate(
   rules: EngineRuleInput[],
-  answers: EngineAnswerInput[]
+  answers: EngineAnswerInput[],
+  conf: PillarConf = DEFAULT_PILLAR_CONF
 ): EngineOutput {
   const answerMap = new Map(answers.map((a) => [a.ruleCode, a.answer]));
 
@@ -116,7 +147,7 @@ export function evaluate(
 
   // Pillar scores: weighted by rule weight, NA excluded
   const pillarScores: Record<string, number> = {};
-  for (const pillar of PILLARS) {
+  for (const pillar of conf.pillars) {
     const pillarRules = rules
       .map((r, i) => ({ r, res: results[i] }))
       .filter(({ r }) => r.pillar === pillar);
@@ -133,13 +164,14 @@ export function evaluate(
   // Overall: pillar-weighted (only pillars with applicable rules count)
   let weightedSum = 0;
   let weightSum = 0;
-  for (const pillar of PILLARS) {
+  for (const pillar of conf.pillars) {
     const pillarRules = rules
       .map((r, i) => ({ r, res: results[i] }))
       .filter(({ r }) => r.pillar === pillar);
     if (pillarRules.some(({ res }) => res.answer !== "na")) {
-      weightedSum += pillarScores[pillar] * PILLAR_WEIGHTS[pillar];
-      weightSum += PILLAR_WEIGHTS[pillar];
+      const w = conf.weights[pillar] ?? 0;
+      weightedSum += pillarScores[pillar] * w;
+      weightSum += w;
     }
   }
   const overallScore = weightSum > 0 ? Math.round((weightedSum / weightSum) * 10) / 10 : 0;

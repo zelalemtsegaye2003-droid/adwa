@@ -14,7 +14,7 @@ import { toast } from "sonner";
 import { Building2, ChevronLeft, ChevronRight, Play, CheckCircle2, AlertTriangle } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
 import { api } from "@/lib/auth-client";
-import { SeverityBadge, PillarBadge, ScoreRing, scoreColor, AnswerBadge, type RuleDTO, type OrgDTO, type ResultDTO } from "./shared";
+import { SeverityBadge, PillarBadge, ScoreRing, scoreColor, AnswerBadge, FrameworkBadge, type RuleDTO, type OrgDTO, type ResultDTO, type FrameworkDTO } from "./shared";
 
 type Answer = "yes" | "partial" | "no" | "na";
 
@@ -38,7 +38,10 @@ export function ScanWizard({
   const { t, lang } = useI18n();
   const [step, setStep] = useState(1);
   const [orgs, setOrgs] = useState<OrgDTO[]>([]);
-  const [rules, setRules] = useState<RuleDTO[] | null>(null);
+  const [frameworks, setFrameworks] = useState<FrameworkDTO[]>([]);
+  const [fwCode, setFwCode] = useState("PD-1321");
+  // Keyed data: rules are valid only while data.key === fwCode (avoids sync setState in effect)
+  const [rulesData, setRulesData] = useState<{ key: string; rules: RuleDTO[] } | null>(null);
   const [orgId, setOrgId] = useState(preselectedOrgId ?? "");
   const [scanName, setScanName] = useState("");
   const [scanId, setScanId] = useState<string | null>(null);
@@ -54,8 +57,25 @@ export function ScanWizard({
       setOrgs(d.organizations);
       if (preselectedOrgId) setOrgId(preselectedOrgId);
     }).catch(() => {});
-    api<{ rules: RuleDTO[] }>("/api/rules").then((d) => setRules(d.rules)).catch(() => setRules([]));
+    api<{ frameworks: FrameworkDTO[] }>("/api/frameworks").then((d) => {
+      setFrameworks(d.frameworks);
+      if (d.frameworks.length > 0 && !d.frameworks.some((f) => f.code === "PD-1321")) {
+        setFwCode(d.frameworks[0].code);
+      }
+    }).catch(() => {});
   }, [preselectedOrgId]);
+
+  useEffect(() => {
+    let cancelled = false;
+    api<{ rules: RuleDTO[] }>(`/api/rules?framework=${encodeURIComponent(fwCode)}`)
+      .then((d) => { if (!cancelled) setRulesData({ key: fwCode, rules: d.rules }); })
+      .catch(() => { if (!cancelled) setRulesData({ key: fwCode, rules: [] }); });
+    return () => { cancelled = true; };
+  }, [fwCode]);
+
+  const rules = rulesData?.key === fwCode ? rulesData.rules : null;
+
+  const activeFw = frameworks.find((f) => f.code === fwCode) ?? null;
 
   const grouped = useMemo(() => {
     if (!rules) return [];
@@ -76,7 +96,7 @@ export function ScanWizard({
     let scan: { id: string };
     try {
       const data = await api<{ scan: { id: string } }>("/api/scans", {
-        method: "POST", body: JSON.stringify({ organizationId: orgId, name: scanName || undefined }),
+        method: "POST", body: JSON.stringify({ organizationId: orgId, frameworkCode: fwCode, name: scanName || undefined }),
       });
       scan = data.scan;
     } catch (err) {
@@ -144,7 +164,7 @@ export function ScanWizard({
         ))}
       </div>
 
-      {/* Step 1: organization */}
+      {/* Step 1: organization + framework */}
       {step === 1 && (
         <Card className="max-w-xl">
           <CardContent className="p-6 space-y-5">
@@ -160,12 +180,50 @@ export function ScanWizard({
               </Select>
             </div>
             <div className="grid gap-2">
+              <Label>{t("selectFramework")}</Label>
+              <div className="grid gap-2" role="radiogroup" aria-label={t("selectFramework")}>
+                {frameworks.map((f) => (
+                  <button
+                    key={f.code}
+                    type="button"
+                    role="radio"
+                    aria-checked={fwCode === f.code}
+                    onClick={() => setFwCode(f.code)}
+                    className={`flex items-start gap-3 rounded-xl border p-3 text-left transition-colors ${
+                      fwCode === f.code
+                        ? "border-emerald-600 bg-emerald-50/60 dark:bg-emerald-950/40"
+                        : "hover:bg-muted"
+                    }`}
+                  >
+                    <span
+                      aria-hidden
+                      className={`mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-full border-2 ${
+                        fwCode === f.code ? "border-emerald-600" : "border-muted-foreground/40"
+                      }`}
+                    >
+                      {fwCode === f.code && <span className="h-2 w-2 rounded-full bg-emerald-600" />}
+                    </span>
+                    <span className="min-w-0 flex-1">
+                      <span className="flex flex-wrap items-center gap-2">
+                        <span className="text-sm font-semibold">{lang === "en" ? f.name : f.nameAm}</span>
+                        <FrameworkBadge code={f.code} />
+                        <span className="text-xs text-muted-foreground">{f.instrumentNo}</span>
+                      </span>
+                      <span className="mt-0.5 block text-xs text-muted-foreground">
+                        {f.ruleCount} {t("obligations")} · {f.pillars.length} {t("allPillars").toLowerCase()}
+                      </span>
+                    </span>
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div className="grid gap-2">
               <Label htmlFor="scan-name">{t("scanName")}</Label>
               <Input
                 id="scan-name"
                 value={scanName}
                 onChange={(e) => setScanName(e.target.value)}
-                placeholder="Q4 2026 full compliance audit — 47 rules"
+                placeholder={`${activeFw?.name ?? "Compliance"} audit — ${activeFw?.ruleCount ?? rules?.length ?? ""} obligations`}
               />
             </div>
             <Button onClick={startScan} className="bg-emerald-700 hover:bg-emerald-800 text-white">
@@ -181,7 +239,7 @@ export function ScanWizard({
           <div className="flex flex-wrap items-center gap-3">
             <Progress value={progress} className="flex-1 min-w-40 h-2" aria-label="progress" />
             <span className="text-sm text-muted-foreground tabular-nums whitespace-nowrap">
-              {answeredCount}/{rules?.length ?? 47} {t("answered")}
+              {answeredCount}/{rules?.length ?? "…"} {t("answered")}
             </span>
           </div>
           <ScrollArea className="max-h-[calc(100vh-380px)] pr-3">
@@ -306,7 +364,7 @@ export function ScanWizard({
                     </div>
                   ))}
                   {engineOut.remediationPlan.length === 0 && (
-                    <p className="text-sm text-muted-foreground py-8 text-center">✓ 47/47 — fully compliant</p>
+                    <p className="text-sm text-muted-foreground py-8 text-center">✓ {rules?.length ?? 0}/{rules?.length ?? 0} — fully compliant</p>
                   )}
                 </div>
               </ScrollArea>

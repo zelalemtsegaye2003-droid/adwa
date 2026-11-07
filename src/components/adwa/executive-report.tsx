@@ -11,7 +11,7 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Toolti
 import { Printer, FileText } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
 import { api } from "@/lib/auth-client";
-import { SeverityBadge, ScoreRing, scoreColor, fmtDate, type ScanBriefDTO, type ScanDetailDTO, type ResultDTO } from "./shared";
+import { SeverityBadge, ScoreRing, FrameworkBadge, scoreColor, fmtDate, type ScanBriefDTO, type ScanDetailDTO, type ResultDTO } from "./shared";
 
 export function ExecutiveReport({ scanId }: { scanId?: string | null }) {
   const { t, lang } = useI18n();
@@ -98,7 +98,11 @@ export function ExecutiveReport({ scanId }: { scanId?: string | null }) {
           <Select value={selected ?? undefined} onValueChange={setUserSelected}>
             <SelectTrigger className="w-64" aria-label={t("navScans")}><SelectValue /></SelectTrigger>
             <SelectContent>
-              {scans.map((s) => <SelectItem key={s.id} value={s.id}>{s.organization?.name} — {s.name}</SelectItem>)}
+              {scans.map((s) => (
+                <SelectItem key={s.id} value={s.id}>
+                  {s.organization?.name} — {s.name}{s.framework ? ` [${s.framework.code}]` : ""}
+                </SelectItem>
+              ))}
             </SelectContent>
           </Select>
           <Button variant="outline" onClick={() => window.print()}>
@@ -116,14 +120,15 @@ export function ExecutiveReport({ scanId }: { scanId?: string | null }) {
             <CardContent className="p-6">
               <div className="flex flex-wrap items-start justify-between gap-4">
                 <div>
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
                     <FileText className="h-4 w-4" aria-hidden />
-                    {t("repTitle")} — Proclamation No. 1321/2024
+                    {t("repTitle")} — {detail.framework?.name ?? "Personal Data Protection"}
+                    <FrameworkBadge code={detail.framework?.code} full />
                   </div>
                   <h3 className="mt-1 text-xl font-bold">{detail.organization.name}</h3>
                   <p className="text-sm text-muted-foreground">{detail.name}</p>
                   <p className="text-sm text-muted-foreground mt-2">
-                    {t("auditor")}: {detail.auditorName ?? "Adwa Compliance Engine v1.0"} · {t("completedOn")}: {fmtDate(detail.completedAt)}
+                    {t("auditor")}: {detail.auditorName ?? "Adwa Compliance Engine"} · {t("completedOn")}: {fmtDate(detail.completedAt)}
                   </p>
                 </div>
                 <div className="text-center">

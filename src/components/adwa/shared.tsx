@@ -12,6 +12,20 @@ export interface RuleDTO {
   questionEn: string; questionAm: string; checkLogic: string;
   remediationEn: string; remediationAm: string;
   pillar: string; severity: string; priority: string; penaltyRef: string; weight: number;
+  frameworkCode?: string | null;
+}
+
+export interface FrameworkDTO {
+  id: string; code: string; name: string; nameAm: string;
+  issuer: string; instrument: string; instrumentNo: string;
+  descriptionEn: string; descriptionAm: string;
+  pillars: { name: string; nameAm: string; weight: number }[];
+  sectorScope: string; sourceUrl?: string | null;
+  ruleCount: number; scanCount: number;
+}
+
+export interface FrameworkBrief {
+  code: string; name: string; instrumentNo: string;
 }
 
 export interface OrgDTO {
@@ -26,6 +40,8 @@ export interface ScanBriefDTO {
   startedAt: string; completedAt: string | null; durationMinutes: number | null;
   organization?: { id: string; name: string; nameAm: string; sector: string; tier: string };
   organizationId?: string;
+  framework?: FrameworkBrief | null;
+  frameworkId?: string | null;
 }
 
 export interface ResultDTO {
@@ -39,6 +55,7 @@ export interface ScanDetailDTO extends ScanBriefDTO {
   results: ResultDTO[];
   pillarScores?: string | null;
   auditorName?: string;
+  framework?: (FrameworkBrief & { descriptionEn?: string; descriptionAm?: string }) | null;
 }
 
 // ── Severity / status badges (Ethiopian flag palette: green-amber-red) ──────
@@ -84,9 +101,32 @@ export function PillarBadge({ pillar }: { pillar: string }) {
     Technical: { label: t("technical"), cls: "bg-teal-50 text-teal-700 border-teal-200 dark:bg-teal-950/60 dark:text-teal-300 dark:border-teal-900" },
     Organisational: { label: t("organisational"), cls: "bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/60 dark:text-amber-300 dark:border-amber-900" },
     Awareness: { label: t("awareness"), cls: "bg-orange-50 text-orange-700 border-orange-200 dark:bg-orange-950/60 dark:text-orange-300 dark:border-orange-900" },
+    // NBE-IT framework pillars
+    Governance: { label: t("governance"), cls: "bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/60 dark:text-emerald-300 dark:border-emerald-900" },
+    Automation: { label: t("automation"), cls: "bg-teal-50 text-teal-700 border-teal-200 dark:bg-teal-950/60 dark:text-teal-300 dark:border-teal-900" },
+    "Risk Management": { label: t("riskMgmt"), cls: "bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/60 dark:text-amber-300 dark:border-amber-900" },
+    "Cyber Security": { label: t("cyberSec"), cls: "bg-red-50 text-red-700 border-red-200 dark:bg-red-950/60 dark:text-red-300 dark:border-red-900" },
+    Continuity: { label: t("continuity"), cls: "bg-orange-50 text-orange-700 border-orange-200 dark:bg-orange-950/60 dark:text-orange-300 dark:border-orange-900" },
   };
-  const e = map[pillar] ?? map.Legal;
+  const e = map[pillar] ?? { label: pillar, cls: "bg-muted text-muted-foreground border-border" };
   return <Badge variant="outline" className={`${e.cls} hover:bg-transparent`}>{e.label}</Badge>;
+}
+
+// ── Framework badge (which regulatory instrument a rule/scan belongs to) ──
+export function FrameworkBadge({ code, full }: { code?: string | null; full?: boolean }) {
+  if (!code) return null;
+  if (code === "NBE-IT") {
+    return (
+      <Badge variant="outline" className="whitespace-nowrap bg-teal-50 text-teal-800 border-teal-300 dark:bg-teal-950/60 dark:text-teal-300 dark:border-teal-800 hover:bg-teal-50">
+        {full ? "NBE SBB/83/2022" : "NBE"}
+      </Badge>
+    );
+  }
+  return (
+    <Badge variant="outline" className="whitespace-nowrap bg-emerald-50 text-emerald-800 border-emerald-300 dark:bg-emerald-950/60 dark:text-emerald-300 dark:border-emerald-800 hover:bg-emerald-50">
+      {full ? "Procl. 1321/2024" : "PD 1321"}
+    </Badge>
+  );
 }
 
 // ── Score ring gauge ────────────────────────────────────────────────────────

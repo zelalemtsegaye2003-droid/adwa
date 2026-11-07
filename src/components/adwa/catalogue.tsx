@@ -6,24 +6,55 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Search, Scale, Gavel } from "lucide-react";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Search, Scale, Gavel, Landmark } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
 import { api } from "@/lib/auth-client";
-import { SeverityBadge, PillarBadge, RuleTitle, type RuleDTO } from "./shared";
+import { SeverityBadge, PillarBadge, RuleTitle, FrameworkBadge, type RuleDTO, type FrameworkDTO } from "./shared";
 
 export function CatalogueView() {
   const { t, lang } = useI18n();
-  const [rules, setRules] = useState<RuleDTO[] | null>(null);
+  const [frameworks, setFrameworks] = useState<FrameworkDTO[] | null>(null);
+  const [fwCode, setFwCode] = useState<string>("PD-1321");
+  // Keyed data: rules are valid only while data.key === fwCode (avoids sync setState in effect)
+  const [data, setData] = useState<{ key: string; rules: RuleDTO[] } | null>(null);
   const [q, setQ] = useState("");
   const [article, setArticle] = useState("all");
   const [pillar, setPillar] = useState("all");
   const [severity, setSeverity] = useState("all");
 
   useEffect(() => {
-    api<{ rules: RuleDTO[] }>("/api/rules").then((d) => setRules(d.rules)).catch(() => setRules([]));
+    api<{ frameworks: FrameworkDTO[] }>("/api/frameworks")
+      .then((d) => {
+        setFrameworks(d.frameworks);
+        if (d.frameworks.length > 0 && !d.frameworks.some((f) => f.code === "PD-1321")) {
+          setFwCode(d.frameworks[0].code);
+        }
+      })
+      .catch(() => setFrameworks([]));
   }, []);
 
+  useEffect(() => {
+    let cancelled = false;
+    api<{ rules: RuleDTO[] }>(`/api/rules?framework=${encodeURIComponent(fwCode)}`)
+      .then((d) => { if (!cancelled) setData({ key: fwCode, rules: d.rules }); })
+      .catch(() => { if (!cancelled) setData({ key: fwCode, rules: [] }); });
+    return () => { cancelled = true; };
+  }, [fwCode]);
+
+  const rules = data?.key === fwCode ? data.rules : null;
+
+  // Switching framework resets dependent filters (event handler, not an effect)
+  const switchFramework = (code: string) => {
+    setFwCode(code);
+    setArticle("all");
+    setPillar("all");
+  };
+
+  const active = frameworks?.find((f) => f.code === fwCode) ?? null;
+
   const articles = useMemo(() => [...new Set((rules ?? []).map((r) => r.article))], [rules]);
+  const pillars = active?.pillars.map((p) => p.name) ?? [];
 
   const filtered = useMemo(() => {
     if (!rules) return [];
@@ -46,6 +77,50 @@ export function CatalogueView() {
         <h2 className="text-2xl font-bold tracking-tight">{t("catTitle")}</h2>
         <p className="text-muted-foreground">{t("catSub")}</p>
       </div>
+
+      {/* Framework switcher */}
+      {frameworks && frameworks.length > 0 && (
+        <div className="space-y-3">
+          <Tabs value={fwCode} onValueChange={switchFramework}>
+            <TabsList className="h-auto flex-wrap justify-start gap-1 bg-muted p-1">
+              {frameworks.map((f) => (
+                <TabsTrigger
+                  key={f.code}
+                  value={f.code}
+                  className="data-[state=active]:bg-emerald-700 data-[state=active]:text-white px-3 py-1.5"
+                >
+                  {lang === "en" ? f.name : f.nameAm}
+                  <span className="ml-1.5 rounded-full bg-black/10 px-1.5 text-[11px] tabular-nums dark:bg-white/20">
+                    {f.ruleCount}
+                  </span>
+                </TabsTrigger>
+              ))}
+            </TabsList>
+          </Tabs>
+          {active && (
+            <Card className="border-l-4 border-l-emerald-700">
+              <CardContent className="flex flex-col gap-2 p-4 sm:flex-row sm:items-start sm:gap-4">
+                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-emerald-50 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300">
+                  <Landmark className="h-5 w-5" aria-hidden />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <p className="font-semibold">{lang === "en" ? active.name : active.nameAm}</p>
+                    <FrameworkBadge code={active.code} />
+                    <span className="text-xs text-muted-foreground">{active.instrumentNo}</span>
+                  </div>
+                  <p className="mt-1 text-sm text-muted-foreground leading-relaxed">
+                    {lang === "en" ? active.descriptionEn : active.descriptionAm}
+                  </p>
+                  <p className="mt-1.5 text-xs text-muted-foreground">
+                    {t("issuer")}: {active.issuer} · {active.instrument} · {active.ruleCount} {t("obligations")}
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+        </div>
+      )}
 
       {/* Filters */}
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
@@ -70,9 +145,7 @@ export function CatalogueView() {
           <SelectTrigger className="w-full" aria-label={t("allPillars")}><SelectValue /></SelectTrigger>
           <SelectContent>
             <SelectItem value="all">{t("allPillars")}</SelectItem>
-            {["Legal", "Technical", "Organisational", "Awareness"].map((p) => (
-              <SelectItem key={p} value={p}>{p}</SelectItem>
-            ))}
+            {pillars.map((p) => <SelectItem key={p} value={p}>{p}</SelectItem>)}
           </SelectContent>
         </Select>
         <Select value={severity} onValueChange={setSeverity}>
@@ -87,11 +160,11 @@ export function CatalogueView() {
       </div>
 
       <p className="text-sm text-muted-foreground">
-        {filtered.length} / {rules?.length ?? 47} rules
+        {filtered.length} / {rules?.length ?? "…"} {t("obligations")}
       </p>
 
       {/* Rule list */}
-      <ScrollArea className="max-h-[calc(100vh-320px)] pr-4">
+      <ScrollArea className="max-h-[calc(100vh-380px)] pr-4">
         <div className="space-y-3">
           {!rules && Array.from({ length: 6 }).map((_, i) => <Skeleton key={i} className="h-28 rounded-xl" />)}
           {rules && filtered.map((r) => (
