@@ -102,6 +102,8 @@ const DICT: Record<string, [string, string]> = {
   risk: ["Risk", "አደጋ"],
   // Report
   repTitle: ["Executive Report", "ለአመራሮች ሪፖርት"],
+  repDownloadPdf: ["Download PDF", "PDF አውርድ"],
+  repPdfReady: ["Report PDF downloaded", "የሪፖርቱ PDF ተውሯል"],
   repSub: ["Board-ready summary of a completed scan", "ለቦርድ የተዘጋጀ ማጠቃለያ"],
   print: ["Print / PDF", "አትሚ / PDF"],
   auditor: ["Audited by", "መርሚያ"],

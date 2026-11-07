@@ -26,6 +26,9 @@ const csp = [
 const nextConfig: NextConfig = {
   output: "standalone",
   poweredByHeader: false, // don't advertise the framework
+  // pdfkit reads font/AFM files from disk at runtime — keep it external so
+  // Turbopack/webpack don't try to bundle those reads.
+  serverExternalPackages: ["pdfkit"],
   typescript: {
     ignoreBuildErrors: true,
   },
