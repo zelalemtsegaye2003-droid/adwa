@@ -50,6 +50,10 @@ model Organization {
   scans        Scan[]
   users        User[]
   evidence     EvidenceDocument[]
+  indicators   ThreatIndicator[] // SOC: indicators originating from this org
+  shareTargets IndicatorShare[]
+  incidents    Incident[]
+  syncRuns     SyncRun[]
 }
 
 // Machine-readable obligation catalogue, scoped to a framework
@@ -157,6 +161,11 @@ model User {
   authEvents       AuthEvent[]
   evidenceUploaded EvidenceDocument[]
   evidenceLinks    EvidenceLink[]
+  indicatorsCreated ThreatIndicator[]
+  indicatorShares  IndicatorShare[]
+  incidentEvents   IncidentEvent[]
+  assignedIncidents Incident[]
+  syncRunsTriggered SyncRun[]
 }
 
 model RefreshToken {
@@ -246,6 +255,156 @@ model EvidenceLink {
   @@unique([ruleId, evidenceId])
   @@index([evidenceId])
   @@index([ruleId])
+}
+
+// ── SOC / CERT-as-a-Service (proposal Phase 2) ─────────────────────────────
+// Threat-intelligence hub + 24/7 SOC incident response (NIST SP 800-61) +
+// Ethio-CERT synchronisation, built on the same multi-tenant base.
+
+// A threat indicator (IOC): IP, domain, URL, file hash, sender e-mail…
+// Hybrid sharing model (AAU Collaborative Framework): every indicator carries
+// a TLP marking and a sensitivity score; the soc-engine routes it either to
+// the anonymising hub (broadcast) or to targeted peer shares. The originating
+// organisation is kept on the record but is NEVER revealed on hub broadcasts.
+model ThreatIndicator {
+  id            String    @id @default(cuid())
+  type          String // ip | domain | url | hash_sha256 | hash_md5 | email | filename | cve
+  value         String
+  titleEn       String
+  titleAm       String
+  descriptionEn String?
+  descriptionAm String?
+  category      String // ransomware | phishing | bec | malware | ddos | credential_stuffing | apt | scam | insider | other
+  severity      String // critical | high | medium | low
+  tlp           String    @default("TLP:AMBER") // TLP:RED | TLP:AMBER+STRICT | TLP:AMBER | TLP:GREEN | TLP:CLEAR
+  source        String    @default("ANALYST") // ETHIO_CERT | MISP_FEED | ANALYST | ORG_UPLOAD
+  sourceRef     String? // Ethio-CERT bulletin no. / feed id
+  confidence    Int       @default(50) // 0–100
+  sensitivity   Int       @default(3) // 1–5 — drives the hybrid sharing decision
+  sharing       String    @default("HUB") // HUB (anonymised broadcast) | P2P (targeted peers)
+  organizationId String? // originating org (null = national feed / platform)
+  organization  Organization? @relation(fields: [organizationId], references: [id], onDelete: SetNull)
+  createdById   String?
+  createdBy     User?     @relation(fields: [createdById], references: [id], onDelete: SetNull)
+  firstSeenAt   DateTime  @default(now())
+  lastSeenAt    DateTime  @default(now())
+  sightings     Int       @default(0)
+  expiresAt     DateTime?
+  isActive      Boolean   @default(true)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  shares        IndicatorShare[]
+  incidents     IncidentIndicator[]
+
+  @@unique([type, value])
+  @@index([severity])
+  @@index([category])
+  @@index([isActive])
+}
+
+// One distribution event for an indicator. Hub broadcasts are anonymised
+// (targetOrgId = null, every member organisation receives them); peer shares
+// name the trusted partner that should see the sensitive indicator.
+model IndicatorShare {
+  id          String    @id @default(cuid())
+  indicatorId String
+  indicator   ThreatIndicator @relation(fields: [indicatorId], references: [id], onDelete: Cascade)
+  mode        String // HUB_BROADCAST | PEER_DIRECT
+  targetOrgId String? // null for hub broadcast (all orgs)
+  targetOrg   Organization? @relation(fields: [targetOrgId], references: [id], onDelete: Cascade)
+  sharedById  String
+  sharedBy    User    @relation(fields: [sharedById], references: [id])
+  anonymised  Boolean @default(true) // org identity stripped on hub broadcasts
+  createdAt   DateTime @default(now())
+
+  @@index([indicatorId])
+  @@index([targetOrgId])
+}
+
+// A security incident tracked through the NIST SP 800-61 lifecycle:
+// detected → triaged → contained → eradicated → recovered → closed.
+// detectedAt→notifiedAt is the RQ3 detection-to-notification latency the
+// proposal commits to keep under 15 minutes (median) for financial institutions.
+model Incident {
+  id            String   @id @default(cuid())
+  organizationId String
+  organization  Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  ref           String   @unique // INC-2026-0001
+  title         String
+  titleAm       String   @default("")
+  description   String?
+  category      String // ransomware | phishing | bec | malware | data_breach | ddos | unauthorized_access | other
+  severity      String // critical | high | medium | low
+  status        String   @default("detected") // detected | triaged | contained | eradicated | recovered | closed
+  source        String   @default("SOC_MONITOR") // SOC_MONITOR | THREAT_MATCH | ORG_REPORT | ETHIO_CERT
+  detectionMethod String @default("signature") // signature | behavioural | anomaly | threat_intel_match | manual
+  priorityScore Float? // soc-engine prioritisation 0–100
+  priorityLabel String? // IMMEDIATE | HIGH | ROUTINE
+  assigneeId    String?
+  assignee      User?    @relation(fields: [assigneeId], references: [id], onDelete: SetNull)
+  detectedAt    DateTime
+  notifiedAt    DateTime? // RQ3 anchor
+  triagedAt     DateTime?
+  containedAt   DateTime?
+  eradicatedAt  DateTime?
+  recoveredAt   DateTime?
+  closedAt      DateTime?
+  reportedToEthiocertAt DateTime?
+  impactNote    String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  events        IncidentEvent[]
+  indicators    IncidentIndicator[]
+
+  @@index([organizationId, status])
+  @@index([severity])
+  @@index([detectedAt])
+}
+
+// Immutable audit-grade timeline entry for every incident action.
+model IncidentEvent {
+  id         String   @id @default(cuid())
+  incidentId String
+  incident   Incident @relation(fields: [incidentId], references: [id], onDelete: Cascade)
+  type       String // DETECTED | NOTIFIED | TRIAGE | CONTAIN | ERADICATE | RECOVER | CLOSE | NOTE | AUTO_RESPONSE | ETHIOCERT_REPORT
+  note       String?
+  actorId    String?
+  actor      User?    @relation(fields: [actorId], references: [id], onDelete: SetNull)
+  createdAt  DateTime @default(now())
+
+  @@index([incidentId])
+}
+
+// Which indicators were matched/related to which incident (threat-intel ↔ SOC join).
+model IncidentIndicator {
+  incidentId   String
+  incident     Incident @relation(fields: [incidentId], references: [id], onDelete: Cascade)
+  indicatorId  String
+  indicator    ThreatIndicator @relation(fields: [indicatorId], references: [id], onDelete: Cascade)
+  matchedAt    DateTime @default(now())
+
+  @@id([incidentId, indicatorId])
+}
+
+// Ethio-CERT synchronisation runs. INGEST pulls the national feed downward;
+// REPORT packages an anonymised tenant summary upward (payload hash recorded
+// so the export is provable to a supervisor).
+model SyncRun {
+  id             String   @id @default(cuid())
+  direction      String // INGEST | REPORT
+  status         String   @default("success")
+  ingested       Int      @default(0)
+  updated        Int      @default(0)
+  reported       Int      @default(0)
+  payloadHash    String? // sha256 of the anonymised upward payload
+  organizationId String? // tenant that reported upward (null = platform ingest)
+  organization   Organization? @relation(fields: [organizationId], references: [id], onDelete: SetNull)
+  triggeredById  String
+  triggeredBy    User     @relation(fields: [triggeredById], references: [id])
+  detail         String?
+  createdAt      DateTime @default(now())
+
+  @@index([createdAt])
 }
 
 model CaptchaChallenge {

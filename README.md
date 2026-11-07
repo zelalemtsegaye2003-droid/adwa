@@ -18,7 +18,11 @@ Bilingual (English / አማርኛ) · Proclamation 1321/2024 · NCSP 2024 · Dig
 | **47-rule catalogue** | The obligations of Proclamation 1321/2024 as machine-readable rules (bilingual statements, questions, check logic, remediation, penalty refs, pillars, severity, priority) |
 | **Compliance engine** | Pillar-weighted scoring (Legal 35% / Technical 30% / Organisational 20% / Awareness 15%), risk-ranked findings, predictive violation detection, prioritised remediation plan, RQ1 audit-time comparison |
 | **Findings workflow** | open → in_progress → remediated / waived, tenant-isolated |
-| **UI** | Dashboard, catalogue, organizations, 47-question scan wizard, findings, executive report, team & roles, audit log — EN/AM toggle, dark mode |
+| **Remediation SLA** | Severity-based corrective-action deadlines (critical 30d / high 60d / medium 90d, Procl. 1426/2026 practice), on-time vs late closure proof, overdue tracking, dashboard banner |
+| **Rules engine** | NBE-IT SBB/83/2022 30-obligation catalogue, evidence coverage (SATISFIED/STALE/GAP), freshness policies, evidence↔obligation links with AUTO_TAG |
+| **Executive PDF** | Server-side bilingual (EN/አማርኛ) pdfkit reports with pillar charts, SLA table, per-page footers + payload hash |
+| **SOC / CERT-as-a-Service** | Phase 2 pilot: threat-intelligence hub with hybrid sharing (anonymised hub broadcasts + peer-to-peer for sensitive indicators, AAU framework), NIST SP 800-61 incident lifecycle (detect → triage → contain → eradicate → recover → close), alert prioritisation, predictive threat forecast, automated containment, Ethio-CERT synchronisation (national-feed ingest + anonymised upward reports with sha256-proof payloads), RQ3 detection→notification latency tracking (<15 min median target) |
+| **UI** | Dashboard, catalogue, organizations, 47-question scan wizard, findings, executive report, evidence vault, SOC (overview/incidents/threat intel), team & roles, audit log — EN/AM toggle, dark mode |
 | **Audit trail** | Every auth event (logins, MFA, lockouts, token reuse, user CRUD, Google logins) persisted with IP + user agent |
 
 See `docs/AUTH.md` for the full identity-module reference (API surface,
@@ -38,6 +42,7 @@ bun install
 bun prisma db push          # create schema
 bun prisma seed.ts          # 47 rules + pilot orgs + 2 demo scans
 bun scripts/seed-users.ts   # demo accounts (idempotent)
+bun scripts/seed-soc.cjs    # SOC demo data: Ethio-CERT feed + incidents (idempotent)
 
 bun run dev                 # http://localhost:3000
 ```

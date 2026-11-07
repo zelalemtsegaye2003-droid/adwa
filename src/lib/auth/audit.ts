@@ -43,7 +43,15 @@ export type AuthEventType =
   | "SCAN_COMPLETED"
   | "SCAN_DELETED"
   | "FINDING_STATUS_CHANGED"
-  | "REPORT_EXPORTED";
+  | "REPORT_EXPORTED"
+  // SOC / CERT-as-a-Service (proposal Phase 2)
+  | "INCIDENT_CREATED"
+  | "INCIDENT_STATUS_CHANGED"
+  | "INCIDENT_NOTIFIED"
+  | "THREAT_CREATED"
+  | "THREAT_UPDATED"
+  | "THREAT_SHARED"
+  | "ETHIOCERT_SYNC";
 
 export interface AuditInput {
   type: AuthEventType;
