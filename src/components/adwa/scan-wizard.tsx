@@ -11,12 +11,34 @@ import { Progress } from "@/components/ui/progress";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
-import { Building2, ChevronLeft, ChevronRight, Play, CheckCircle2, AlertTriangle } from "lucide-react";
+import { Building2, ChevronLeft, ChevronRight, Play, CheckCircle2, AlertTriangle, FileCheck2, FolderLock } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
 import { api } from "@/lib/auth-client";
 import { SeverityBadge, PillarBadge, ScoreRing, scoreColor, AnswerBadge, FrameworkBadge, type RuleDTO, type OrgDTO, type ResultDTO, type FrameworkDTO } from "./shared";
 
 type Answer = "yes" | "partial" | "no" | "na";
+
+// Rules Engine: per-rule evidence coverage (fetched once the scan org is known)
+interface CoverageEvidenceDto {
+  evidenceId: string;
+  title: string;
+  fileName: string;
+  category: string;
+  version: number;
+  linkType: string;
+  ageDays: number;
+  fresh: boolean;
+}
+interface RuleCoverageDto {
+  ruleCode: string;
+  status: "SATISFIED" | "STALE" | "GAP";
+  evidence: CoverageEvidenceDto[];
+  suggestedAnswer: "yes" | null;
+}
+interface CoverageResponse {
+  summary: { total: number; satisfied: number; stale: number; gap: number; coveragePercent: number };
+  coverage: RuleCoverageDto[];
+}
 
 interface EngineOut {
   overallScore: number;
@@ -50,6 +72,8 @@ export function ScanWizard({
   const [running, setRunning] = useState(false);
   const [engineOut, setEngineOut] = useState<EngineOut | null>(null);
   const [duration, setDuration] = useState<number | null>(null);
+  const [coverage, setCoverage] = useState<Map<string, RuleCoverageDto> | null>(null);
+  const [coverageSummary, setCoverageSummary] = useState<CoverageResponse["summary"] | null>(null);
   const topRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -105,6 +129,13 @@ export function ScanWizard({
     }
     setScanId(scan.id);
     setStep(2);
+    // Fetch evidence coverage for the scanned org + framework (Rules Engine).
+    api<CoverageResponse>(`/api/rules/coverage?org=${orgId}&framework=${encodeURIComponent(fwCode)}`)
+      .then((d) => {
+        setCoverage(new Map(d.coverage.map((c) => [c.ruleCode, c])));
+        setCoverageSummary(d.summary);
+      })
+      .catch(() => setCoverage(new Map()));
     topRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
@@ -136,6 +167,17 @@ export function ScanWizard({
 
   const setAnswer = (code: string, a: Answer) => {
     setAnswers((prev) => ({ ...prev, [code]: a }));
+  };
+
+  // Rules Engine: attach an evidence reference to the note for one rule.
+  const attachEvidence = (code: string, e: CoverageEvidenceDto) => {
+    setNotes((prev) => {
+      const ref = `Evidence: ${e.title} (v${e.version}, ${e.fileName}${e.fresh ? `, ${e.ageDays}d old` : `, STALE ${e.ageDays}d`})`;
+      const current = prev[code] ?? "";
+      if (current.includes(e.title)) return prev; // already referenced
+      return { ...prev, [code]: current ? `${current} | ${ref}` : ref };
+    });
+    toast.success(`${e.title} → ${code}`);
   };
 
   return (
@@ -242,6 +284,17 @@ export function ScanWizard({
               {answeredCount}/{rules?.length ?? "…"} {t("answered")}
             </span>
           </div>
+          {coverageSummary && (
+            <div className="flex flex-wrap items-center gap-2 rounded-lg border border-emerald-200 bg-emerald-50/60 px-3 py-2 text-sm dark:border-emerald-900 dark:bg-emerald-950/40">
+              <FolderLock className="h-4 w-4 text-emerald-700 dark:text-emerald-300" aria-hidden />
+              <span className="font-medium">{t("evCoverage")}:</span>
+              <span className="tabular-nums">{coverageSummary.satisfied}/{coverageSummary.total} {t("evSatisfiedShort")}</span>
+              <span className="text-muted-foreground">·</span>
+              <span className="text-amber-600 dark:text-amber-400 tabular-nums">{coverageSummary.stale} {t("evStaleShort")}</span>
+              <span className="text-muted-foreground">·</span>
+              <span className="text-red-600 dark:text-red-400 tabular-nums">{coverageSummary.gap} {t("evGapShort")}</span>
+            </div>
+          )}
           <ScrollArea className="max-h-[calc(100vh-380px)] pr-3">
             <div className="space-y-6">
               {!rules && <Skeleton className="h-64 rounded-xl" />}
@@ -251,7 +304,9 @@ export function ScanWizard({
                     {subject}
                   </h3>
                   <div className="mt-3 space-y-3">
-                    {rs.map((r) => (
+                    {rs.map((r) => {
+                      const cov = coverage?.get(r.code) ?? null;
+                      return (
                       <Card key={r.id} className={answers[r.code] ? "border-emerald-200 dark:border-emerald-900" : ""}>
                         <CardContent className="p-4">
                           <div className="flex flex-wrap items-start justify-between gap-3">
@@ -260,11 +315,55 @@ export function ScanWizard({
                                 <code className="rounded bg-muted px-1.5 py-0.5 text-xs font-semibold">{r.code}</code>
                                 <span className="font-medium text-sm">{lang === "en" ? r.titleEn : r.titleAm}</span>
                                 <SeverityBadge severity={r.severity} />
+                                {cov?.status === "SATISFIED" && (
+                                  <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-[11px] font-semibold text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300" title={t("evSatisfiedFull")}>
+                                    ✓ {t("evEvidenceOnFile")}
+                                  </span>
+                                )}
+                                {cov?.status === "STALE" && (
+                                  <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[11px] font-semibold text-amber-800 dark:bg-amber-950 dark:text-amber-300" title={t("evStaleFull")}>
+                                    ⏱ {t("evStaleEvidence")}
+                                  </span>
+                                )}
                               </div>
                               <p className="mt-2 text-sm text-muted-foreground">
                                 {lang === "en" ? r.questionEn : r.questionAm}
                               </p>
+                              {cov && cov.evidence.length > 0 && (
+                                <div className="mt-2 flex flex-wrap gap-1.5">
+                                  {cov.evidence.slice(0, 3).map((e) => (
+                                    <button
+                                      key={e.evidenceId}
+                                      type="button"
+                                      onClick={() => attachEvidence(r.code, e)}
+                                      title={t("evAttachHint")}
+                                      className={`inline-flex max-w-full items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs transition-colors hover:bg-emerald-50 dark:hover:bg-emerald-950/60 ${
+                                        e.fresh
+                                          ? "border-emerald-200 bg-emerald-50/70 text-emerald-800 dark:border-emerald-900 dark:bg-emerald-950/40 dark:text-emerald-300"
+                                          : "border-amber-200 bg-amber-50/70 text-amber-800 dark:border-amber-900 dark:bg-amber-950/40 dark:text-amber-300"
+                                      }`}
+                                    >
+                                      <FileCheck2 className="h-3 w-3 shrink-0" aria-hidden />
+                                      <span className="truncate">{e.title}</span>
+                                      <span className="shrink-0 opacity-70">v{e.version} · {e.fresh ? t("evFresh") : t("evStaleShort")} {e.ageDays}d</span>
+                                    </button>
+                                  ))}
+                                  {cov.evidence.length > 3 && (
+                                    <span className="inline-flex items-center px-2 py-1 text-xs text-muted-foreground">+{cov.evidence.length - 3}</span>
+                                  )}
+                                </div>
+                              )}
                             </div>
+                            {cov?.suggestedAnswer && !answers[r.code] && (
+                              <button
+                                type="button"
+                                onClick={() => setAnswer(r.code, "yes")}
+                                className="shrink-0 rounded-lg border border-emerald-300 bg-emerald-50 px-2.5 py-1.5 text-xs font-medium text-emerald-800 transition-colors hover:bg-emerald-100 dark:border-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300 dark:hover:bg-emerald-950"
+                                title={t("evSuggestYesFull")}
+                              >
+                                ✓ {t("evSuggestYes")}
+                              </button>
+                            )}
                           </div>
                           <div className="mt-3 flex flex-wrap gap-2">
                             {(["yes", "partial", "no", "na"] as Answer[]).map((a) => (
@@ -296,7 +395,8 @@ export function ScanWizard({
                           />
                         </CardContent>
                       </Card>
-                    ))}
+                      );
+                    })}
                   </div>
                 </div>
               ))}

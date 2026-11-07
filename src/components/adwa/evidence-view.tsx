@@ -70,6 +70,16 @@ interface EvidenceResponse {
 
 interface OrgOption { id: string; name: string }
 
+// Rules Engine: link DTOs
+interface EvidenceRuleLink {
+  id: string; ruleId: string; code: string; article: string;
+  titleEn: string; titleAm: string; severity: string; pillar: string;
+  linkType: string; source: string; createdBy: string; createdAt: string;
+}
+interface RuleSearchResult {
+  id: string; code: string; titleEn: string; titleAm: string; severity: string;
+}
+
 // ── Visual maps (Ethiopian palette: emerald / teal / amber / orange / red) ────
 
 const CAT_CLS: Record<string, string> = {
@@ -279,9 +289,26 @@ export function EvidenceView({
   const [detailsDoc, setDetailsDoc] = useState<EvidenceDoc | null>(null);
   const [chain, setChain] = useState<EvidenceDoc[] | null>(null);
 
+  // Rules Engine: obligations linked to the open document
+  const [docLinks, setDocLinks] = useState<EvidenceRuleLink[] | null>(null);
+  const [linkQuery, setLinkQuery] = useState("");
+  const [linkResults, setLinkResults] = useState<RuleSearchResult[] | null>(null);
+  const [linkBusy, setLinkBusy] = useState(false);
+
+  const loadDocLinks = async (evidenceId: string) => {
+    try {
+      const res = await api<{ links: EvidenceRuleLink[] }>(`/api/rules/links?evidenceId=${evidenceId}`);
+      setDocLinks(res.links);
+    } catch { setDocLinks([]); }
+  };
+
   const openDetails = async (doc: EvidenceDoc) => {
     setDetailsDoc(doc);
     setChain(null);
+    setDocLinks(null);
+    setLinkQuery("");
+    setLinkResults(null);
+    loadDocLinks(doc.id);
     if (doc.rootId || doc.version > 1) {
       try {
         const res = await api<EvidenceResponse>(
@@ -289,6 +316,59 @@ export function EvidenceView({
         );
         setChain(res.documents.sort((a, b) => a.version - b.version));
       } catch { setChain([]); }
+    }
+  };
+
+  // Debounced rule search for the link picker.
+  useEffect(() => {
+    const q = linkQuery.trim();
+    if (q.length < 2) { setLinkResults(null); return; }
+    const id = setTimeout(() => {
+      api<{ rules: RuleSearchResult[] }>(`/api/rules?q=${encodeURIComponent(q)}`)
+        .then((d) => setLinkResults(d.rules.slice(0, 6)))
+        .catch(() => setLinkResults([]));
+    }, 250);
+    return () => clearTimeout(id);
+  }, [linkQuery]);
+
+  const linkRule = async (rule: RuleSearchResult) => {
+    if (!detailsDoc) return;
+    setLinkBusy(true);
+    try {
+      await api("/api/rules/links", {
+        method: "POST",
+        body: JSON.stringify({ evidenceId: detailsDoc.id, ruleCode: rule.code }),
+      });
+      toast({ title: pick(`Linked to ${rule.code} ✓`, `${rule.code} ጋር ተያይዟል ✓`) });
+      setLinkQuery("");
+      setLinkResults(null);
+      await loadDocLinks(detailsDoc.id);
+    } catch (err) {
+      toast({
+        title: pick("Link failed", "መያያዝ አልተሳካም"),
+        description: err instanceof ApiCallError ? err.message : undefined,
+        variant: "destructive",
+      });
+    } finally {
+      setLinkBusy(false);
+    }
+  };
+
+  const unlinkRule = async (linkId: string, code: string) => {
+    if (!detailsDoc) return;
+    setLinkBusy(true);
+    try {
+      await api(`/api/rules/links?id=${linkId}`, { method: "DELETE" });
+      toast({ title: pick(`Unlinked from ${code}`, `ከ${code} ተነጠለ`) });
+      await loadDocLinks(detailsDoc.id);
+    } catch (err) {
+      toast({
+        title: pick("Unlink failed", "መነጠል አልተሳካም"),
+        description: err instanceof ApiCallError ? err.message : undefined,
+        variant: "destructive",
+      });
+    } finally {
+      setLinkBusy(false);
     }
   };
 
@@ -880,6 +960,82 @@ export function EvidenceView({
                     ))}
                   </div>
                 )}
+
+                {/* Rules Engine: linked obligations */}
+                <div className="rounded-lg border border-emerald-100 p-3 dark:border-emerald-950">
+                  <p className="mb-2 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                    <GitBranch className="h-3.5 w-3.5" aria-hidden />
+                    {t("evLinkedRules")}
+                    {docLinks !== null && (
+                      <span className="rounded-full bg-emerald-100 px-1.5 py-0.5 text-[10px] font-bold text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300">
+                        {docLinks.length}
+                      </span>
+                    )}
+                  </p>
+                  {docLinks === null && <p className="text-sm text-muted-foreground">{t("loading")}</p>}
+                  {docLinks?.length === 0 && (
+                    <p className="text-sm text-muted-foreground">{t("evNoLinks")}</p>
+                  )}
+                  <ul className="space-y-1.5">
+                    {docLinks?.map((l) => (
+                      <li key={l.id} className="flex items-center justify-between gap-2 rounded-lg border border-emerald-100 bg-emerald-50/40 p-2 text-sm dark:border-emerald-950 dark:bg-emerald-950/30">
+                        <span className="min-w-0">
+                          <code className="mr-1.5 rounded bg-emerald-100 px-1.5 py-0.5 font-mono text-xs font-semibold text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300">{l.code}</code>
+                          <span className="truncate align-middle">{lang === "en" ? l.titleEn : l.titleAm}</span>
+                          {l.source === "AUTO_TAG" && (
+                            <span className="ml-1.5 rounded-full bg-teal-100 px-1.5 py-0.5 text-[10px] font-medium text-teal-800 dark:bg-teal-950 dark:text-teal-300" title={t("evAutoTagFull")}>
+                              ⚡ {t("evAutoTag")}
+                            </span>
+                          )}
+                        </span>
+                        {canUpload && (
+                          <button
+                            type="button"
+                            disabled={linkBusy}
+                            onClick={() => unlinkRule(l.id, l.code)}
+                            className="shrink-0 rounded p-1 text-muted-foreground transition-colors hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-950"
+                            aria-label={`${t("evUnlink")} ${l.code}`}
+                            title={t("evUnlink")}
+                          >
+                            <X className="h-3.5 w-3.5" aria-hidden />
+                          </button>
+                        )}
+                      </li>
+                    ))}
+                  </ul>
+                  {canUpload && (
+                    <div className="relative mt-2">
+                      <Search className="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-muted-foreground" aria-hidden />
+                      <Input
+                        value={linkQuery}
+                        onChange={(e) => setLinkQuery(e.target.value)}
+                        placeholder={t("evLinkSearchPh")}
+                        className="h-9 pl-8 text-sm"
+                        aria-label={t("evLinkRule")}
+                      />
+                      {linkResults !== null && linkResults.length > 0 && (
+                        <div className="absolute z-20 mt-1 w-full overflow-hidden rounded-lg border bg-background shadow-lg">
+                          {linkResults.map((r) => (
+                            <button
+                              key={r.id}
+                              type="button"
+                              disabled={linkBusy}
+                              onClick={() => linkRule(r)}
+                              className="flex w-full items-center gap-2 border-b px-3 py-2 text-left text-sm transition-colors last:border-b-0 hover:bg-emerald-50 dark:hover:bg-emerald-950/60"
+                            >
+                              <code className="rounded bg-muted px-1.5 py-0.5 text-xs font-semibold">{r.code}</code>
+                              <span className="min-w-0 flex-1 truncate">{lang === "en" ? r.titleEn : r.titleAm}</span>
+                              <span className="shrink-0 text-xs text-muted-foreground">{r.severity}</span>
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                      {linkResults !== null && linkResults.length === 0 && (
+                        <p className="mt-1 text-xs text-muted-foreground">{t("evNoRuleMatches")}</p>
+                      )}
+                    </div>
+                  )}
+                </div>
 
                 <dl className="grid grid-cols-2 gap-x-4 gap-y-2 rounded-lg border border-emerald-100 p-3 text-sm dark:border-emerald-950">
                   <div>

@@ -5,6 +5,7 @@ import { can } from "@/lib/auth/rbac";
 import { audit } from "@/lib/auth/audit";
 import { clientIp } from "@/lib/auth/rate-limit";
 import { EVIDENCE_CATEGORIES, type EvidenceCategory } from "@/lib/evidence";
+import { autoLinkEvidence } from "@/lib/rules-engine";
 
 export const runtime = "nodejs";
 
@@ -125,6 +126,22 @@ export async function PATCH(req: NextRequest, ctx: Ctx) {
       ...(body.tags !== undefined ? { tags: String(body.tags).trim() || null } : {}),
     },
   });
+
+  // Rules Engine: tags changed → reconcile AUTO_TAG links.
+  if (body.tags !== undefined) {
+    try {
+      const res = await autoLinkEvidence(id, user.id);
+      if (res.created > 0) {
+        await audit({
+          ...auditBase,
+          type: "EVIDENCE_AUTO_LINKED",
+          detail: `Updated tags on "${title ?? doc.title}" auto-linked ${res.created} obligation(s): ${res.ruleCodes.join(", ")}.`,
+        });
+      }
+    } catch {
+      /* best-effort */
+    }
+  }
 
   await audit({
     ...auditBase,
