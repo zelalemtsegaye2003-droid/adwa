@@ -49,6 +49,7 @@ model Organization {
   updatedAt    DateTime @updatedAt
   scans        Scan[]
   users        User[]
+  evidence     EvidenceDocument[]
 }
 
 // Machine-readable obligation catalogue, scoped to a framework
@@ -145,6 +146,7 @@ model User {
   updatedAt        DateTime  @updatedAt
   refreshTokens    RefreshToken[]
   authEvents       AuthEvent[]
+  evidenceUploaded EvidenceDocument[]
 }
 
 model RefreshToken {
@@ -174,6 +176,42 @@ model AuthEvent {
 
   @@index([createdAt])
   @@index([organizationId])
+}
+
+// ── Evidence Vault (compliance document store) ──────────────────────────────
+// Immutable-by-default artefact store for audit evidence: policies, audit
+// reports, certificates, training records, incident logs…
+//  - Files live outside the web root (.data/evidence/<orgId>/<storedName>).
+//  - SHA-256 checksum recorded at upload and re-verified on every download
+//    (tamper evidence for NBE SBB/83/2022 Art. 12 record integrity).
+//  - Versioning: uploading a new version supersedes the previous record; the
+//    chain is anchored on rootId (id of the v1 document).
+model EvidenceDocument {
+  id             String    @id @default(cuid())
+  title          String
+  description    String?
+  category       String    @default("OTHER") // POLICY | AUDIT_REPORT | CERTIFICATE | TRAINING_RECORD | INCIDENT_LOG | ASSESSMENT | CONFIG_EXPORT | OTHER
+  tags           String? // comma-separated refs, e.g. "NBE-15, Art. 22"
+  fileName       String // original name (display only — never used on disk)
+  storedName     String    @unique // server-generated on-disk name (cuid + safe extension)
+  mimeType       String
+  fileSize       Int // bytes
+  checksum       String // sha256 hex — integrity anchor
+  status         String    @default("ACTIVE") // ACTIVE | ARCHIVED | SUPERSEDED | DELETED
+  version        Int       @default(1)
+  rootId         String? // chain anchor (id of the v1 document)
+  downloads      Int       @default(0)
+  lastVerifiedAt DateTime? // last download-time checksum verification
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  uploadedById   String
+  uploadedBy     User        @relation(fields: [uploadedById], references: [id])
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  @@index([organizationId, status])
+  @@index([rootId])
+  @@index([category])
 }
 
 model CaptchaChallenge {
