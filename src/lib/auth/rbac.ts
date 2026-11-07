@@ -58,7 +58,12 @@ export type Permission =
   | "soc:manage-all"
   | "threats:view"
   | "threats:contribute"
-  | "threats:sync";
+  | "threats:sync"
+  // Multilingual awareness platform (proposal Phase 3, Track B).
+  // Platform-level mission programme: school data (minors, pseudonymised)
+  // must never be visible to commercial tenants — SUPER_ADMIN (the education
+  // lead's platform account) only.
+  | "awareness:manage";
 
 const MATRIX: Record<AppRole, Permission[]> = {
   SUPER_ADMIN: [
@@ -80,6 +85,7 @@ const MATRIX: Record<AppRole, Permission[]> = {
     "threats:view",
     "threats:contribute",
     "threats:sync",
+    "awareness:manage",
   ],
   ORG_ADMIN: [
     "org:view-own",

@@ -36,17 +36,17 @@ model Framework {
 }
 
 model Organization {
-  id           String   @id @default(cuid())
+  id           String             @id @default(cuid())
   name         String
-  nameAm       String   @default("")
-  slug         String?  @unique
+  nameAm       String             @default("")
+  slug         String?            @unique
   sector       String // Banking | Microfinance | Telecom | SME | ...
-  tier         String   @default("mid-market") // enterprise | mid-market | sme
+  tier         String             @default("mid-market") // enterprise | mid-market | sme
   contactEmail String?
-  status       String   @default("onboarding") // onboarding | active | pilot-complete
+  status       String             @default("onboarding") // onboarding | active | pilot-complete
   notes        String?
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  createdAt    DateTime           @default(now())
+  updatedAt    DateTime           @updatedAt
   scans        Scan[]
   users        User[]
   evidence     EvidenceDocument[]
@@ -58,10 +58,10 @@ model Organization {
 
 // Machine-readable obligation catalogue, scoped to a framework
 model Rule {
-  id             String   @id @default(cuid())
-  code           String   @unique // e.g. ART22-01 | NBE-15
+  id             String         @id @default(cuid())
+  code           String         @unique // e.g. ART22-01 | NBE-15
   frameworkId    String?
-  framework      Framework? @relation(fields: [frameworkId], references: [id])
+  framework      Framework?     @relation(fields: [frameworkId], references: [id])
   sortOrder      Int
   article        String // "Art. 2"
   articleSubject String
@@ -79,53 +79,53 @@ model Rule {
   priority       String // P0 | P1
   penaltyRef     String
   weight         Int // 3 critical / 2 high / 1 medium
-  version        String   @default("1.0")
-  isActive       Boolean  @default(true)
+  version        String         @default("1.0")
+  isActive       Boolean        @default(true)
   results        ScanResult[]
   links          EvidenceLink[]
 }
 
 model Scan {
-  id               String    @id @default(cuid())
+  id               String       @id @default(cuid())
   organizationId   String
   organization     Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   frameworkId      String?
-  framework        Framework? @relation(fields: [frameworkId], references: [id])
+  framework        Framework?   @relation(fields: [frameworkId], references: [id])
   name             String
-  mode             String    @default("full")
-  status           String    @default("in_progress") // in_progress | complete
-  auditorName      String    @default("Adwa Compliance Engine")
+  mode             String       @default("full")
+  status           String       @default("in_progress") // in_progress | complete
+  auditorName      String       @default("Adwa Compliance Engine")
   overallScore     Float?
   pillarScores     String? // JSON: {"Legal": 72.5, ...}
-  findingsCount    Int       @default(0)
-  criticalFindings Int       @default(0)
-  startedAt        DateTime  @default(now())
+  findingsCount    Int          @default(0)
+  criticalFindings Int          @default(0)
+  startedAt        DateTime     @default(now())
   completedAt      DateTime?
   durationMinutes  Float?
   results          ScanResult[]
 }
 
 model ScanResult {
-  id           String   @id @default(cuid())
+  id           String    @id @default(cuid())
   scanId       String
-  scan         Scan     @relation(fields: [scanId], references: [id], onDelete: Cascade)
+  scan         Scan      @relation(fields: [scanId], references: [id], onDelete: Cascade)
   ruleId       String
-  rule         Rule     @relation(fields: [ruleId], references: [id], onDelete: Cascade)
+  rule         Rule      @relation(fields: [ruleId], references: [id], onDelete: Cascade)
   answer       String // yes | partial | no | na
   evidenceNote String?
   score        Float // 0 | 50 | 100 (na excluded)
   riskRank     Float?
   findingEn    String?
   findingAm    String?
-  status       String   @default("open") // open | in_progress | remediated | waived
+  status       String    @default("open") // open | in_progress | remediated | waived
   // Remediation SLA (Procl. 1426/2026 corrective-action timelines):
   // dueAt is set when the finding is born (scan completion) from the severity
   // SLA policy; remediatedAt is stamped on the remediated transition so
   // on-time vs late closure is provable to a supervisor.
   dueAt        DateTime?
   remediatedAt DateTime?
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
 
   @@unique([scanId, ruleId])
   @@index([dueAt])
@@ -135,50 +135,50 @@ model ScanResult {
 // ── Identity & Access (multi-tenant RBAC) ─────────────────────────────────
 
 model User {
-  id               String    @id @default(cuid())
-  email            String    @unique
-  passwordHash     String? // null for Google-only accounts
-  name             String
-  avatarUrl        String?
-  role             String // SUPER_ADMIN | ORG_ADMIN | COMPLIANCE_OFFICER | AUDITOR | VIEWER
-  organizationId   String? // null only for SUPER_ADMIN
-  organization     Organization? @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  authProvider     String    @default("LOCAL") // LOCAL | GOOGLE
-  googleId         String?   @unique
-  status           String    @default("ACTIVE") // ACTIVE | DISABLED
-  mfaEnabled       Boolean   @default(false)
-  mfaSecret        String? // AES-256-GCM encrypted TOTP secret
-  mfaConfirmedAt   DateTime?
-  lastTotpCounter  Int? // highest accepted TOTP step (replay protection)
-  backupCodes      String? // JSON array of sha256-hashed one-time codes
-  failedAttempts   Int       @default(0)
-  lockedUntil      DateTime?
+  id                String             @id @default(cuid())
+  email             String             @unique
+  passwordHash      String? // null for Google-only accounts
+  name              String
+  avatarUrl         String?
+  role              String // SUPER_ADMIN | ORG_ADMIN | COMPLIANCE_OFFICER | AUDITOR | VIEWER
+  organizationId    String? // null only for SUPER_ADMIN
+  organization      Organization?      @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  authProvider      String             @default("LOCAL") // LOCAL | GOOGLE
+  googleId          String?            @unique
+  status            String             @default("ACTIVE") // ACTIVE | DISABLED
+  mfaEnabled        Boolean            @default(false)
+  mfaSecret         String? // AES-256-GCM encrypted TOTP secret
+  mfaConfirmedAt    DateTime?
+  lastTotpCounter   Int? // highest accepted TOTP step (replay protection)
+  backupCodes       String? // JSON array of sha256-hashed one-time codes
+  failedAttempts    Int                @default(0)
+  lockedUntil       DateTime?
   sessionsRevokedAt DateTime? // access tokens issued BEFORE this moment are dead
-  lastLoginAt      DateTime?
-  createdAt        DateTime  @default(now())
-  updatedAt        DateTime  @updatedAt
-  refreshTokens    RefreshToken[]
-  authEvents       AuthEvent[]
-  evidenceUploaded EvidenceDocument[]
-  evidenceLinks    EvidenceLink[]
+  lastLoginAt       DateTime?
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+  refreshTokens     RefreshToken[]
+  authEvents        AuthEvent[]
+  evidenceUploaded  EvidenceDocument[]
+  evidenceLinks     EvidenceLink[]
   indicatorsCreated ThreatIndicator[]
-  indicatorShares  IndicatorShare[]
-  incidentEvents   IncidentEvent[]
+  indicatorShares   IndicatorShare[]
+  incidentEvents    IncidentEvent[]
   assignedIncidents Incident[]
   syncRunsTriggered SyncRun[]
 }
 
 model RefreshToken {
-  id          String    @id @default(cuid())
-  tokenHash   String    @unique // sha256 of the opaque token
-  userId      String
-  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  expiresAt   DateTime
-  revokedAt   DateTime?
-  replacedBy  String? // id of the token that replaced it (rotation chain)
-  userAgent   String?
-  ip          String?
-  createdAt   DateTime  @default(now())
+  id         String    @id @default(cuid())
+  tokenHash  String    @unique // sha256 of the opaque token
+  userId     String
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt  DateTime
+  revokedAt  DateTime?
+  replacedBy String? // id of the token that replaced it (rotation chain)
+  userAgent  String?
+  ip         String?
+  createdAt  DateTime  @default(now())
 }
 
 model AuthEvent {
@@ -206,28 +206,28 @@ model AuthEvent {
 //  - Versioning: uploading a new version supersedes the previous record; the
 //    chain is anchored on rootId (id of the v1 document).
 model EvidenceDocument {
-  id             String    @id @default(cuid())
+  id             String         @id @default(cuid())
   title          String
   description    String?
-  category       String    @default("OTHER") // POLICY | AUDIT_REPORT | CERTIFICATE | TRAINING_RECORD | INCIDENT_LOG | ASSESSMENT | CONFIG_EXPORT | OTHER
+  category       String         @default("OTHER") // POLICY | AUDIT_REPORT | CERTIFICATE | TRAINING_RECORD | INCIDENT_LOG | ASSESSMENT | CONFIG_EXPORT | OTHER
   tags           String? // comma-separated refs, e.g. "NBE-15, Art. 22"
   fileName       String // original name (display only — never used on disk)
-  storedName     String    @unique // server-generated on-disk name (cuid + safe extension)
+  storedName     String         @unique // server-generated on-disk name (cuid + safe extension)
   mimeType       String
   fileSize       Int // bytes
   checksum       String // sha256 hex — integrity anchor
-  status         String    @default("ACTIVE") // ACTIVE | ARCHIVED | SUPERSEDED | DELETED
-  version        Int       @default(1)
+  status         String         @default("ACTIVE") // ACTIVE | ARCHIVED | SUPERSEDED | DELETED
+  version        Int            @default(1)
   rootId         String? // chain anchor (id of the v1 document)
-  downloads      Int       @default(0)
+  downloads      Int            @default(0)
   lastVerifiedAt DateTime? // last download-time checksum verification
   organizationId String
-  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  organization   Organization   @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   uploadedById   String
-  uploadedBy     User        @relation(fields: [uploadedById], references: [id])
+  uploadedBy     User           @relation(fields: [uploadedById], references: [id])
   links          EvidenceLink[]
-  createdAt      DateTime  @default(now())
-  updatedAt      DateTime  @updatedAt
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
 
   @@index([organizationId, status])
   @@index([rootId])
@@ -241,16 +241,16 @@ model EvidenceDocument {
 // The coverage evaluator joins links with the freshness policy to classify
 // each obligation as SATISFIED / STALE / GAP for a given organization.
 model EvidenceLink {
-  id          String   @id @default(cuid())
+  id          String           @id @default(cuid())
   ruleId      String
-  rule        Rule     @relation(fields: [ruleId], references: [id], onDelete: Cascade)
+  rule        Rule             @relation(fields: [ruleId], references: [id], onDelete: Cascade)
   evidenceId  String
   evidence    EvidenceDocument @relation(fields: [evidenceId], references: [id], onDelete: Cascade)
-  linkType    String   @default("SATISFIES") // SATISFIES | SUPPORTS
-  source      String   @default("MANUAL") // MANUAL | AUTO_TAG
+  linkType    String           @default("SATISFIES") // SATISFIES | SUPPORTS
+  source      String           @default("MANUAL") // MANUAL | AUTO_TAG
   createdById String
-  createdBy   User     @relation(fields: [createdById], references: [id])
-  createdAt   DateTime @default(now())
+  createdBy   User             @relation(fields: [createdById], references: [id])
+  createdAt   DateTime         @default(now())
 
   @@unique([ruleId, evidenceId])
   @@index([evidenceId])
@@ -267,34 +267,34 @@ model EvidenceLink {
 // the anonymising hub (broadcast) or to targeted peer shares. The originating
 // organisation is kept on the record but is NEVER revealed on hub broadcasts.
 model ThreatIndicator {
-  id            String    @id @default(cuid())
-  type          String // ip | domain | url | hash_sha256 | hash_md5 | email | filename | cve
-  value         String
-  titleEn       String
-  titleAm       String
-  descriptionEn String?
-  descriptionAm String?
-  category      String // ransomware | phishing | bec | malware | ddos | credential_stuffing | apt | scam | insider | other
-  severity      String // critical | high | medium | low
-  tlp           String    @default("TLP:AMBER") // TLP:RED | TLP:AMBER+STRICT | TLP:AMBER | TLP:GREEN | TLP:CLEAR
-  source        String    @default("ANALYST") // ETHIO_CERT | MISP_FEED | ANALYST | ORG_UPLOAD
-  sourceRef     String? // Ethio-CERT bulletin no. / feed id
-  confidence    Int       @default(50) // 0–100
-  sensitivity   Int       @default(3) // 1–5 — drives the hybrid sharing decision
-  sharing       String    @default("HUB") // HUB (anonymised broadcast) | P2P (targeted peers)
+  id             String              @id @default(cuid())
+  type           String // ip | domain | url | hash_sha256 | hash_md5 | email | filename | cve
+  value          String
+  titleEn        String
+  titleAm        String
+  descriptionEn  String?
+  descriptionAm  String?
+  category       String // ransomware | phishing | bec | malware | ddos | credential_stuffing | apt | scam | insider | other
+  severity       String // critical | high | medium | low
+  tlp            String              @default("TLP:AMBER") // TLP:RED | TLP:AMBER+STRICT | TLP:AMBER | TLP:GREEN | TLP:CLEAR
+  source         String              @default("ANALYST") // ETHIO_CERT | MISP_FEED | ANALYST | ORG_UPLOAD
+  sourceRef      String? // Ethio-CERT bulletin no. / feed id
+  confidence     Int                 @default(50) // 0–100
+  sensitivity    Int                 @default(3) // 1–5 — drives the hybrid sharing decision
+  sharing        String              @default("HUB") // HUB (anonymised broadcast) | P2P (targeted peers)
   organizationId String? // originating org (null = national feed / platform)
-  organization  Organization? @relation(fields: [organizationId], references: [id], onDelete: SetNull)
-  createdById   String?
-  createdBy     User?     @relation(fields: [createdById], references: [id], onDelete: SetNull)
-  firstSeenAt   DateTime  @default(now())
-  lastSeenAt    DateTime  @default(now())
-  sightings     Int       @default(0)
-  expiresAt     DateTime?
-  isActive      Boolean   @default(true)
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
-  shares        IndicatorShare[]
-  incidents     IncidentIndicator[]
+  organization   Organization?       @relation(fields: [organizationId], references: [id], onDelete: SetNull)
+  createdById    String?
+  createdBy      User?               @relation(fields: [createdById], references: [id], onDelete: SetNull)
+  firstSeenAt    DateTime            @default(now())
+  lastSeenAt     DateTime            @default(now())
+  sightings      Int                 @default(0)
+  expiresAt      DateTime?
+  isActive       Boolean             @default(true)
+  createdAt      DateTime            @default(now())
+  updatedAt      DateTime            @updatedAt
+  shares         IndicatorShare[]
+  incidents      IncidentIndicator[]
 
   @@unique([type, value])
   @@index([severity])
@@ -306,16 +306,16 @@ model ThreatIndicator {
 // (targetOrgId = null, every member organisation receives them); peer shares
 // name the trusted partner that should see the sensitive indicator.
 model IndicatorShare {
-  id          String    @id @default(cuid())
+  id          String          @id @default(cuid())
   indicatorId String
   indicator   ThreatIndicator @relation(fields: [indicatorId], references: [id], onDelete: Cascade)
   mode        String // HUB_BROADCAST | PEER_DIRECT
   targetOrgId String? // null for hub broadcast (all orgs)
-  targetOrg   Organization? @relation(fields: [targetOrgId], references: [id], onDelete: Cascade)
+  targetOrg   Organization?   @relation(fields: [targetOrgId], references: [id], onDelete: Cascade)
   sharedById  String
-  sharedBy    User    @relation(fields: [sharedById], references: [id])
-  anonymised  Boolean @default(true) // org identity stripped on hub broadcasts
-  createdAt   DateTime @default(now())
+  sharedBy    User            @relation(fields: [sharedById], references: [id])
+  anonymised  Boolean         @default(true) // org identity stripped on hub broadcasts
+  createdAt   DateTime        @default(now())
 
   @@index([indicatorId])
   @@index([targetOrgId])
@@ -326,35 +326,35 @@ model IndicatorShare {
 // detectedAt→notifiedAt is the RQ3 detection-to-notification latency the
 // proposal commits to keep under 15 minutes (median) for financial institutions.
 model Incident {
-  id            String   @id @default(cuid())
-  organizationId String
-  organization  Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  ref           String   @unique // INC-2026-0001
-  title         String
-  titleAm       String   @default("")
-  description   String?
-  category      String // ransomware | phishing | bec | malware | data_breach | ddos | unauthorized_access | other
-  severity      String // critical | high | medium | low
-  status        String   @default("detected") // detected | triaged | contained | eradicated | recovered | closed
-  source        String   @default("SOC_MONITOR") // SOC_MONITOR | THREAT_MATCH | ORG_REPORT | ETHIO_CERT
-  detectionMethod String @default("signature") // signature | behavioural | anomaly | threat_intel_match | manual
-  priorityScore Float? // soc-engine prioritisation 0–100
-  priorityLabel String? // IMMEDIATE | HIGH | ROUTINE
-  assigneeId    String?
-  assignee      User?    @relation(fields: [assigneeId], references: [id], onDelete: SetNull)
-  detectedAt    DateTime
-  notifiedAt    DateTime? // RQ3 anchor
-  triagedAt     DateTime?
-  containedAt   DateTime?
-  eradicatedAt  DateTime?
-  recoveredAt   DateTime?
-  closedAt      DateTime?
+  id                    String              @id @default(cuid())
+  organizationId        String
+  organization          Organization        @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  ref                   String              @unique // INC-2026-0001
+  title                 String
+  titleAm               String              @default("")
+  description           String?
+  category              String // ransomware | phishing | bec | malware | data_breach | ddos | unauthorized_access | other
+  severity              String // critical | high | medium | low
+  status                String              @default("detected") // detected | triaged | contained | eradicated | recovered | closed
+  source                String              @default("SOC_MONITOR") // SOC_MONITOR | THREAT_MATCH | ORG_REPORT | ETHIO_CERT
+  detectionMethod       String              @default("signature") // signature | behavioural | anomaly | threat_intel_match | manual
+  priorityScore         Float? // soc-engine prioritisation 0–100
+  priorityLabel         String? // IMMEDIATE | HIGH | ROUTINE
+  assigneeId            String?
+  assignee              User?               @relation(fields: [assigneeId], references: [id], onDelete: SetNull)
+  detectedAt            DateTime
+  notifiedAt            DateTime? // RQ3 anchor
+  triagedAt             DateTime?
+  containedAt           DateTime?
+  eradicatedAt          DateTime?
+  recoveredAt           DateTime?
+  closedAt              DateTime?
   reportedToEthiocertAt DateTime?
-  impactNote    String?
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-  events        IncidentEvent[]
-  indicators    IncidentIndicator[]
+  impactNote            String?
+  createdAt             DateTime            @default(now())
+  updatedAt             DateTime            @updatedAt
+  events                IncidentEvent[]
+  indicators            IncidentIndicator[]
 
   @@index([organizationId, status])
   @@index([severity])
@@ -377,11 +377,11 @@ model IncidentEvent {
 
 // Which indicators were matched/related to which incident (threat-intel ↔ SOC join).
 model IncidentIndicator {
-  incidentId   String
-  incident     Incident @relation(fields: [incidentId], references: [id], onDelete: Cascade)
-  indicatorId  String
-  indicator    ThreatIndicator @relation(fields: [indicatorId], references: [id], onDelete: Cascade)
-  matchedAt    DateTime @default(now())
+  incidentId  String
+  incident    Incident        @relation(fields: [incidentId], references: [id], onDelete: Cascade)
+  indicatorId String
+  indicator   ThreatIndicator @relation(fields: [indicatorId], references: [id], onDelete: Cascade)
+  matchedAt   DateTime        @default(now())
 
   @@id([incidentId, indicatorId])
 }
@@ -390,22 +390,22 @@ model IncidentIndicator {
 // REPORT packages an anonymised tenant summary upward (payload hash recorded
 // so the export is provable to a supervisor).
 model SyncRun {
-  id             String   @id @default(cuid())
+  id             String        @id @default(cuid())
   direction      String // INGEST | REPORT
-  status         String   @default("success") // success | failed
-  source         String   @default("FIXTURE") // LIVE = Ethio-CERT exchange API binding | FIXTURE = bundled pilot fixture
+  status         String        @default("success") // success | failed
+  source         String        @default("FIXTURE") // LIVE = Ethio-CERT exchange API binding | FIXTURE = bundled pilot fixture
   endpoint       String? // exchange endpoint the run bound to (LIVE only)
   receiptId      String? // exchange acknowledgement for upward REPORTs (LIVE only)
-  ingested       Int      @default(0)
-  updated        Int      @default(0)
-  reported       Int      @default(0)
+  ingested       Int           @default(0)
+  updated        Int           @default(0)
+  reported       Int           @default(0)
   payloadHash    String? // sha256 of the anonymised upward payload
   organizationId String? // tenant that reported upward (null = platform ingest)
   organization   Organization? @relation(fields: [organizationId], references: [id], onDelete: SetNull)
   triggeredById  String
-  triggeredBy    User     @relation(fields: [triggeredById], references: [id])
+  triggeredBy    User          @relation(fields: [triggeredById], references: [id])
   detail         String?
-  createdAt      DateTime @default(now())
+  createdAt      DateTime      @default(now())
 
   @@index([createdAt])
 }
@@ -416,4 +416,138 @@ model CaptchaChallenge {
   expiresAt  DateTime
   consumedAt DateTime?
   createdAt  DateTime  @default(now())
+}
+
+// ── Multilingual Awareness Platform (proposal Phase 3, Track B) ────────────
+// Grant-funded mission programme: Amharic-first cyber-safety curriculum for
+// Addis Ababa public schools + the general public (proposal §3.2, §4.4).
+// Privacy-by-design for minors:
+//  - Learners are stored ONLY as pseudonymised participant codes (never names,
+//    e-mails or phone numbers) — the paper consent form is the only place a
+//    name exists, referenced by an opaque consentRef.
+//  - Every learning action is gated on parental consent (GRANTED).
+//  - School data is platform-level (Track B), never exposed to bank tenants.
+
+// A pilot school running the awareness curriculum (five in Year 1, §Table 4).
+model AwarenessSchool {
+  id            String           @id @default(cuid())
+  name          String
+  nameAm        String
+  subCity       String // Addis Ababa sub-city (Arada, Yeka, …)
+  address       String?
+  contactPerson String?
+  contactPhone  String?
+  isActive      Boolean          @default(true)
+  createdAt     DateTime         @default(now())
+  updatedAt     DateTime         @updatedAt
+  classes       AwarenessClass[]
+
+  @@unique([name])
+}
+
+// A class/group within a school. groupType implements the RQ2 control-group
+// design: TREATMENT classes receive the curriculum, CONTROL classes take the
+// same pre/post instrument without lessons (proposal evaluation table).
+model AwarenessClass {
+  id          String             @id @default(cuid())
+  schoolId    String
+  school      AwarenessSchool    @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  name        String // "Grade 9 — Section A"
+  grade       Int
+  groupType   String // TREATMENT | CONTROL
+  joinCode    String             @unique // learner-portal access code (slips given by the teacher)
+  teacherName String?
+  isActive    Boolean            @default(true)
+  createdAt   DateTime           @default(now())
+  learners    AwarenessLearner[]
+
+  @@unique([schoolId, name])
+  @@index([groupType])
+}
+
+// A curriculum unit (lesson + quiz bank), bilingual EN/AM.
+model AwarenessModule {
+  id          String              @id @default(cuid())
+  code        String              @unique // AW-01 …
+  sortOrder   Int
+  topic       String // passwords | phishing | social_media | cyberbullying | personal_data | safe_browsing | device_security | reporting
+  titleEn     String
+  titleAm     String
+  summaryEn   String
+  summaryAm   String
+  contentEn   String // "## Section" + paragraphs (rendered by the learner portal)
+  contentAm   String
+  durationMin Int                 @default(15)
+  gradeBand   String              @default("7-10")
+  version     String              @default("1.0")
+  isActive    Boolean             @default(true)
+  createdAt   DateTime            @default(now())
+  updatedAt   DateTime            @updatedAt
+  questions   AwarenessQuestion[]
+  progress    AwarenessProgress[]
+}
+
+// A multiple-choice item in a module's quiz bank (also the pre/post pool).
+// answerIdx is NEVER sent to the learner portal — scoring is server-side only.
+model AwarenessQuestion {
+  id        String          @id @default(cuid())
+  moduleId  String
+  module    AwarenessModule @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+  sortOrder Int
+  promptEn  String
+  promptAm  String
+  optionsEn String // JSON array of 4 options
+  optionsAm String // JSON array of 4 options
+  answerIdx Int // 0–3
+  explainEn String?
+  explainAm String?
+  isActive  Boolean         @default(true)
+}
+
+// A participating learner — a pseudonymised code issued on a paper slip.
+// consent: PENDING → GRANTED | DENIED (parental consent, proposal ethics).
+model AwarenessLearner {
+  id          String                @id @default(cuid())
+  classId     String
+  class       AwarenessClass        @relation(fields: [classId], references: [id], onDelete: Cascade)
+  code        String                @unique // AW-K7QM2P
+  grade       Int
+  consent     String                @default("PENDING") // PENDING | GRANTED | DENIED
+  consentAt   DateTime?
+  consentRef  String? // opaque reference to the signed paper form
+  createdAt   DateTime              @default(now())
+  assessments AwarenessAssessment[]
+  progress    AwarenessProgress[]
+}
+
+// A pre/post knowledge-assessment sitting (RQ2 instrument, paired design).
+// kind = PRE (before the curriculum) | POST (after); one sitting per learner
+// per kind — retakes are rejected to keep the paired design clean.
+model AwarenessAssessment {
+  id        String           @id @default(cuid())
+  learnerId String
+  learner   AwarenessLearner @relation(fields: [learnerId], references: [id], onDelete: Cascade)
+  kind      String // PRE | POST
+  total     Int
+  correct   Int
+  score     Float // 0–100
+  answers   String // JSON [{qId, picked, correct}] — the system-of-record trail
+  takenAt   DateTime         @default(now())
+
+  @@index([learnerId, kind])
+}
+
+// Lesson progress + module-quiz outcome per learner.
+model AwarenessProgress {
+  id          String           @id @default(cuid())
+  learnerId   String
+  learner     AwarenessLearner @relation(fields: [learnerId], references: [id], onDelete: Cascade)
+  moduleId    String
+  module      AwarenessModule  @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+  status      String           @default("in_progress") // in_progress | completed
+  quizScore   Float? // 0–100 on the module quiz
+  startedAt   DateTime         @default(now())
+  completedAt DateTime?
+
+  @@unique([learnerId, moduleId])
 }
