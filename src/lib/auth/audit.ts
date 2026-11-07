@@ -51,7 +51,16 @@ export type AuthEventType =
   | "THREAT_CREATED"
   | "THREAT_UPDATED"
   | "THREAT_SHARED"
-  | "ETHIOCERT_SYNC";
+  | "ETHIOCERT_SYNC"
+  // Multilingual awareness platform (proposal Phase 3, Track B)
+  | "AWARENESS_MODULE_CREATED"
+  | "AWARENESS_MODULE_UPDATED"
+  | "AWARENESS_QUESTION_ADDED"
+  | "AWARENESS_QUESTION_UPDATED"
+  | "AWARENESS_SCHOOL_CREATED"
+  | "AWARENESS_CLASS_CREATED"
+  | "AWARENESS_LEARNERS_ISSUED"
+  | "AWARENESS_CONSENT_RECORDED";
 
 export interface AuditInput {
   type: AuthEventType;
