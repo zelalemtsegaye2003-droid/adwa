@@ -9,6 +9,9 @@
 export type Pillar = "Legal" | "Technical" | "Organisational" | "Awareness";
 export type Severity = "critical" | "high" | "medium";
 
+// Pillars are framework-specific: PD-1321 uses the four pillars above;
+// the NBE-IT framework uses Governance / Automation / Risk Management /
+// Cyber Security / Continuity (see nbe-rules-data.ts).
 export interface RuleSeed {
   code: string;
   sortOrder: number;
@@ -23,7 +26,7 @@ export interface RuleSeed {
   checkLogic: string;
   remediationEn: string;
   remediationAm: string;
-  pillar: Pillar;
+  pillar: string;
   severity: Severity;
   priority: "P0" | "P1";
   penaltyRef: string;

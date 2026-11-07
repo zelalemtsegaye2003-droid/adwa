@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
-import { evaluate, auditTimeComparison, type Answer } from "@/lib/engine";
+import { evaluate, auditTimeComparison, pillarConfFromJson, type Answer } from "@/lib/engine";
 import { requireAuthAny } from "@/lib/auth/guard";
 import { can } from "@/lib/auth/rbac";
 
@@ -15,7 +15,7 @@ export async function POST(req: NextRequest, ctx: { params: Promise<{ id: string
 
   const scan = await db.scan.findUnique({
     where: { id },
-    include: { results: { include: { rule: true } } },
+    include: { results: { include: { rule: true } }, framework: true },
   });
   if (!scan) return NextResponse.json({ error: "Scan not found" }, { status: 404 });
 
@@ -41,7 +41,7 @@ export async function POST(req: NextRequest, ctx: { params: Promise<{ id: string
     answer: answerMap.get(r.rule.code)?.answer ?? "na",
   }));
 
-  const out = evaluate(engineRules, engineAnswers);
+  const out = evaluate(engineRules, engineAnswers, pillarConfFromJson(scan.framework?.pillars));
 
   // Persist per-rule results
   for (const r of scan.results) {

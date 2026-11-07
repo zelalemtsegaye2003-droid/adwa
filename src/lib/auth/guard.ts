@@ -41,6 +41,16 @@ export async function requireAuth(
 }
 
 /**
+ * Effective host of a request. Behind the platform gateway the Host header
+ * is rewritten (e.g. "localhost" without port) while the original host is
+ * preserved in X-Forwarded-Host — trust the forwarded value when present.
+ */
+function requestHost(headers: Headers): string | null {
+  const xfh = headers.get("x-forwarded-host")?.split(",")[0].trim();
+  return xfh || headers.get("host");
+}
+
+/**
  * Require an authenticated session with ANY of the given permissions
  * (e.g. SUPER_ADMIN holds `users:view-all` while tenant roles hold
  * `users:view-org` — both may list users, at different scopes).
@@ -53,7 +63,7 @@ export async function requireAuthAny(
   if (["POST", "PUT", "PATCH", "DELETE"].includes(req.method)) {
     const origin = req.headers.get("origin");
     if (origin) {
-      const host = req.headers.get("host");
+      const host = requestHost(req.headers);
       try {
         if (new URL(origin).host !== host) {
           return { error: jsonError(403, "CROSS_ORIGIN_BLOCKED", "Cross-origin request blocked."), user: null };

@@ -19,7 +19,7 @@ export async function GET(req: NextRequest) {
     ? { scan: { status: "complete" as const } }
     : { scan: { status: "complete" as const, organizationId: user.orgId ?? "__none__" } };
 
-  const [orgs, rules, scans, results] = await Promise.all([
+  const [orgs, rules, scans, results, frameworks] = await Promise.all([
     db.organization.findMany({ where: orgFilter, include: { scans: { orderBy: { startedAt: "desc" } } } }),
     db.rule.findMany({ where: { isActive: true } }),
     db.scan.findMany({
@@ -28,6 +28,7 @@ export async function GET(req: NextRequest) {
       include: { organization: { select: { name: true, sector: true } } },
     }),
     db.scanResult.findMany({ where: resultScanFilter, include: { rule: true } }),
+    db.framework.findMany({ where: { isActive: true }, orderBy: { sortOrder: "asc" } }),
   ]);
 
   const completed = scans.filter((s) => s.status === "complete");
@@ -66,12 +67,34 @@ export async function GET(req: NextRequest) {
       ? Math.round((completed.reduce((s, x) => s + (x.durationMinutes ?? 0), 0) / completed.length) * 10) / 10
       : 0;
 
+  // Per-framework posture (rule counts + completed scans + average score)
+  const frameworkSummaries = frameworks.map((f) => {
+    const fwCompleted = completed.filter((s) => s.frameworkId === f.id);
+    const fwAvg =
+      fwCompleted.length > 0
+        ? Math.round((fwCompleted.reduce((s, x) => s + (x.overallScore ?? 0), 0) / fwCompleted.length) * 10) / 10
+        : null;
+    return {
+      id: f.id,
+      code: f.code,
+      name: f.name,
+      nameAm: f.nameAm,
+      issuer: f.issuer,
+      instrument: f.instrument,
+      instrumentNo: f.instrumentNo,
+      ruleCount: rules.filter((r) => r.frameworkId === f.id).length,
+      scansCompleted: fwCompleted.length,
+      avgScore: fwAvg,
+    };
+  });
+
   return NextResponse.json({
     scope: isSuper ? "platform" : "tenant",
     organizations: orgs.length,
     sectors: [...new Set(orgs.map((o) => o.sector))],
     rules: rules.length,
     articles: new Set(rules.map((r) => r.article)).size,
+    frameworks: frameworkSummaries,
     scansTotal: scans.length,
     scansCompleted: completed.length,
     avgScore,
@@ -82,6 +105,7 @@ export async function GET(req: NextRequest) {
     recentScans: completed.slice(0, 5).map((s) => ({
       id: s.id, name: s.name, score: s.overallScore, org: s.organization.name,
       completedAt: s.completedAt, findings: s.findingsCount, critical: s.criticalFindings,
+      frameworkCode: frameworks.find((f) => f.id === s.frameworkId)?.code ?? null,
     })),
   });
 }

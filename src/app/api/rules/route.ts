@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { requireAuth } from "@/lib/auth/guard";
 
-/** GET /api/rules — the 47-rule catalogue (any authenticated user). */
+/** GET /api/rules — the obligation catalogue (any authenticated user). */
 export async function GET(req: NextRequest) {
   const guard = await requireAuth(req, "catalogue:view");
   if (guard.error) return guard.error;
@@ -10,11 +10,16 @@ export async function GET(req: NextRequest) {
   const article = req.nextUrl.searchParams.get("article");
   const pillar = req.nextUrl.searchParams.get("pillar");
   const severity = req.nextUrl.searchParams.get("severity");
+  const framework = req.nextUrl.searchParams.get("framework");
   const q = req.nextUrl.searchParams.get("q")?.toLowerCase();
 
   const rules = await db.rule.findMany({
-    where: { isActive: true },
+    where: {
+      isActive: true,
+      ...(framework ? { framework: { code: framework } } : {}),
+    },
     orderBy: { sortOrder: "asc" },
+    include: { framework: { select: { code: true } } },
   });
 
   const filtered = rules.filter((r) => {
@@ -26,5 +31,9 @@ export async function GET(req: NextRequest) {
   });
 
   const articles = [...new Set(rules.map((r) => r.article))];
-  return NextResponse.json({ rules: filtered, total: rules.length, articles });
+  return NextResponse.json({
+    rules: filtered.map(({ framework: fw, ...r }) => ({ ...r, frameworkCode: fw?.code ?? null })),
+    total: rules.length,
+    articles,
+  });
 }

@@ -8,7 +8,32 @@ datasource db {
 }
 
 // ── Adwa Cyber — Phase 1 Compliance Platform ──────────────────────────────
-// Organizations assessed against Proclamation No. 1321/2024
+// Organizations assessed against multiple regulatory frameworks
+// (Personal Data Protection Proclamation No. 1321/2024, NBE IT & Cybersecurity
+// directives SBB/83/2022 · MFI/33/2022, Proclamation No. 1426/2026).
+
+// A regulatory instrument the platform can assess against. Each framework
+// carries its own weighted pillars (JSON) consumed by the compliance engine.
+model Framework {
+  id            String   @id @default(cuid())
+  code          String   @unique // PD-1321 | NBE-IT
+  name          String
+  nameAm        String
+  issuer        String // e.g. "National Bank of Ethiopia"
+  instrument    String // Proclamation | Directive
+  instrumentNo  String // "No. 1321/2024" | "SBB/83/2022"
+  descriptionEn String
+  descriptionAm String
+  pillars       String // JSON: [{ name, nameAm, weight }]
+  sectorScope   String   @default("all") // all | banking | microfinance ...
+  sourceUrl     String?
+  sortOrder     Int      @default(0)
+  isActive      Boolean  @default(true)
+  rules         Rule[]
+  scans         Scan[]
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
 
 model Organization {
   id           String   @id @default(cuid())
@@ -26,10 +51,12 @@ model Organization {
   users        User[]
 }
 
-// The 47-rule catalogue mapped to articles of Proclamation 1321/2024
+// Machine-readable obligation catalogue, scoped to a framework
 model Rule {
   id             String   @id @default(cuid())
-  code           String   @unique // e.g. ART22-01
+  code           String   @unique // e.g. ART22-01 | NBE-15
+  frameworkId    String?
+  framework      Framework? @relation(fields: [frameworkId], references: [id])
   sortOrder      Int
   article        String // "Art. 2"
   articleSubject String
@@ -56,6 +83,8 @@ model Scan {
   id               String    @id @default(cuid())
   organizationId   String
   organization     Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  frameworkId      String?
+  framework        Framework? @relation(fields: [frameworkId], references: [id])
   name             String
   mode             String    @default("full")
   status           String    @default("in_progress") // in_progress | complete

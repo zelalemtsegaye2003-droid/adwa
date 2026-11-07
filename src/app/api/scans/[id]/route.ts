@@ -14,8 +14,9 @@ export async function GET(req: NextRequest, ctx: { params: Promise<{ id: string 
     where: { id },
     include: {
       organization: true,
+      framework: true,
       results: {
-        include: { rule: true },
+        include: { rule: { include: { framework: { select: { code: true } } } } },
         orderBy: { rule: { sortOrder: "asc" } },
       },
     },

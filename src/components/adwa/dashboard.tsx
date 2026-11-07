@@ -6,27 +6,34 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Progress } from "@/components/ui/progress";
 import { RadarChart, PolarGrid, PolarAngleAxis, Radar, ResponsiveContainer, PieChart, Pie, Cell, Tooltip, BarChart, Bar, XAxis, YAxis, CartesianGrid } from "recharts";
-import { ShieldCheck, Building2, ScrollText, Timer, TrendingDown } from "lucide-react";
+import { ShieldCheck, Building2, ScrollText, Timer, TrendingDown, Landmark } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
 import { api } from "@/lib/auth-client";
-import { ScoreRing, SeverityBadge, scoreColor, fmtDate } from "./shared";
+import { ScoreRing, SeverityBadge, FrameworkBadge, scoreColor, fmtDate } from "./shared";
+
+interface FrameworkSummary {
+  id: string; code: string; name: string; nameAm: string;
+  issuer: string; instrument: string; instrumentNo: string;
+  ruleCount: number; scansCompleted: number; avgScore: number | null;
+}
 
 interface Stats {
   organizations: number;
   sectors: string[];
   rules: number;
   articles: number;
+  frameworks: FrameworkSummary[];
   scansCompleted: number;
   avgScore: number;
   avgDurationMinutes: number;
   bySeverity: { critical: number; high: number; medium: number };
   byStatus: { open: number; in_progress: number; remediated: number; waived: number };
   coverage: { article: string; total: number; flagged: number; rate: number }[];
-  recentScans: { id: string; name: string; score: number | null; org: string; completedAt: string | null; findings: number; critical: number }[];
+  recentScans: { id: string; name: string; score: number | null; org: string; completedAt: string | null; findings: number; critical: number; frameworkCode?: string | null }[];
 }
 
 export function DashboardView({ onOpenReport }: { onOpenReport: (scanId: string) => void }) {
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
   const [stats, setStats] = useState<Stats | null>(null);
 
   useEffect(() => {
@@ -52,7 +59,7 @@ export function DashboardView({ onOpenReport }: { onOpenReport: (scanId: string)
   const kpis = [
     { icon: ShieldCheck, label: t("avgScore"), value: `${stats.avgScore}%`, sub: `${stats.scansCompleted} ${t("navScans").toLowerCase()}` },
     { icon: Building2, label: t("orgsMonitored"), value: stats.organizations, sub: stats.sectors.join(" · ") },
-    { icon: ScrollText, label: t("rulesEnforced"), value: stats.rules, sub: `${stats.articles} articles · Proclamation 1321/2024` },
+    { icon: ScrollText, label: t("rulesEnforced"), value: stats.rules, sub: `${stats.frameworks.length} ${t("frameworks").toLowerCase()} · ${stats.articles} ${t("allArticles").toLowerCase()}` },
     { icon: Timer, label: t("auditDuration"), value: `${stats.avgDurationMinutes} min`, sub: t("vsManual") },
   ];
 
@@ -78,6 +85,39 @@ export function DashboardView({ onOpenReport }: { onOpenReport: (scanId: string)
           </Card>
         ))}
       </div>
+
+      {/* Regulatory frameworks posture */}
+      {stats.frameworks.length > 0 && (
+        <div>
+          <h3 className="mb-3 flex items-center gap-2 text-sm font-semibold text-muted-foreground">
+            <Landmark className="h-4 w-4" aria-hidden /> {t("frameworks")}
+          </h3>
+          <div className="grid gap-4 md:grid-cols-2">
+            {stats.frameworks.map((f) => (
+              <Card key={f.code}>
+                <CardContent className="flex items-center gap-5 p-4 sm:p-6">
+                  <ScoreRing score={f.avgScore ?? 0} size={104} label={t("avgScoreFw")} />
+                  <div className="min-w-0 flex-1">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <p className="font-semibold">{lang === "en" ? f.name : f.nameAm}</p>
+                      <FrameworkBadge code={f.code} />
+                    </div>
+                    <p className="mt-0.5 text-xs text-muted-foreground">{f.instrumentNo}</p>
+                    <p className="mt-2 text-sm">
+                      <span className="font-bold tabular-nums">{f.ruleCount}</span>{" "}
+                      <span className="text-muted-foreground">{t("obligations")}</span>
+                      {" · "}
+                      <span className="font-bold tabular-nums">{f.scansCompleted}</span>{" "}
+                      <span className="text-muted-foreground">{t("navScans").toLowerCase()}</span>
+                    </p>
+                    <p className="mt-1 text-xs text-muted-foreground">{t("issuer")}: {f.issuer}</p>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* RQ1 banner */}
       <Card className="border-emerald-200 bg-emerald-50/50 dark:border-emerald-900 dark:bg-emerald-950/30">
@@ -175,7 +215,12 @@ export function DashboardView({ onOpenReport }: { onOpenReport: (scanId: string)
             <TableBody>
               {stats.recentScans.map((s) => (
                 <TableRow key={s.id} className="cursor-pointer" onClick={() => onOpenReport(s.id)}>
-                  <TableCell className="font-medium">{s.name}</TableCell>
+                  <TableCell className="font-medium">
+                    <span className="flex flex-wrap items-center gap-2">
+                      {s.name}
+                      <FrameworkBadge code={s.frameworkCode} />
+                    </span>
+                  </TableCell>
                   <TableCell>{s.org}</TableCell>
                   <TableCell className={`font-bold tabular-nums ${scoreColor(s.score ?? 0)}`}>{s.score?.toFixed(1)}%</TableCell>
                   <TableCell>{s.findings} ({s.critical} {t("critical").toLowerCase()})</TableCell>
@@ -208,6 +253,8 @@ function PillarRadar() {
         }
         const labels: Record<string, string> = {
           Legal: t("legal"), Technical: t("technical"), Organisational: t("organisational"), Awareness: t("awareness"),
+          Governance: t("governance"), Automation: t("automation"), "Risk Management": t("riskMgmt"),
+          "Cyber Security": t("cyberSec"), Continuity: t("continuity"),
         };
         setData(
           Object.entries(acc).map(([pillar, arr]) => ({
