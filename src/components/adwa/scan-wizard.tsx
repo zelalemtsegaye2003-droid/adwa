@@ -53,7 +53,7 @@ export function ScanWizard({
   const topRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    api<{ organizations: { id: string; name: string }[] }>("/api/organizations").then((d) => {
+    api<{ organizations: OrgDTO[] }>("/api/organizations").then((d) => {
       setOrgs(d.organizations);
       if (preselectedOrgId) setOrgId(preselectedOrgId);
     }).catch(() => {});

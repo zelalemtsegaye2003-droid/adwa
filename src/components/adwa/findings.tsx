@@ -9,7 +9,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { toast } from "sonner";
 import { useI18n } from "@/lib/i18n";
 import { api, ApiCallError } from "@/lib/auth-client";
-import { SeverityBadge, StatusBadge, FrameworkBadge, type ScanBriefDTO, type ResultDTO } from "./shared";
+import { SeverityBadge, StatusBadge, FrameworkBadge, type ScanBriefDTO, type ScanDetailDTO, type ResultDTO } from "./shared";
 
 export function FindingsView() {
   const { t, lang } = useI18n();

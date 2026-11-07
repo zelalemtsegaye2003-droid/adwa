@@ -9,6 +9,7 @@ export type AuthEventType =
   | "LOGIN_SUCCESS"
   | "LOGIN_FAILED"
   | "LOGIN_LOCKED"
+  | "ACCOUNT_LOCKED"
   | "MFA_CHALLENGE"
   | "MFA_PASSED"
   | "MFA_FAILED"
