@@ -2,11 +2,12 @@
 
 import React, { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Progress } from "@/components/ui/progress";
 import { RadarChart, PolarGrid, PolarAngleAxis, Radar, ResponsiveContainer, PieChart, Pie, Cell, Tooltip, BarChart, Bar, XAxis, YAxis, CartesianGrid } from "recharts";
-import { ShieldCheck, Building2, ScrollText, Timer, TrendingDown, Landmark } from "lucide-react";
+import { ShieldCheck, Building2, ScrollText, Timer, TrendingDown, Landmark, PlayCircle } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
 import { api } from "@/lib/auth-client";
 import { ScoreRing, SeverityBadge, FrameworkBadge, scoreColor, fmtDate } from "./shared";
@@ -30,9 +31,10 @@ interface Stats {
   byStatus: { open: number; in_progress: number; remediated: number; waived: number };
   coverage: { article: string; total: number; flagged: number; rate: number }[];
   recentScans: { id: string; name: string; score: number | null; org: string; completedAt: string | null; findings: number; critical: number; frameworkCode?: string | null }[];
+  inProgress?: { id: string; name: string; org: string; organizationId: string; startedAt: string; answered: number; total: number; frameworkCode?: string | null }[];
 }
 
-export function DashboardView({ onOpenReport }: { onOpenReport: (scanId: string) => void }) {
+export function DashboardView({ onOpenReport, onResumeScan, canRunScans }: { onOpenReport: (scanId: string) => void; onResumeScan: (scanId: string) => void; canRunScans: boolean }) {
   const { t, lang } = useI18n();
   const [stats, setStats] = useState<Stats | null>(null);
 
@@ -85,6 +87,40 @@ export function DashboardView({ onOpenReport }: { onOpenReport: (scanId: string)
           </Card>
         ))}
       </div>
+
+      {/* In-progress assessments — resume banner */}
+      {canRunScans && (stats.inProgress?.length ?? 0) > 0 && (
+        <Card className="border-amber-200 bg-amber-50/50 dark:border-amber-900 dark:bg-amber-950/20">
+          <CardContent className="p-4 sm:p-5">
+            <h3 className="flex items-center gap-2 text-sm font-semibold text-amber-900 dark:text-amber-200">
+              <PlayCircle className="h-4 w-4" aria-hidden /> {t("inProgressScans")}
+            </h3>
+            <div className="mt-3 space-y-2">
+              {stats.inProgress!.map((s) => (
+                <div
+                  key={s.id}
+                  className="flex flex-wrap items-center gap-3 rounded-lg border bg-background px-3 py-2.5"
+                >
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm font-medium">{s.name}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {s.frameworkCode ? <FrameworkBadge code={s.frameworkCode} /> : null}{" "}
+                      {s.org} · {t("startedOn")} {fmtDate(s.startedAt)} · {s.answered}/{s.total} {t("answered")}
+                    </p>
+                  </div>
+                  <Button
+                    size="sm"
+                    onClick={() => onResumeScan(s.id)}
+                    className="bg-emerald-700 hover:bg-emerald-800 text-white"
+                  >
+                    <PlayCircle className="h-4 w-4" aria-hidden /> {t("resumeScan")}
+                  </Button>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Regulatory frameworks posture */}
       {stats.frameworks.length > 0 && (

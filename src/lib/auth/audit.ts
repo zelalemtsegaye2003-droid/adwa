@@ -38,7 +38,11 @@ export type AuthEventType =
   | "EVIDENCE_INTEGRITY_WARNING"
   | "EVIDENCE_LINKED"
   | "EVIDENCE_UNLINKED"
-  | "EVIDENCE_AUTO_LINKED";
+  | "EVIDENCE_AUTO_LINKED"
+  | "SCAN_STARTED"
+  | "SCAN_COMPLETED"
+  | "SCAN_DELETED"
+  | "FINDING_STATUS_CHANGED";
 
 export interface AuditInput {
   type: AuthEventType;

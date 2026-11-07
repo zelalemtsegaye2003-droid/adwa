@@ -2,10 +2,18 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { requireAuthAny } from "@/lib/auth/guard";
 import { can } from "@/lib/auth/rbac";
+import { audit } from "@/lib/auth/audit";
+import { clientIp } from "@/lib/auth/rate-limit";
 
 const VALID = ["open", "in_progress", "remediated", "waived"];
 
-/** PATCH /api/findings/[id] — update remediation status (tenant-isolated). */
+/**
+ * PATCH /api/findings/[id] — update remediation status (tenant-isolated).
+ * A waiver is an accountability event: it requires a justification note,
+ * and every transition is written to the audit trail with old → new status.
+ *
+ * Body: { status, note? } — note REQUIRED when status = "waived".
+ */
 export async function PATCH(req: NextRequest, ctx: { params: Promise<{ id: string }> }) {
   const guard = await requireAuthAny(req, ["findings:manage-org", "findings:manage-all"]);
   if (guard.error) return guard.error;
@@ -17,9 +25,20 @@ export async function PATCH(req: NextRequest, ctx: { params: Promise<{ id: strin
     return NextResponse.json({ error: `status must be one of ${VALID.join(", ")}` }, { status: 400 });
   }
 
+  const note = typeof body.note === "string" ? body.note.trim().slice(0, 500) : "";
+  if (body.status === "waived" && note.length < 5) {
+    return NextResponse.json(
+      { error: "A waiver requires a justification note (at least 5 characters)." },
+      { status: 400 }
+    );
+  }
+
   const existing = await db.scanResult.findUnique({
     where: { id },
-    include: { scan: { select: { organizationId: true } } },
+    include: {
+      rule: { select: { code: true, titleEn: true } },
+      scan: { select: { organizationId: true, name: true } },
+    },
   });
   if (!existing) return NextResponse.json({ error: "Finding not found" }, { status: 404 });
 
@@ -33,6 +52,19 @@ export async function PATCH(req: NextRequest, ctx: { params: Promise<{ id: strin
     data: { status: body.status },
     include: { rule: true, scan: { include: { organization: true } } },
   });
+
+  if (existing.status !== body.status) {
+    await audit({
+      type: "FINDING_STATUS_CHANGED",
+      userId: user.id,
+      email: user.email,
+      organizationId: existing.scan.organizationId,
+      ip: clientIp(req.headers),
+      userAgent: req.headers.get("user-agent"),
+      detail: `Finding ${existing.rule.code} (${existing.rule.titleEn}) on "${existing.scan.name}": ${existing.status} → ${body.status}${note ? ` — note: ${note}` : ""}.`,
+    });
+  }
+
   return NextResponse.json({ result });
 }
 

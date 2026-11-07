@@ -25,7 +25,10 @@ export async function GET(req: NextRequest) {
     db.scan.findMany({
       where: scanFilter,
       orderBy: { startedAt: "desc" },
-      include: { organization: { select: { name: true, sector: true } } },
+      include: {
+        organization: { select: { name: true, sector: true } },
+        results: { select: { answer: true } },
+      },
     }),
     db.scanResult.findMany({ where: resultScanFilter, include: { rule: true } }),
     db.framework.findMany({ where: { isActive: true }, orderBy: { sortOrder: "asc" } }),
@@ -102,6 +105,16 @@ export async function GET(req: NextRequest) {
     bySeverity,
     byStatus,
     coverage,
+    inProgress: scans
+      .filter((s) => s.status === "in_progress")
+      .slice(0, 5)
+      .map((s) => ({
+        id: s.id, name: s.name, org: s.organization.name, organizationId: s.organizationId,
+        startedAt: s.startedAt,
+        answered: s.results.filter((r) => r.answer !== "na").length,
+        total: s.results.length,
+        frameworkCode: frameworks.find((f) => f.id === s.frameworkId)?.code ?? null,
+      })),
     recentScans: completed.slice(0, 5).map((s) => ({
       id: s.id, name: s.name, score: s.overallScore, org: s.organization.name,
       completedAt: s.completedAt, findings: s.findingsCount, critical: s.criticalFindings,
