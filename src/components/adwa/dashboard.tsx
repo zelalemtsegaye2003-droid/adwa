@@ -8,6 +8,7 @@ import { Progress } from "@/components/ui/progress";
 import { RadarChart, PolarGrid, PolarAngleAxis, Radar, ResponsiveContainer, PieChart, Pie, Cell, Tooltip, BarChart, Bar, XAxis, YAxis, CartesianGrid } from "recharts";
 import { ShieldCheck, Building2, ScrollText, Timer, TrendingDown } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
+import { api } from "@/lib/auth-client";
 import { ScoreRing, SeverityBadge, scoreColor, fmtDate } from "./shared";
 
 interface Stats {
@@ -29,7 +30,7 @@ export function DashboardView({ onOpenReport }: { onOpenReport: (scanId: string)
   const [stats, setStats] = useState<Stats | null>(null);
 
   useEffect(() => {
-    fetch("/api/stats").then((r) => r.json()).then(setStats).catch(() => {});
+    api("/api/stats").then(setStats).catch(() => {});
   }, []);
 
   if (!stats) {
@@ -195,8 +196,8 @@ function PillarRadar() {
   const { t } = useI18n();
 
   useEffect(() => {
-    fetch("/api/scans")
-      .then((r) => r.json())
+    api("/api/scans")
+      
       .then(({ scans }: { scans: { status: string; pillarScores: string | null }[] }) => {
         const done = scans.filter((s) => s.status === "complete" && s.pillarScores);
         if (!done.length) { setData([]); return; }

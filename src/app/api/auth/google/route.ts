@@ -1,0 +1,31 @@
+import { NextRequest, NextResponse } from "next/server";
+import { googleConfigured, googleAuthUrl } from "@/lib/auth/google";
+import { randomToken } from "@/lib/auth/crypto";
+import { rateLimit, clientIp } from "@/lib/auth/rate-limit";
+
+/**
+ * GET /api/auth/google — redirect to Google's OAuth consent screen.
+ * A CSRF `state` is set in a short-lived cookie and checked on callback.
+ */
+export async function GET(req: NextRequest) {
+  if (!googleConfigured()) {
+    return NextResponse.redirect(new URL("/?authError=google_not_configured", req.nextUrl.origin));
+  }
+
+  const ip = clientIp(req.headers);
+  const rl = rateLimit(`google-start:${ip}`, 20, 5 * 60_000);
+  if (!rl.allowed) {
+    return NextResponse.redirect(new URL("/?authError=rate_limited", req.nextUrl.origin));
+  }
+
+  const state = randomToken(16);
+  const res = NextResponse.redirect(googleAuthUrl(req.nextUrl.origin, state));
+  res.cookies.set("adwa_oauth_state", state, {
+    httpOnly: true,
+    sameSite: "lax",
+    secure: process.env.NODE_ENV === "production",
+    path: "/api/auth/google",
+    maxAge: 600,
+  });
+  return res;
+}

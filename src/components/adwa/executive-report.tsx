@@ -10,6 +10,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Tooltip, PieChart, Pie, Cell } from "recharts";
 import { Printer, FileText } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
+import { api } from "@/lib/auth-client";
 import { SeverityBadge, ScoreRing, scoreColor, fmtDate, type ScanBriefDTO, type ScanDetailDTO, type ResultDTO } from "./shared";
 
 export function ExecutiveReport({ scanId }: { scanId?: string | null }) {
@@ -20,8 +21,8 @@ export function ExecutiveReport({ scanId }: { scanId?: string | null }) {
   const [detail, setDetail] = useState<ScanDetailDTO | null>(null);
 
   useEffect(() => {
-    fetch("/api/scans").then((r) => r.json()).then((d) => {
-      setScans((d.scans as ScanBriefDTO[]).filter((s) => s.status === "complete"));
+    api<{ scans: ScanBriefDTO[] }>("/api/scans").then((d) => {
+      setScans((d.scans).filter((s) => s.status === "complete"));
     }).catch(() => {});
   }, []);
 
@@ -31,8 +32,7 @@ export function ExecutiveReport({ scanId }: { scanId?: string | null }) {
   useEffect(() => {
     if (!selected) return;
     let cancelled = false;
-    fetch(`/api/scans/${selected}`)
-      .then((r) => r.json())
+    api<{ scan: ScanDetailDTO }>(`/api/scans/${selected}`)
       .then((d) => { if (!cancelled) setDetail(d.scan); })
       .catch(() => {});
     return () => { cancelled = true; };

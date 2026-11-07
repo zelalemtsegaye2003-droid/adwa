@@ -8,6 +8,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Search, Scale, Gavel } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
+import { api } from "@/lib/auth-client";
 import { SeverityBadge, PillarBadge, RuleTitle, type RuleDTO } from "./shared";
 
 export function CatalogueView() {
@@ -19,7 +20,7 @@ export function CatalogueView() {
   const [severity, setSeverity] = useState("all");
 
   useEffect(() => {
-    fetch("/api/rules").then((r) => r.json()).then((d) => setRules(d.rules)).catch(() => setRules([]));
+    api<{ rules: RuleDTO[] }>("/api/rules").then((d) => setRules(d.rules)).catch(() => setRules([]));
   }, []);
 
   const articles = useMemo(() => [...new Set((rules ?? []).map((r) => r.article))], [rules]);

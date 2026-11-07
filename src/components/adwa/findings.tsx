@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { toast } from "sonner";
 import { useI18n } from "@/lib/i18n";
+import { api, ApiCallError } from "@/lib/auth-client";
 import { SeverityBadge, StatusBadge, type ScanBriefDTO, type ResultDTO } from "./shared";
 
 export function FindingsView() {
@@ -21,7 +22,7 @@ export function FindingsView() {
   const [updating, setUpdating] = useState<string | null>(null);
 
   useEffect(() => {
-    fetch("/api/scans").then((r) => r.json()).then((d) => setScans(d.scans)).catch(() => {});
+    api<{ scans: typeof scans }>("/api/scans").then((d) => setScans(d.scans)).catch(() => {});
   }, []);
 
   const completed = scans.filter((s) => s.status === "complete");
@@ -31,7 +32,7 @@ export function FindingsView() {
     const ids = key === "all" ? completed.map((s) => s.id) : [key];
     let cancelled = false;
     Promise.all(
-      ids.map((id) => fetch(`/api/scans/${id}`).then((r) => r.json()))
+      ids.map((id) => api<{ scan: ScanDetailDTO }>(`/api/scans/${id}`))
     )
       .then((datas) => {
         if (cancelled) return;
@@ -63,11 +64,16 @@ export function FindingsView() {
 
   const updateStatus = async (id: string, status: string) => {
     setUpdating(id);
-    const res = await fetch(`/api/findings/${id}`, {
-      method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ status }),
-    });
+    try {
+      await api(`/api/findings/${id}`, {
+        method: "PATCH", body: JSON.stringify({ status }),
+      });
+    } catch (err) {
+      setUpdating(null);
+      toast.error(err instanceof ApiCallError ? err.message : "Error");
+      return;
+    }
     setUpdating(null);
-    if (!res.ok) { toast.error((await res.json()).error ?? "Error"); return; }
     setData((prev) =>
       prev ? { ...prev, rows: prev.rows.map((r) => (r.id === id ? { ...r, status } : r)) } : prev
     );

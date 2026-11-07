@@ -1,11 +1,24 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
+import { requireAuth } from "@/lib/auth/guard";
+import { can } from "@/lib/auth/rbac";
 
-export async function GET() {
+/**
+ * GET /api/organizations — tenant directory.
+ * SUPER_ADMIN sees every organization; tenant users see only their own.
+ */
+export async function GET(req: NextRequest) {
+  const guard = await requireAuth(req);
+  if (guard.error) return guard.error;
+  const { user } = guard;
+
+  const isSuper = can(user.role, "orgs:view-all");
   const orgs = await db.organization.findMany({
+    where: isSuper ? {} : { id: user.orgId ?? "__none__" },
     orderBy: { createdAt: "asc" },
     include: { scans: { orderBy: { startedAt: "desc" }, take: 1 } },
   });
+
   return NextResponse.json({
     organizations: orgs.map((o) => ({
       ...o,
@@ -15,7 +28,11 @@ export async function GET() {
   });
 }
 
+/** POST /api/organizations — onboard a new tenant (SUPER_ADMIN only). */
 export async function POST(req: NextRequest) {
+  const guard = await requireAuth(req, "orgs:manage");
+  if (guard.error) return guard.error;
+
   const body = await req.json();
   if (!body.name?.trim()) {
     return NextResponse.json({ error: "Organization name is required" }, { status: 400 });
