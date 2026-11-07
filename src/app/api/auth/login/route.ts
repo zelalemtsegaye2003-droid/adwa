@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
-import { verifyPassword } from "@/lib/auth/crypto";
+import { verifyPassword, hashPassword } from "@/lib/auth/crypto";
 import { verifyCaptcha } from "@/lib/auth/captcha";
 import { signMfaToken } from "@/lib/auth/jwt";
 import { issueSession, setAuthCookies } from "@/lib/auth/session";
@@ -9,6 +9,12 @@ import { rateLimit, clientIp } from "@/lib/auth/rate-limit";
 
 const MAX_FAILED_ATTEMPTS = 5;
 const LOCK_MINUTES = 15;
+const MAX_EMAIL_LEN = 254;
+const MAX_PASSWORD_LEN = 200; // scrypt cost scales with input length — cap it (A04)
+
+// A07 hardening: burn the same scrypt CPU on the "unknown email" path as on
+// the "wrong password" path, so accounts cannot be enumerated by timing.
+const DUMMY_HASH = hashPassword("timing-equalization-dummy");
 
 interface LoginBody {
   email?: string;
@@ -37,13 +43,25 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  const email = body.email?.trim().toLowerCase() ?? "";
-  const password = body.password ?? "";
+  // A03/A04: type guards — JSON type confusion (objects/arrays where strings
+  // are expected) must degrade to a clean 4xx, never a 500.
+  const email = typeof body.email === "string" ? body.email.trim().toLowerCase() : "";
+  const password = typeof body.password === "string" ? body.password : "";
 
   if (!email || !password) {
     return NextResponse.json(
       { error: { code: "MISSING_CREDENTIALS", message: "Email and password are required." } },
       { status: 400 }
+    );
+  }
+
+  // A04: input size caps — checked BEFORE any user lookup or hashing so the
+  // response is uniform regardless of account existence (also blocks CPU-DoS
+  // via multi-megabyte passwords fed to scrypt).
+  if (email.length > MAX_EMAIL_LEN || password.length > MAX_PASSWORD_LEN) {
+    return NextResponse.json(
+      { error: { code: "INVALID_CREDENTIALS", message: "Invalid email or password." } },
+      { status: 401 }
     );
   }
 
@@ -96,6 +114,9 @@ export async function POST(req: NextRequest) {
   );
 
   if (!user || !user.passwordHash) {
+    // A07: run the dummy scrypt verification so this path costs the same CPU
+    // time as a real password check (timing-equalized account enumeration).
+    verifyPassword(password, DUMMY_HASH);
     await audit({
       type: "LOGIN_FAILED",
       userId: user?.id,

@@ -33,18 +33,24 @@ export async function POST(req: NextRequest) {
   const guard = await requireAuth(req, "orgs:manage");
   if (guard.error) return guard.error;
 
-  const body = await req.json();
-  if (!body.name?.trim()) {
-    return NextResponse.json({ error: "Organization name is required" }, { status: 400 });
+  let body: Record<string, string | undefined>;
+  try {
+    body = (await req.json()) as Record<string, string | undefined>;
+  } catch {
+    return NextResponse.json({ error: { code: "INVALID_JSON", message: "Request body must be valid JSON." } }, { status: 400 });
+  }
+  const name = (typeof body.name === "string" ? body.name : "").trim();
+  if (name.length < 2 || name.length > 120) {
+    return NextResponse.json({ error: { code: "BAD_NAME", message: "Organization name is required (max 120 characters)." } }, { status: 400 });
   }
   const org = await db.organization.create({
     data: {
-      name: body.name.trim(),
-      nameAm: body.nameAm?.trim() ?? "",
-      sector: body.sector ?? "Other",
-      tier: body.tier ?? "mid-market",
-      contactEmail: body.contactEmail?.trim() || null,
-      notes: body.notes?.trim() || null,
+      name,
+      nameAm: (typeof body.nameAm === "string" ? body.nameAm : "").trim().slice(0, 120),
+      sector: (typeof body.sector === "string" ? body.sector : "Other").trim().slice(0, 40) || "Other",
+      tier: (typeof body.tier === "string" ? body.tier : "mid-market").trim().slice(0, 40) || "mid-market",
+      contactEmail: (typeof body.contactEmail === "string" ? body.contactEmail : "").trim().slice(0, 254) || null,
+      notes: (typeof body.notes === "string" ? body.notes : "").trim().slice(0, 2000) || null,
       status: "onboarding",
     },
   });

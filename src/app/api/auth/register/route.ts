@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { hashPassword } from "@/lib/auth/crypto";
+import { isCommonPassword } from "@/lib/auth/passwords";
 import { verifyCaptcha } from "@/lib/auth/captcha";
 import { issueSession, setAuthCookies } from "@/lib/auth/session";
 import { audit } from "@/lib/auth/audit";
@@ -67,17 +68,24 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  const orgName = body.organizationName?.trim() ?? "";
-  const adminName = body.adminName?.trim() ?? "";
-  const adminEmail = body.adminEmail?.trim().toLowerCase() ?? "";
-  const password = body.password ?? "";
+  // A03/A04: type guards — non-string JSON values degrade to validation errors.
+  const orgName = typeof body.organizationName === "string" ? body.organizationName.trim() : "";
+  const adminName = typeof body.adminName === "string" ? body.adminName.trim() : "";
+  const adminEmail = typeof body.adminEmail === "string" ? body.adminEmail.trim().toLowerCase() : "";
+  const password = typeof body.password === "string" ? body.password : "";
+  const str = (v: unknown): string => (typeof v === "string" ? v : "");
 
+  // A04 hardening: length caps on every stored field (storage abuse / DoS).
+  const MAX = { org: 120, name: 100, email: 254, sector: 40, password: 200 };
   const fieldErrors: Record<string, string> = {};
-  if (orgName.length < 2) fieldErrors.organizationName = "Organization name is required.";
-  if (adminName.length < 2) fieldErrors.adminName = "Administrator name is required.";
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(adminEmail)) fieldErrors.adminEmail = "A valid email is required.";
-  if (password.length < 10 || !/[a-zA-Z]/.test(password) || !/[0-9]/.test(password)) {
-    fieldErrors.password = "Password must be at least 10 characters and include letters and numbers.";
+  if (orgName.length < 2 || orgName.length > MAX.org) fieldErrors.organizationName = "Organization name is required (max 120 characters).";
+  if (adminName.length < 2 || adminName.length > MAX.name) fieldErrors.adminName = "Administrator name is required (max 100 characters).";
+  if (adminEmail.length > MAX.email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(adminEmail)) fieldErrors.adminEmail = "A valid email is required.";
+  if (str(body.sector).trim().length > MAX.sector) fieldErrors.sector = "Sector must be at most 40 characters.";
+  if (str(body.contactEmail).trim().length > MAX.email) fieldErrors.contactEmail = "Contact email is too long.";
+  if (str(body.organizationNameAm).trim().length > MAX.org) fieldErrors.organizationNameAm = "Amharic name must be at most 120 characters.";
+  if (password.length < 10 || password.length > MAX.password || !/[a-zA-Z]/.test(password) || !/[0-9]/.test(password) || isCommonPassword(password)) {
+    fieldErrors.password = "Password must be 10–200 characters, include letters and numbers, and not be a common password.";
   }
   if (Object.keys(fieldErrors).length > 0) {
     return NextResponse.json(
@@ -107,10 +115,10 @@ export async function POST(req: NextRequest) {
   const org = await db.organization.create({
     data: {
       name: orgName,
-      nameAm: body.organizationNameAm?.trim() ?? "",
+      nameAm: str(body.organizationNameAm).trim().slice(0, MAX.org),
       slug,
-      sector: body.sector?.trim() || "Other",
-      contactEmail: body.contactEmail?.trim() || adminEmail,
+      sector: str(body.sector).trim().slice(0, MAX.sector) || "Other",
+      contactEmail: str(body.contactEmail).trim().slice(0, MAX.email) || adminEmail,
       status: "onboarding",
     },
   });

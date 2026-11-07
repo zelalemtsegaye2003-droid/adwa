@@ -106,6 +106,7 @@ model User {
   mfaEnabled       Boolean   @default(false)
   mfaSecret        String? // AES-256-GCM encrypted TOTP secret
   mfaConfirmedAt   DateTime?
+  lastTotpCounter  Int? // highest accepted TOTP step (replay protection)
   backupCodes      String? // JSON array of sha256-hashed one-time codes
   failedAttempts   Int       @default(0)
   lockedUntil      DateTime?

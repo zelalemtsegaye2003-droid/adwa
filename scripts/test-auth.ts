@@ -58,13 +58,24 @@ function ipFor(email: string): string {
 }
 
 async function login(creds: { email: string; password: string }, ip?: string) {
-  const captcha = await getCaptcha(ip ?? ipFor(creds.email));
-  const res = await fetch(`${BASE}/api/auth/login`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json", "X-Forwarded-For": ip ?? ipFor(creds.email) },
-    body: JSON.stringify({ ...creds, ...captcha }),
-  });
-  return { res, body: await res.json().catch(() => null), jar: parseCookies(res) };
+  const attempt = async () => {
+    const captcha = await getCaptcha(ip ?? ipFor(creds.email));
+    const res = await fetch(`${BASE}/api/auth/login`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "X-Forwarded-For": ip ?? ipFor(creds.email) },
+      body: JSON.stringify({ ...creds, ...captcha }),
+    });
+    return { res, body: await res.json().catch(() => null), jar: parseCookies(res) };
+  };
+  let out = await attempt();
+  if (out.res.status === 429) {
+    // Per-account/IP login limiter (10 and 20 per 5 min) — wait out the
+    // window once so back-to-back suite runs stay green.
+    console.log("  (login rate limited — waiting 65s for the window to reset…)");
+    await new Promise((r) => setTimeout(r, 65_000));
+    out = await attempt();
+  }
+  return out;
 }
 
 /** RFC 6238 TOTP for tests. */
@@ -162,14 +173,27 @@ async function main() {
     });
     ok("wrong TOTP → 401 MFA_CODE_INVALID", badCode.status === 401 && (await badCode.json()).error.code === "MFA_CODE_INVALID");
 
-    const goodCode = await fetch(`${BASE}/api/auth/mfa/verify`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ mfaToken: step1.body.mfaToken, code: totpNow(OFFICER_TOTP_SECRET) }),
-    });
-    const body = await goodCode.json();
-    ok("correct TOTP → 200 + session cookies", goodCode.status === 200 && parseCookies(goodCode).adwa_at, `code=${totpNow(OFFICER_TOTP_SECRET)}`);
-    officerJar = parseCookies(goodCode);
+    // TOTP codes are single-use per 30s step (replay protection): if another
+    // suite consumed the current step moments ago, wait one step and retry.
+    let goodCode: Response | null = null;
+    let officerToken: string = step1.body.mfaToken;
+    for (let attempt = 0; attempt < 2; attempt++) {
+      const res = await fetch(`${BASE}/api/auth/mfa/verify`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ mfaToken: officerToken, code: totpNow(OFFICER_TOTP_SECRET) }),
+      });
+      if (res.status === 200) { goodCode = res; break; }
+      if (attempt === 0) {
+        console.log("  (TOTP step already consumed — waiting 31s for the next window…)");
+        await new Promise((r) => setTimeout(r, 31_000));
+        const retry = await login(OFFICER);
+        officerToken = retry.body?.mfaToken ?? officerToken;
+      }
+    }
+    ok("correct TOTP → 200 + session cookies", Boolean(goodCode && goodCode.status === 200 && parseCookies(goodCode).adwa_at),
+       goodCode ? `code verified` : "both attempts failed");
+    officerJar = goodCode ? parseCookies(goodCode) : {};
 
     const me = await api("/api/auth/me", officerJar);
     ok("officer /me → COMPLIANCE_OFFICER @ CBE", me.body?.user?.role === "COMPLIANCE_OFFICER" && me.body?.user?.orgName?.includes("CBE"));
@@ -373,7 +397,7 @@ async function main() {
     const enableBad = await api("/api/auth/mfa/enable", jar, { method: "POST", body: JSON.stringify({ code: "123456" }) });
     ok("enable with wrong code → 400", enableBad.res.status === 400);
 
-    const code = totpNow(setup.body.secret);
+    const code = totpNow(setup.body.secret); // fresh secret per enrollment — no replay risk
     const enable = await api("/api/auth/mfa/enable", jar, { method: "POST", body: JSON.stringify({ code }) });
     ok("enable with live TOTP → backup codes issued", enable.res.status === 200 && enable.body?.backupCodes?.length === 10);
 

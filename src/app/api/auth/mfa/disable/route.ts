@@ -43,8 +43,12 @@ export async function POST(req: NextRequest) {
     );
   }
 
+  // A03/A04: type guards + caps before any crypto work.
+  const password = typeof body.password === "string" ? body.password.slice(0, 200) : "";
+  const code = typeof body.code === "string" ? body.code.slice(0, 20) : "";
+
   // Re-auth factor 1: password.
-  if (!full.passwordHash || !verifyPassword(body.password ?? "", full.passwordHash)) {
+  if (!full.passwordHash || !verifyPassword(password, full.passwordHash)) {
     return NextResponse.json(
       { error: { code: "PASSWORD_INVALID", message: "Password incorrect." } },
       { status: 401 }
@@ -55,7 +59,7 @@ export async function POST(req: NextRequest) {
   let ok = false;
   if (full.mfaSecret) {
     try {
-      ok = verifyTotp(decryptSecret(full.mfaSecret), body.code ?? "");
+      ok = verifyTotp(decryptSecret(full.mfaSecret), code);
     } catch {
       ok = false;
     }

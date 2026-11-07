@@ -13,7 +13,7 @@ export async function GET() {
     captcha: captchaConfig(),
     passwordPolicy: {
       minLength: 10,
-      hint: "At least 10 characters with letters and numbers.",
+      hint: "At least 10 characters with letters and numbers; common passwords are rejected.",
     },
   });
 }

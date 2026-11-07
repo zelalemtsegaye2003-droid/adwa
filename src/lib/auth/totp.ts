@@ -85,14 +85,24 @@ export function currentTotp(secret: string): string {
  * (standard practice: previous, current and next 30-second windows).
  */
 export function verifyTotp(secret: string, code: string): boolean {
+  return verifyTotpStep(secret, code) !== null;
+}
+
+/**
+ * Verify a code and return the ABSOLUTE counter (time step) that matched,
+ * or null when invalid. Callers use the counter for replay protection:
+ * reject any step <= the highest previously accepted step, so a code
+ * intercepted and replayed within its 30-second validity window fails.
+ */
+export function verifyTotpStep(secret: string, code: string): number | null {
   const normalized = code.replace(/\D/g, "");
-  if (normalized.length !== TOTP_DIGITS) return false;
-  const now = Date.now();
+  if (normalized.length !== TOTP_DIGITS) return null;
+  const current = Math.floor(Date.now() / 1000 / TOTP_PERIOD);
   for (const drift of [-1, 0, 1]) {
-    const expected = totpAt(secret, now + drift * TOTP_PERIOD * 1000);
-    if (safeEqual(normalized, expected)) return true;
+    const step = current + drift;
+    if (safeEqual(normalized, hotp(base32Decode(secret), step))) return step;
   }
-  return false;
+  return null;
 }
 
 /** otpauth:// provisioning URI understood by every authenticator app. */

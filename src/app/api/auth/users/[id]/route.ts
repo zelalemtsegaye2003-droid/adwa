@@ -4,6 +4,7 @@ import { requireAuthAny } from "@/lib/auth/guard";
 import { can, ASSIGNABLE_ORG_ROLES, ROLES } from "@/lib/auth/rbac";
 import { hashPassword } from "@/lib/auth/crypto";
 import { revokeAllSessions } from "@/lib/auth/session";
+import { isCommonPassword } from "@/lib/auth/passwords";
 import { audit } from "@/lib/auth/audit";
 import { clientIp } from "@/lib/auth/rate-limit";
 import type { AppRole } from "@/lib/auth/jwt";
@@ -92,10 +93,10 @@ export async function PATCH(req: NextRequest, ctx: { params: Promise<{ id: strin
   }
 
   if (body.name !== undefined) {
-    const name = body.name.trim();
-    if (name.length < 2) {
+    const name = typeof body.name === "string" ? body.name.trim() : "";
+    if (name.length < 2 || name.length > 100) {
       return NextResponse.json(
-        { error: { code: "BAD_NAME", message: "Name must be at least 2 characters." } },
+        { error: { code: "BAD_NAME", message: "Name must be 2–100 characters." } },
         { status: 400 }
       );
     }
@@ -104,10 +105,10 @@ export async function PATCH(req: NextRequest, ctx: { params: Promise<{ id: strin
   }
 
   if (body.password !== undefined) {
-    const pw = body.password;
-    if (pw.length < 10 || !/[a-zA-Z]/.test(pw) || !/[0-9]/.test(pw)) {
+    const pw = typeof body.password === "string" ? body.password : "";
+    if (pw.length < 10 || pw.length > 200 || !/[a-zA-Z]/.test(pw) || !/[0-9]/.test(pw) || isCommonPassword(pw)) {
       return NextResponse.json(
-        { error: { code: "WEAK_PASSWORD", message: "Password must be 10+ chars with letters and numbers." } },
+        { error: { code: "WEAK_PASSWORD", message: "Password must be 10–200 chars with letters and numbers, not a common password." } },
         { status: 400 }
       );
     }
