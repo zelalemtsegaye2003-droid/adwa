@@ -9,7 +9,8 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   ScrollText, ChevronLeft, ChevronRight, ShieldCheck, ShieldX, KeyRound,
-  LogIn, LogOut, UserPlus, Lock, RefreshCw, AlertTriangle,
+  LogIn, LogOut, UserPlus, Lock, RefreshCw, AlertTriangle, UploadCloud, Download,
+  Pencil, Archive, ArchiveRestore, Trash2, ShieldOff,
 } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
 import { api } from "@/lib/auth-client";
@@ -46,6 +47,14 @@ const EVENT_META: Record<string, { icon: React.ElementType; cls: string }> = {
   USER_DISABLED: { icon: ShieldX, cls: "bg-amber-100 text-amber-800 border-amber-300 dark:bg-amber-950 dark:text-amber-300 dark:border-amber-800" },
   GOOGLE_LOGIN_FAILED: { icon: ShieldX, cls: "bg-red-100 text-red-800 border-red-300 dark:bg-red-950 dark:text-red-300 dark:border-red-800" },
   ACCESS_DENIED: { icon: ShieldX, cls: "bg-red-100 text-red-800 border-red-300 dark:bg-red-950 dark:text-red-300 dark:border-red-800" },
+  EVIDENCE_UPLOADED: { icon: UploadCloud, cls: "bg-teal-100 text-teal-800 border-teal-300 dark:bg-teal-950 dark:text-teal-300 dark:border-teal-800" },
+  EVIDENCE_DOWNLOAD: { icon: Download, cls: "bg-stone-100 text-stone-700 border-stone-300 dark:bg-stone-900 dark:text-stone-300 dark:border-stone-700" },
+  EVIDENCE_UPDATED: { icon: Pencil, cls: "bg-stone-100 text-stone-700 border-stone-300 dark:bg-stone-900 dark:text-stone-300 dark:border-stone-700" },
+  EVIDENCE_ARCHIVED: { icon: Archive, cls: "bg-amber-100 text-amber-800 border-amber-300 dark:bg-amber-950 dark:text-amber-300 dark:border-amber-800" },
+  EVIDENCE_RESTORED: { icon: ArchiveRestore, cls: "bg-emerald-100 text-emerald-800 border-emerald-300 dark:bg-emerald-950 dark:text-emerald-300 dark:border-emerald-800" },
+  EVIDENCE_DELETED: { icon: Trash2, cls: "bg-red-100 text-red-800 border-red-300 dark:bg-red-950 dark:text-red-300 dark:border-red-800" },
+  EVIDENCE_REJECTED: { icon: ShieldOff, cls: "bg-amber-100 text-amber-800 border-amber-300 dark:bg-amber-950 dark:text-amber-300 dark:border-amber-800" },
+  EVIDENCE_INTEGRITY_WARNING: { icon: AlertTriangle, cls: "bg-red-100 text-red-800 border-red-300 dark:bg-red-950 dark:text-red-300 dark:border-red-800" },
 };
 
 const TYPE_LABEL: Record<string, string> = {
@@ -57,6 +66,10 @@ const TYPE_LABEL: Record<string, string> = {
   SESSIONS_REVOKED: "All sessions revoked", REGISTER_ORG: "Organization onboarded",
   USER_CREATED: "User created", USER_UPDATED: "User updated", USER_DISABLED: "User disabled",
   GOOGLE_LOGIN: "Google sign-in", GOOGLE_LOGIN_FAILED: "Google sign-in failed", ACCESS_DENIED: "Access denied",
+  EVIDENCE_UPLOADED: "Evidence uploaded", EVIDENCE_DOWNLOAD: "Evidence downloaded",
+  EVIDENCE_UPDATED: "Evidence updated", EVIDENCE_ARCHIVED: "Evidence archived",
+  EVIDENCE_RESTORED: "Evidence restored", EVIDENCE_DELETED: "Evidence deleted",
+  EVIDENCE_REJECTED: "Evidence upload rejected", EVIDENCE_INTEGRITY_WARNING: "Evidence integrity warning",
 };
 
 export function AuditView({ isSuperAdmin }: { isSuperAdmin: boolean }) {

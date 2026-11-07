@@ -45,7 +45,12 @@ export type Permission =
   | "findings:manage-org"
   | "findings:manage-all"
   | "audit:view-org"
-  | "audit:view-all";
+  | "audit:view-all"
+  | "evidence:view-org"
+  | "evidence:view-all"
+  | "evidence:upload"
+  | "evidence:manage-org"
+  | "evidence:manage-all";
 
 const MATRIX: Record<AppRole, Permission[]> = {
   SUPER_ADMIN: [
@@ -59,6 +64,9 @@ const MATRIX: Record<AppRole, Permission[]> = {
     "findings:view-all",
     "findings:manage-all",
     "audit:view-all",
+    "evidence:view-all",
+    "evidence:upload",
+    "evidence:manage-all",
   ],
   ORG_ADMIN: [
     "org:view-own",
@@ -71,6 +79,9 @@ const MATRIX: Record<AppRole, Permission[]> = {
     "findings:view-org",
     "findings:manage-org",
     "audit:view-org",
+    "evidence:view-org",
+    "evidence:upload",
+    "evidence:manage-org",
   ],
   COMPLIANCE_OFFICER: [
     "org:view-own",
@@ -79,6 +90,8 @@ const MATRIX: Record<AppRole, Permission[]> = {
     "scans:run-org",
     "findings:view-org",
     "findings:manage-org",
+    "evidence:view-org",
+    "evidence:upload",
   ],
   AUDITOR: [
     "org:view-own",
@@ -86,8 +99,9 @@ const MATRIX: Record<AppRole, Permission[]> = {
     "scans:view-org",
     "findings:view-org",
     "audit:view-org",
+    "evidence:view-org",
   ],
-  VIEWER: ["org:view-own", "catalogue:view", "scans:view-org", "findings:view-org"],
+  VIEWER: ["org:view-own", "catalogue:view", "scans:view-org", "findings:view-org", "evidence:view-org"],
 };
 
 export function can(role: AppRole | string | undefined, permission: Permission): boolean {

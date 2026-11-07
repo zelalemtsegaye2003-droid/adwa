@@ -12,7 +12,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { useTheme } from "next-themes";
 import {
   Moon, Sun, ShieldCheck, LayoutDashboard, ScrollText, Building2, ScanLine, Flag,
-  FileText, Languages, Users, LogOut, KeyRound, ChevronUp,
+  FileText, Languages, Users, LogOut, KeyRound, ChevronUp, FolderLock,
 } from "lucide-react";
 import { I18nProvider, useI18n } from "@/lib/i18n";
 import { DashboardView } from "@/components/adwa/dashboard";
@@ -21,13 +21,14 @@ import { OrganizationsView } from "@/components/adwa/organizations";
 import { ScanWizard } from "@/components/adwa/scan-wizard";
 import { FindingsView } from "@/components/adwa/findings";
 import { ExecutiveReport } from "@/components/adwa/executive-report";
+import { EvidenceView } from "@/components/adwa/evidence-view";
 import { AuthGate, useAuth } from "@/components/auth/auth-gate";
 import { MfaSetupDialog, MfaBadge } from "@/components/auth/mfa-setup";
 import { UsersView } from "@/components/auth/users-view";
 import { AuditView } from "@/components/auth/audit-view";
 import { ROLE_COLORS, ROLE_SHORT } from "@/lib/auth-client";
 
-type View = "dashboard" | "catalogue" | "organizations" | "scan" | "findings" | "report" | "team" | "audit";
+type View = "dashboard" | "catalogue" | "organizations" | "scan" | "findings" | "evidence" | "report" | "team" | "audit";
 
 function Shell() {
   const { t, lang, setLang } = useI18n();
@@ -50,6 +51,7 @@ function Shell() {
     { id: "organizations", label: t("navOrganizations"), icon: Building2, show: perms.has("org:view-own") || isSuper },
     { id: "scan", label: t("navScans"), icon: ScanLine, show: perms.has("scans:view-org") || perms.has("scans:view-all") },
     { id: "findings", label: t("navFindings"), icon: Flag, show: perms.has("findings:view-org") || perms.has("findings:view-all") },
+    { id: "evidence", label: t("navEvidence"), icon: FolderLock, show: perms.has("evidence:view-org") || perms.has("evidence:view-all") },
     { id: "report", label: t("navReport"), icon: FileText, show: perms.has("scans:view-org") || perms.has("scans:view-all") },
     { id: "team", label: t("team"), icon: Users, show: perms.has("users:view-org") || perms.has("users:view-all") },
     { id: "audit", label: t("auditLog"), icon: KeyRound, show: canSeeAudit },
@@ -192,6 +194,13 @@ function Shell() {
               />
             )}
             {view === "findings" && <FindingsView />}
+            {view === "evidence" && (
+              <EvidenceView
+                canUpload={perms.has("evidence:upload")}
+                canManage={perms.has("evidence:manage-org") || perms.has("evidence:manage-all")}
+                isSuperAdmin={isSuper}
+              />
+            )}
             {view === "report" && <ExecutiveReport scanId={reportScanId} />}
             {view === "team" && <UsersView canManage={canManageUsers} isSuperAdmin={isSuper} />}
             {view === "audit" && <AuditView isSuperAdmin={isSuper} />}
