@@ -78,6 +78,7 @@ model Rule {
   version        String   @default("1.0")
   isActive       Boolean  @default(true)
   results        ScanResult[]
+  links          EvidenceLink[]
 }
 
 model Scan {
@@ -147,6 +148,7 @@ model User {
   refreshTokens    RefreshToken[]
   authEvents       AuthEvent[]
   evidenceUploaded EvidenceDocument[]
+  evidenceLinks    EvidenceLink[]
 }
 
 model RefreshToken {
@@ -206,12 +208,36 @@ model EvidenceDocument {
   organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   uploadedById   String
   uploadedBy     User        @relation(fields: [uploadedById], references: [id])
+  links          EvidenceLink[]
   createdAt      DateTime  @default(now())
   updatedAt      DateTime  @updatedAt
 
   @@index([organizationId, status])
   @@index([rootId])
   @@index([category])
+}
+
+// ── Rules Engine: evidence ↔ obligation mapping ─────────────────────────────
+// Explicit links between vault artefacts and catalogue obligations. Links are
+// created manually (from the evidence or catalogue UI) or derived
+// automatically from document tags that reference rule codes (source=AUTO_TAG).
+// The coverage evaluator joins links with the freshness policy to classify
+// each obligation as SATISFIED / STALE / GAP for a given organization.
+model EvidenceLink {
+  id          String   @id @default(cuid())
+  ruleId      String
+  rule        Rule     @relation(fields: [ruleId], references: [id], onDelete: Cascade)
+  evidenceId  String
+  evidence    EvidenceDocument @relation(fields: [evidenceId], references: [id], onDelete: Cascade)
+  linkType    String   @default("SATISFIES") // SATISFIES | SUPPORTS
+  source      String   @default("MANUAL") // MANUAL | AUTO_TAG
+  createdById String
+  createdBy   User     @relation(fields: [createdById], references: [id])
+  createdAt   DateTime @default(now())
+
+  @@unique([ruleId, evidenceId])
+  @@index([evidenceId])
+  @@index([ruleId])
 }
 
 model CaptchaChallenge {

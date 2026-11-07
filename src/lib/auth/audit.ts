@@ -35,7 +35,10 @@ export type AuthEventType =
   | "EVIDENCE_RESTORED"
   | "EVIDENCE_DELETED"
   | "EVIDENCE_REJECTED"
-  | "EVIDENCE_INTEGRITY_WARNING";
+  | "EVIDENCE_INTEGRITY_WARNING"
+  | "EVIDENCE_LINKED"
+  | "EVIDENCE_UNLINKED"
+  | "EVIDENCE_AUTO_LINKED";
 
 export interface AuditInput {
   type: AuthEventType;

@@ -13,6 +13,7 @@ import {
   EVIDENCE_CATEGORIES,
   type EvidenceCategory,
 } from "@/lib/evidence";
+import { autoLinkEvidence } from "@/lib/rules-engine";
 
 export const runtime = "nodejs";
 
@@ -128,6 +129,25 @@ export async function POST(req: NextRequest) {
     });
   }
 
+  // Rules Engine: tags that reference rule codes become evidence links.
+  let autoLinked = 0;
+  try {
+    const res = await autoLinkEvidence(created.id, user.id);
+    autoLinked = res.created;
+    if (autoLinked > 0) {
+      await audit({
+        type: "EVIDENCE_AUTO_LINKED",
+        userId: user.id,
+        email: user.email,
+        organizationId,
+        ip: clientIp(req.headers),
+        detail: `Tags on "${title}" auto-linked to ${autoLinked} obligation(s): ${res.ruleCodes.join(", ")}.`,
+      });
+    }
+  } catch {
+    /* linking is best-effort; the upload itself already succeeded */
+  }
+
   await audit({
     type: "EVIDENCE_UPLOADED",
     userId: user.id,
@@ -138,5 +158,8 @@ export async function POST(req: NextRequest) {
     detail: `"${title}" (${fileName}, ${upload.size} B, sha256 ${checksum.slice(0, 12)}…) v${created.version}${previous ? ` replacing v${previous.version}` : ""} stored for ${org.name}.`,
   });
 
-  return NextResponse.json({ document: { id: created.id, title: created.title, version: created.version } }, { status: 201 });
+  return NextResponse.json(
+    { document: { id: created.id, title: created.title, version: created.version, autoLinked } },
+    { status: 201 }
+  );
 }
