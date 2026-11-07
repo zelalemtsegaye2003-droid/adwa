@@ -30,7 +30,10 @@ export interface AccessClaims {
   orgName: string | null;
   mfa: boolean; // whether the session completed MFA (or MFA is off)
   typ: "access";
-  iat?: number; // issued-at (unix seconds) — used for revocation checks
+  iat?: number; // issued-at (unix seconds, floored by jose)
+  iatMs?: number; // exact issued-at in milliseconds — used for revocation checks
+                 // (floored-second `iat` cannot distinguish before/after a
+                 //  revocation inside the same second; see getSessionUser)
 }
 
 export interface MfaClaims {
@@ -45,7 +48,7 @@ function secretKey(): Uint8Array {
 }
 
 export async function signAccessToken(claims: Omit<AccessClaims, "typ">): Promise<string> {
-  return new SignJWT({ ...claims, typ: "access" })
+  return new SignJWT({ ...claims, typ: "access", iatMs: Date.now() })
     .setProtectedHeader({ alg: "HS256", typ: "JWT" })
     .setIssuer(ISSUER)
     .setAudience(AUDIENCE)

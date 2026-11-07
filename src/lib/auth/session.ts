@@ -124,7 +124,10 @@ export async function getSessionUser(req: NextRequest): Promise<SessionUser | nu
 
   // Session-family revocation: access tokens issued before this moment are dead
   // (reuse detection, role change, password reset, account disable, MFA disable).
-  if (user.sessionsRevokedAt && claims.iat && user.sessionsRevokedAt.getTime() > claims.iat * 1000) {
+  // iatMs gives the exact issue time; the floored-second `iat` would wrongly kill
+  // tokens issued within the same second AFTER the revocation.
+  const issuedAtMs = claims.iatMs ?? (claims.iat ? claims.iat * 1000 : 0);
+  if (user.sessionsRevokedAt && user.sessionsRevokedAt.getTime() > issuedAtMs) {
     return null;
   }
 

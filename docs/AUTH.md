@@ -93,13 +93,15 @@ GET  /api/auth/config          public capabilities (providers, captcha, policy)
 ## Tests
 
 ```bash
-bun scripts/test-owasp.ts   # 67 checks — OWASP Top 10 (2021) A01–A10
-bun scripts/test-auth.ts    # 54 checks — captcha, login, MFA, RBAC matrix,
-                            # tenant isolation, rotation/reuse, lockout, logout
-bun scripts/test-google.ts  # 15 checks — full OAuth dance via the mock provider
+bun scripts/test-owasp.ts       # 67 checks — OWASP Top 10 (2021) A01–A10
+bun scripts/test-auth.ts        # 54 checks — captcha, login, MFA, RBAC matrix,
+                                # tenant isolation, rotation/reuse, lockout, logout
+bun scripts/test-google.ts      # 15 checks — full OAuth dance via the mock provider
+bun scripts/test-compliance.ts  # 44 checks — 47-rule catalogue integrity, scan
+                                # lifecycle, engine maths, findings, tenant isolation
 ```
 
-All three run against the dev server. They are **order-independent and
+All four run against the dev server. They are **order-independent and
 self-healing** (429-aware retries, TOTP-window retries), but for a clean
 single-pass run start from a fresh server (`pkill -f "next dev"` then
 `bun run dev`) — the in-memory rate limiter keeps its buckets across hot
@@ -112,7 +114,7 @@ Verified by `scripts/test-owasp.ts` (67 checks). Hardening added during the pass
 
 | Category | Controls |
 |---|---|
-| **A01** Broken Access Control | Every API route behind `requireAuth` + RBAC permission; tenant scoping on every query; cross-origin state-changing requests rejected (403); tampered/forged/`alg:none`/expired JWTs all 401; role changes + `sessionsRevokedAt` kill live access tokens; route ids validated against `^[a-zA-Z0-9_-]{10,}$` |
+| **A01** Broken Access Control | Every API route behind `requireAuth` + RBAC permission; tenant scoping on every query; cross-origin state-changing requests rejected (403); tampered/forged/`alg:none`/expired JWTs all 401; role changes + `sessionsRevokedAt` kill live access tokens (exact-millisecond `iatMs` comparison — tokens issued after a revocation survive even within the same second); route ids validated against `^[a-zA-Z0-9_-]{10,}$` |
 | **A02** Cryptographic Failures | scrypt (N=16384) passwords; refresh tokens stored as sha256 only; TOTP secrets AES-256-GCM encrypted at rest; cookies `httpOnly` + `SameSite=Lax`, refresh cookie scoped to `/api/auth`; JWT carries identity claims only; API responses never include `passwordHash`/`mfaSecret`/`backupCodes` |
 | **A03** Injection | Prisma parameterized queries (zero raw SQL); all request fields JSON-type-guarded (type confusion → clean 4xx, never 500); React auto-escaping, no `dangerouslySetInnerHTML` outside shadcn chart theming; prototype-pollution keys inert |
 | **A04** Insecure Design | Captcha on login + register; per-IP/per-account/per-endpoint rate limits; account lockout (5 fails → 15 min); length caps on every input (254 email / 200 password / 120 org) — blocks scrypt-CPU DoS (1 MB password rejected in ~12 ms); common-password deny-list; explicit field picking (mass-assignment-proof); MFA precedence over Google |
@@ -130,7 +132,7 @@ because the sandbox preview renders the app in a frame.
 
 ```
 src/lib/auth/crypto.ts       scrypt, AES-256-GCM, SHA-256, CSPRNG tokens
-src/lib/auth/jwt.ts          access/MFA token sign+verify (jose, HS256)
+src/lib/auth/jwt.ts          access/MFA token sign+verify (jose, HS256, exact-ms iatMs claim)
 src/lib/auth/session.ts      cookie handling, refresh rotation + reuse detection
 src/lib/auth/totp.ts         RFC 6238 TOTP + backup codes
 src/lib/auth/captcha.ts      built-in SVG captcha + hCaptcha/reCAPTCHA adapters
