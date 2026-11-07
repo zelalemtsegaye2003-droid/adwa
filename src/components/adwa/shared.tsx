@@ -48,6 +48,7 @@ export interface ScanBriefDTO {
 export interface ResultDTO {
   id: string; scanId: string; answer: string; score: number; riskRank: number | null;
   status: string; findingEn?: string | null; findingAm?: string | null; evidenceNote?: string | null;
+  dueAt?: string | null; remediatedAt?: string | null;
   rule: RuleDTO;
 }
 
@@ -81,6 +82,41 @@ export function StatusBadge({ status }: { status: string }) {
   const label = status === "in_progress" ? t("stProgress") : status === "open" ? t("stOpen")
     : status === "remediated" ? t("stRemediated") : status === "waived" ? t("stWaived") : status;
   return <Badge variant="outline" className={`${map[status] ?? map.waived} hover:bg-transparent`}>{label}</Badge>;
+}
+
+// ── Remediation SLA badge (Procl. 1426/2026 corrective-action timelines) ────
+// Renders the SLA state plus a human deadline hint (“due 12 Nov · 4d left”).
+export function SlaBadge({ state, daysRemaining, dueAt }: { state: string; daysRemaining: number | null; dueAt?: string | null }) {
+  const { t, lang } = useI18n();
+  const map: Record<string, { label: string; cls: string }> = {
+    ON_TRACK: { label: t("slaOnTrack"), cls: "bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/60 dark:text-emerald-300 dark:border-emerald-900" },
+    DUE_SOON: { label: t("slaDueSoon"), cls: "bg-amber-100 text-amber-800 border-amber-300 dark:bg-amber-950 dark:text-amber-300 dark:border-amber-800" },
+    OVERDUE: { label: t("slaOverdue"), cls: "bg-red-100 text-red-800 border-red-300 dark:bg-red-950 dark:text-red-300 dark:border-red-800" },
+    CLOSED_ON_TIME: { label: t("slaClosedOnTime"), cls: "bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/60 dark:text-emerald-300 dark:border-emerald-900" },
+    CLOSED_LATE: { label: t("slaClosedLate"), cls: "bg-orange-100 text-orange-800 border-orange-300 dark:bg-orange-950 dark:text-orange-300 dark:border-orange-800" },
+    WAIVED: { label: t("slaWaived"), cls: "bg-muted text-muted-foreground border-border" },
+    NOT_TRACKED: { label: t("slaNotTracked"), cls: "bg-muted text-muted-foreground border-border" },
+  };
+  const e = map[state] ?? map.NOT_TRACKED;
+  const dateHint = dueAt
+    ? new Date(dueAt).toLocaleDateString(lang === "en" ? "en-GB" : "am-ET", { day: "numeric", month: "short" })
+    : null;
+  const dayHint =
+    state === "OVERDUE" && daysRemaining !== null
+      ? t("slaDaysOver", String(Math.abs(daysRemaining)))
+      : (state === "DUE_SOON" || state === "ON_TRACK") && daysRemaining !== null
+        ? t("slaDaysLeft", String(daysRemaining))
+        : null;
+  return (
+    <span className="inline-flex flex-col items-start gap-0.5">
+      <Badge variant="outline" className={`${e.cls} hover:bg-transparent`}>{e.label}</Badge>
+      {(dateHint || dayHint) && (
+        <span className="text-[11px] leading-none text-muted-foreground">
+          {dateHint}{dayHint ? ` · ${dayHint}` : ""}
+        </span>
+      )}
+    </span>
+  );
 }
 
 export function AnswerBadge({ answer }: { answer: string }) {

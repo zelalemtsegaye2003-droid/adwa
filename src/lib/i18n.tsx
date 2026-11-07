@@ -267,12 +267,33 @@ const DICT: Record<string, [string, string]> = {
   you: ["You", "እርስዎ"],
   crossTenant: ["cross-tenant", "በርካታ-ተቋም"],
   platform: ["Platform", "መድረክ"],
+  // Remediation SLA (Procl. 1426/2026 corrective-action timelines)
+  slaTitle: ["Remediation SLA", "የማስተካከያ ጊዜ ገደብ"],
+  slaSub: ["Corrective-action deadlines by severity — critical 30d · high 60d · medium 90d", "በአደጋ ሁኔታ ደረጃ የማስተካከያ ጊዜ ገደቦች — ወሳኝ 30 ቀን · ከፍተኛ 60 ቀን · መካከለኛ 90 ቀን"],
+  slaPolicy: ["SLA policy", "የጊዜ ገደብ ፖሊሲ"],
+  slaOnTrack: ["On track", "በጊዜው ላይ"],
+  slaDueSoon: ["Due soon", "ቀርቧል"],
+  slaOverdue: ["Overdue", "ዘግያል"],
+  slaClosedOnTime: ["Closed on time", "በወቅቱ ተዘግቷል"],
+  slaClosedLate: ["Closed late", "ዘግዶ ተዘግቷል"],
+  slaWaived: ["SLA waived", "ጊዜ ገደቡ ተቋርጧል"],
+  slaNotTracked: ["No deadline", "ጊዜ ገደብ የለም"],
+  slaDaysLeft: ["{0}d left", "ቀሪ {0} ቀን"],
+  slaDaysOver: ["{0}d over", "{0} ቀን ዘግዯል"],
+  slaDue: ["Due", "የሚያበቃው"],
+  slaAllStates: ["All deadlines", "ሁሉም ጊዜ ገደቦች"],
+  slaFilterOverdue: ["Overdue only", "ዘግያውች ብቻ"],
+  slaOpenItems: ["{0} open remediations tracked", "{0} ክፍት ማስተካከያዎች ተከታታይ ናቸው"],
+  slaOverdueCard: ["overdue remediations", "ዘግያውች ማስተካከያዎች"],
+  slaDueSoonCard: ["due within 7 days", "በ7 ቀናት ውስጥ የሚያበቁ"],
+  slaClosedLateCard: ["closed late", "ዘግዶ የተዘጉ"],
 };
 
 interface I18nCtx {
   lang: Lang;
   setLang: (l: Lang) => void;
-  t: (key: keyof typeof DICT | string) => string;
+  /** Translate a key; optional args substitute {0}, {1}, … placeholders. */
+  t: (key: keyof typeof DICT | string, ...args: string[]) => string;
   pick: (en: string, am: string) => string;
 }
 
@@ -303,10 +324,12 @@ export function I18nProvider({ children }: { children: React.ReactNode }) {
     for (const fn of langListeners) fn();
   };
 
-  const t = (key: string) => {
+  const t = (key: string, ...args: string[]) => {
     const e = DICT[key];
     if (!e) return key;
-    return lang === "en" ? e[0] : e[1];
+    let s = lang === "en" ? e[0] : e[1];
+    args.forEach((a, i) => { s = s.split(`{${i}}`).join(a); });
+    return s;
   };
   const pick = (en: string, am: string) => (lang === "en" ? en : am);
 

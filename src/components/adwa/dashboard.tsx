@@ -7,7 +7,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Progress } from "@/components/ui/progress";
 import { RadarChart, PolarGrid, PolarAngleAxis, Radar, ResponsiveContainer, PieChart, Pie, Cell, Tooltip, BarChart, Bar, XAxis, YAxis, CartesianGrid } from "recharts";
-import { ShieldCheck, Building2, ScrollText, Timer, TrendingDown, Landmark, PlayCircle } from "lucide-react";
+import { ShieldCheck, Building2, ScrollText, Timer, TrendingDown, Landmark, PlayCircle, AlertTriangle } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
 import { api } from "@/lib/auth-client";
 import { ScoreRing, SeverityBadge, FrameworkBadge, scoreColor, fmtDate } from "./shared";
@@ -29,6 +29,7 @@ interface Stats {
   avgDurationMinutes: number;
   bySeverity: { critical: number; high: number; medium: number };
   byStatus: { open: number; in_progress: number; remediated: number; waived: number };
+  sla?: { tracked: number; onTrack: number; dueSoon: number; overdue: number; closedOnTime: number; closedLate: number; waived: number; notTracked: number };
   coverage: { article: string; total: number; flagged: number; rate: number }[];
   recentScans: { id: string; name: string; score: number | null; org: string; completedAt: string | null; findings: number; critical: number; frameworkCode?: string | null }[];
   inProgress?: { id: string; name: string; org: string; organizationId: string; startedAt: string; answered: number; total: number; frameworkCode?: string | null }[];
@@ -87,6 +88,26 @@ export function DashboardView({ onOpenReport, onResumeScan, canRunScans }: { onO
           </Card>
         ))}
       </div>
+
+      {/* SLA breach alert — overdue corrective actions (Procl. 1426/2026) */}
+      {(stats.sla?.overdue ?? 0) > 0 && (
+        <Card className="border-red-300 bg-red-50/80 dark:border-red-900 dark:bg-red-950/40">
+          <CardContent className="flex items-start gap-3 p-4">
+            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-red-100 text-red-700 dark:bg-red-950 dark:text-red-300">
+              <AlertTriangle className="h-5 w-5" aria-hidden />
+            </span>
+            <div className="min-w-0">
+              <p className="font-semibold text-red-900 dark:text-red-200">
+                {stats.sla!.overdue} {t("slaOverdueCard")}
+              </p>
+              <p className="mt-0.5 text-sm text-red-800/80 dark:text-red-300/80">
+                {t("slaOpenItems", String((stats.sla?.overdue ?? 0) + (stats.sla?.dueSoon ?? 0) + (stats.sla?.onTrack ?? 0)))}
+                {(stats.sla?.dueSoon ?? 0) > 0 ? ` · ${stats.sla!.dueSoon} ${t("slaDueSoonCard")}` : ""}
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* In-progress assessments — resume banner */}
       {canRunScans && (stats.inProgress?.length ?? 0) > 0 && (

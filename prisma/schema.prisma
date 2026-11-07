@@ -114,10 +114,18 @@ model ScanResult {
   findingEn    String?
   findingAm    String?
   status       String   @default("open") // open | in_progress | remediated | waived
+  // Remediation SLA (Procl. 1426/2026 corrective-action timelines):
+  // dueAt is set when the finding is born (scan completion) from the severity
+  // SLA policy; remediatedAt is stamped on the remediated transition so
+  // on-time vs late closure is provable to a supervisor.
+  dueAt        DateTime?
+  remediatedAt DateTime?
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
   @@unique([scanId, ruleId])
+  @@index([dueAt])
+  @@index([status])
 }
 
 // ── Identity & Access (multi-tenant RBAC) ─────────────────────────────────

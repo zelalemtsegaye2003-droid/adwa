@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { requireAuth } from "@/lib/auth/guard";
 import { can } from "@/lib/auth/rbac";
+import { slaInfo, summarizeSla } from "@/lib/sla";
 
 /**
  * GET /api/stats — platform or tenant analytics.
@@ -48,6 +49,11 @@ export async function GET(req: NextRequest) {
   // Status mix
   const byStatus = { open: 0, in_progress: 0, remediated: 0, waived: 0 };
   for (const f of findings) byStatus[f.status as keyof typeof byStatus]++;
+
+  // Remediation SLA (Procl. 1426/2026 corrective-action timelines)
+  const sla = summarizeSla(
+    findings.map((f) => slaInfo({ status: f.status, dueAt: f.dueAt, remediatedAt: f.remediatedAt }))
+  );
 
   // Rule coverage: unique rules with at least one finding across completed scans (risk heatmap)
   const articleMap = new Map<string, { total: number; flagged: Set<string> }>();
@@ -104,6 +110,7 @@ export async function GET(req: NextRequest) {
     avgDurationMinutes: avgDuration,
     bySeverity,
     byStatus,
+    sla,
     coverage,
     inProgress: scans
       .filter((s) => s.status === "in_progress")
