@@ -3,8 +3,9 @@
  * Logs in via the API (solving the SVG captcha) and verifies:
  *   1. RBAC / tenant isolation: ORG_ADMIN + VIEWER + unauthenticated are
  *      locked out of every /api/awareness route (school data = minors).
- *   2. Overview: 5 pilot schools, T/C classes, consent register, 8 units,
- *      16-item instrument, engagement metrics.
+ *   2. Overview: 5 pilot schools, T/C classes, consent register, 15 units
+ *      (four audience tracks: 8 Kids / 3 Teens / 2 Pro / 2 Aware), 16-item
+ *      instrument pinned to the Kids pilot curriculum, engagement metrics.
  *   3. RQ2 maths: treatment gain ≫ control gain; ANOVA significant with
  *      large effect size; independent recomputation from evaluation rows.
  *   4. Curriculum admin: create unit → patch (version bump) → add question →
@@ -95,10 +96,14 @@ try {
   check("~300 pseudonymised participants", ov.programme.learners >= 280 && ov.programme.learners <= 320, `learners=${ov.programme.learners}`);
   check("consent register populated", ov.programme.consent.granted > 200 && ov.programme.consent.pending > 0 && ov.programme.consent.denied > 0, JSON.stringify(ov.programme.consent));
   check("consent rate 70–95%", ov.programme.consentRate >= 70 && ov.programme.consentRate <= 95, `rate=${ov.programme.consentRate}`);
-  check("8 curriculum units", ov.programme.modules === 8, `modules=${ov.programme.modules}`);
+  check("15 curriculum units across four audience tracks", ov.programme.modules === 15, `modules=${ov.programme.modules}`);
+  check("modulesByAudience 8/3/2/2 (Kids/Teens/Pro/Aware)",
+    ov.programme.modulesByAudience?.KIDS === 8 && ov.programme.modulesByAudience?.TEENS === 3 &&
+    ov.programme.modulesByAudience?.PRO === 2 && ov.programme.modulesByAudience?.AWARE === 2,
+    JSON.stringify(ov.programme.modulesByAudience));
   check("16-item RQ2 instrument", ov.programme.instrumentItems === 16, `items=${ov.programme.instrumentItems}`);
   check("engagement: completions > 700", ov.engagement.lessonCompletions > 700, `n=${ov.engagement.lessonCompletions}`);
-  check("engagement: per-module rows = 8", ov.engagement.modules.length === 8);
+  check("engagement: per-module rows = 15", ov.engagement.modules.length === 15);
   check("per-school rows = 5 with 2 classes each", ov.schools.length === 5 && ov.schools.every((s) => s.classes.length === 2));
 
   // ── 3. RQ2 evaluation maths ───────────────────────────────────────────────
@@ -122,12 +127,12 @@ try {
   check("evaluation rows recomputed T mean matches overview", Math.abs(tMean - rq2.treatment.stat.meanGain) < 0.51, `ev=${tMean} ov=${rq2.treatment.stat.meanGain}`);
   check("evaluation rows recomputed C mean matches overview", Math.abs(cMean - rq2.control.stat.meanGain) < 0.51, `ev=${cMean} ov=${rq2.control.stat.meanGain}`);
   check("evaluation n consistency", ev.n.treatmentPaired === rq2.treatment.stat.n && ev.n.controlPaired === rq2.control.stat.n, `ev=${ev.n.treatmentPaired}/${ev.n.controlPaired}`);
-  check("evaluation rows pseudonymised (codes, no names)", ev.rows.every((x) => /^AW-[A-Z2-9]{6}$/.test(x.code) && !("name" in x)));
+  check("evaluation rows pseudonymised (codes, no names)", ev.rows.every((x) => /^AW-[A-Z0-9]{6}$/.test(x.code) && !("name" in x)));
 
   // ── 4. Curriculum administration ─────────────────────────────────────────
   console.log("── 4. Curriculum admin ──");
   r = await jfetch("/api/awareness/modules", authed(superAdmin));
-  check("GET modules 200 with 8 units", r.status === 200 && r.body.modules.length === 8);
+  check("GET modules 200 with 15 units + audience field", r.status === 200 && r.body.modules.length === 15 && r.body.modules.every((m) => typeof m.audience === "string"));
   const firstModule = r.body.modules[0];
   check("admin module view carries answer keys", firstModule.questions.every((q) => Number.isInteger(q.answerIdx) && q.answerIdx >= 0 && q.answerIdx <= 3));
   check("module content bilingual", firstModule.contentEn.length > 100 && firstModule.contentAm.length > 100 && firstModule.contentAm.includes("## "));
@@ -163,7 +168,7 @@ try {
   check("fixed join code seeded (ADWA-M2S-9A)", tClass !== null && tClass.groupType === "TREATMENT");
 
   r = await jfetch("/api/learn/join", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ joinCode: "ADWA-M2S-9A" }) });
-  check("join 200 with class + 8 modules", r.status === 200 && r.body.class.name.includes("Grade") && r.body.modules.length === 8, JSON.stringify(r.body.class ?? {}));
+  check("join 200 with class + 15 modules (audience exposed)", r.status === 200 && r.body.class.name.includes("Grade") && r.body.modules.length === 15 && r.body.modules.every((m) => typeof m.audience === "string"), JSON.stringify(r.body.class ?? {}));
   check("join response hides RQ2 group assignment", !("groupType" in (r.body.class ?? {})) && !JSON.stringify(r.body).includes("TREATMENT"));
   r = await jfetch("/api/learn/join", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ joinCode: "ADWA-NOPE00" }) });
   check("unknown join code 404", r.status === 404);

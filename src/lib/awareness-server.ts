@@ -35,10 +35,17 @@ export async function learnerByCodes(joinCode: string, learnerCode: string): Pro
   return learner;
 }
 
-/** The fixed RQ2 instrument draw: first and third bank item of each module. */
+/**
+ * The fixed RQ2 instrument draw: first and third bank item of each module.
+ *
+ * Pinned to the CyberSafe Kids pilot curriculum (audience KIDS, proposal
+ * Table 22): the supplementary TEENS/PRO/AWARE units extend the platform to
+ * the other audiences but must never change the 16-item paired instrument
+ * that RQ2's pre/post design depends on.
+ */
 export async function resolveInstrument(): Promise<(AwarenessQuestion & { module: AwarenessModule })[]> {
   const modules = await db.awarenessModule.findMany({
-    where: { isActive: true },
+    where: { isActive: true, audience: "KIDS" },
     orderBy: { sortOrder: "asc" },
     include: { questions: { where: { isActive: true }, orderBy: { sortOrder: "asc" } } },
   });

@@ -16,6 +16,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import {
   GraduationCap, School as SchoolIcon, Users, BookOpen, ClipboardCheck, ShieldCheck,
   Plus, Copy, ExternalLink, Download, RefreshCw, FileCheck2, Sigma, Lock, CheckCircle2, XCircle,
+  Sparkles, Languages,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useI18n } from "@/lib/i18n";
@@ -43,14 +44,20 @@ interface OverviewDTO {
     schools: number; classes: number; treatmentClasses: number; controlClasses: number;
     learners: number; consent: { granted: number; pending: number; denied: number };
     consentRate: number; modules: number; instrumentItems: number;
+    modulesByAudience: { KIDS: number; TEENS: number; PRO: number; AWARE: number };
   };
   engagement: {
     lessonCompletions: number; treatmentLearners: number; completionsPerTreatmentLearner: number;
     preSittings: number; postSittings: number;
     modules: {
       id: string; code: string; sortOrder: number; topic: string; titleEn: string; titleAm: string;
-      durationMin: number; questions: number; started: number; completed: number; avgQuizScore: number | null;
+      audience: string; durationMin: number; questions: number; started: number; completed: number; avgQuizScore: number | null;
     }[];
+  };
+  tools: {
+    total: number; last14d: number; amShare: number;
+    tools: { id: string; nameEn: string; nameAm: string; audiences: string[]; moduleCode: string | null; total: number; last14d: number; amShare: number | null }[];
+    series: { day: string; count: number }[];
   };
   rq2: {
     design: string;
@@ -78,6 +85,7 @@ interface ModuleDTO {
   id: string; code: string; sortOrder: number; topic: string;
   titleEn: string; titleAm: string; summaryEn: string; summaryAm: string;
   contentEn: string; contentAm: string; durationMin: number; gradeBand: string;
+  audience: string;
   version: string; isActive: boolean;
   questions: QuestionDTO[];
 }
@@ -113,6 +121,18 @@ const TOPIC_COLORS: Record<string, string> = {
 
 function TopicBadge({ topic }: { topic: string }) {
   return <Badge className={`${TOPIC_COLORS[topic] ?? "bg-muted text-muted-foreground"} border-0`}>{topic.replace(/_/g, " ")}</Badge>;
+}
+
+const AUDIENCE_COLORS: Record<string, string> = {
+  KIDS: "bg-teal-100 text-teal-800 dark:bg-teal-950 dark:text-teal-300",
+  TEENS: "bg-indigo-100 text-indigo-800 dark:bg-indigo-950 dark:text-indigo-300",
+  PRO: "bg-slate-200 text-slate-800 dark:bg-slate-800 dark:text-slate-200",
+  AWARE: "bg-fuchsia-100 text-fuchsia-800 dark:bg-fuchsia-950 dark:text-fuchsia-300",
+};
+const AUDIENCE_LABEL: Record<string, string> = { KIDS: "Kids 5–8", TEENS: "Teens 9–12", PRO: "CyberPro", AWARE: "CyberAware" };
+
+function AudienceBadge({ audience }: { audience: string }) {
+  return <Badge className={`${AUDIENCE_COLORS[audience] ?? "bg-muted text-muted-foreground"} border-0`}>{AUDIENCE_LABEL[audience] ?? audience}</Badge>;
 }
 
 function GroupBadge({ group }: { group: string }) {
@@ -309,7 +329,7 @@ export function AwarenessView() {
                 <TableHeader>
                   <TableRow>
                     <TableHead>#</TableHead><TableHead>{lang === "en" ? "Unit" : "ክፍል"}</TableHead>
-                    <TableHead>{t("awTopic")}</TableHead><TableHead>{t("awQuestions").replace(/\{0\} ?/, "")}</TableHead>
+                    <TableHead>{t("awTopic")}</TableHead><TableHead>{t("awAudience")}</TableHead><TableHead>{t("awQuestions").replace(/\{0\} ?/, "")}</TableHead>
                     <TableHead>{t("awCompleted", "")}</TableHead><TableHead>{t("awAvgQuiz", "").replace(/\s*\d*%?$/, "")}</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -319,6 +339,7 @@ export function AwarenessView() {
                       <TableCell className="font-mono text-xs">{m.code}</TableCell>
                       <TableCell className="max-w-64 truncate font-medium">{pick(m.titleEn, m.titleAm)}</TableCell>
                       <TableCell><TopicBadge topic={m.topic} /></TableCell>
+                      <TableCell><AudienceBadge audience={m.audience} /></TableCell>
                       <TableCell className="tabular-nums">{m.questions}</TableCell>
                       <TableCell className="tabular-nums">{m.completed}</TableCell>
                       <TableCell className="tabular-nums">{m.avgQuizScore !== null ? `${m.avgQuizScore}%` : "—"}</TableCell>
@@ -326,6 +347,35 @@ export function AwarenessView() {
                   ))}
                 </TableBody>
               </Table>
+            </CardContent>
+          </Card>
+
+          {/* AI Enhancement Lab usage */}
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="flex items-center gap-2 text-base"><Sparkles className="h-4 w-4 text-emerald-700" />{t("awToolsTitle")}</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <p className="text-xs text-muted-foreground">{t("awToolsSub")}</p>
+              <div className="grid gap-3 sm:grid-cols-3">
+                <KpiCard icon={<Sparkles className="h-4 w-4" />} label={lang === "en" ? "Sessions (all time)" : "ክፍለ-ጊዜዎች (ጠቅላላ)"} value={String(overview.tools.total)} sub={`${overview.tools.last14d} ${t("awToolsLast14")}`} />
+                <KpiCard icon={<Languages className="h-4 w-4" />} label={t("awToolsAmShare")} value={`${overview.tools.amShare}%`} sub={lang === "en" ? "Amharic-first uptake" : "የአማርኛ-ቀዳሚ ተቀባይነት"} />
+                <KpiCard icon={<BookOpen className="h-4 w-4" />} label={t("awModuleCount")} value={`${p.modulesByAudience.KIDS}/${p.modulesByAudience.TEENS}/${p.modulesByAudience.PRO}/${p.modulesByAudience.AWARE}`} sub={lang === "en" ? "Kids / Teens / Pro / Aware" : "ልጆች / ወጣቶች / ፕሮ / አዌር"} />
+              </div>
+              <div className="space-y-2.5">
+                {overview.tools.tools.map((tool) => {
+                  const maxT = Math.max(...overview.tools.tools.map((x) => x.total), 1);
+                  return (
+                    <div key={tool.id} className="flex items-center gap-2">
+                      <span className="w-44 shrink-0 truncate text-xs font-medium">{pick(tool.nameEn, tool.nameAm)}</span>
+                      <div className="h-3 flex-1 overflow-hidden rounded-full bg-muted">
+                        <div className="h-full rounded-full bg-emerald-600" style={{ width: `${(tool.total / maxT) * 100}%` }} />
+                      </div>
+                      <span className="w-24 shrink-0 text-right text-xs tabular-nums text-muted-foreground">{tool.total} · {tool.last14d} {t("awToolsLast14")}</span>
+                    </div>
+                  );
+                })}
+              </div>
             </CardContent>
           </Card>
 
@@ -405,7 +455,7 @@ function KpiCard({ icon, label, value, sub }: { icon: React.ReactNode; label: st
 
 const EMPTY_MODULE = {
   topic: "passwords", titleEn: "", titleAm: "", summaryEn: "", summaryAm: "",
-  contentEn: "", contentAm: "", durationMin: 15, gradeBand: "7-10",
+  contentEn: "", contentAm: "", durationMin: 15, gradeBand: "7-10", audience: "KIDS",
 };
 
 function CurriculumTab({ modules, onChanged }: { modules: ModuleDTO[]; onChanged: () => void }) {
@@ -413,6 +463,7 @@ function CurriculumTab({ modules, onChanged }: { modules: ModuleDTO[]; onChanged
   const [editorOpen, setEditorOpen] = useState(false);
   const [editing, setEditing] = useState<ModuleDTO | null>(null);
   const [form, setForm] = useState({ ...EMPTY_MODULE });
+  const [audienceFilter, setAudienceFilter] = useState<string>("ALL");
   const [qOpen, setQOpen] = useState(false);
   const [qModule, setQModule] = useState<ModuleDTO | null>(null);
   const [qForm, setQForm] = useState({ promptEn: "", promptAm: "", optionsEn: ["", "", "", ""], optionsAm: ["", "", "", ""], answerIdx: 0, explainEn: "", explainAm: "" });
@@ -425,6 +476,7 @@ function CurriculumTab({ modules, onChanged }: { modules: ModuleDTO[]; onChanged
     setForm({
       topic: m.topic, titleEn: m.titleEn, titleAm: m.titleAm, summaryEn: m.summaryEn, summaryAm: m.summaryAm,
       contentEn: m.contentEn, contentAm: m.contentAm, durationMin: m.durationMin, gradeBand: m.gradeBand,
+      audience: m.audience ?? "KIDS",
     });
     setEditorOpen(true);
   };
@@ -482,10 +534,21 @@ function CurriculumTab({ modules, onChanged }: { modules: ModuleDTO[]; onChanged
 
   return (
     <div className="space-y-3">
-      <div className="flex justify-end">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <div className="flex flex-wrap gap-1.5">
+          {["ALL", "KIDS", "TEENS", "PRO", "AWARE"].map((a) => (
+            <button
+              key={a}
+              onClick={() => setAudienceFilter(a)}
+              className={`rounded-full border px-3 py-1 text-xs font-medium transition-colors ${audienceFilter === a ? "border-emerald-600 bg-emerald-600 text-white" : "bg-card text-muted-foreground hover:border-emerald-400"}`}
+            >
+              {a === "ALL" ? (lang === "en" ? "All tracks" : "ሁሉም መስመሮች") : AUDIENCE_LABEL[a]}
+            </button>
+          ))}
+        </div>
         <Button size="sm" onClick={openCreate}><Plus className="mr-1 h-4 w-4" /> {t("awAddModule")}</Button>
       </div>
-      {modules.map((m) => (
+      {modules.filter((m) => audienceFilter === "ALL" || m.audience === audienceFilter).map((m) => (
         <Card key={m.id} className={!m.isActive ? "opacity-60" : ""}>
           <CardContent className="p-4">
             <div className="flex flex-wrap items-start justify-between gap-3">
@@ -493,6 +556,7 @@ function CurriculumTab({ modules, onChanged }: { modules: ModuleDTO[]; onChanged
                 <div className="flex flex-wrap items-center gap-2">
                   <span className="font-mono text-xs text-muted-foreground">{m.code}</span>
                   <TopicBadge topic={m.topic} />
+                  <AudienceBadge audience={m.audience} />
                   <Badge variant="outline">{m.version ? `v${m.version}` : "v1"}</Badge>
                   {!m.isActive && <Badge variant="secondary">{t("awArchived")}</Badge>}
                   <span className="text-xs text-muted-foreground">{t("awDuration", String(m.durationMin))}</span>
@@ -568,6 +632,17 @@ function CurriculumTab({ modules, onChanged }: { modules: ModuleDTO[]; onChanged
                 <Label>{lang === "en" ? "Grade band" : "ክፍል ክልል"}</Label>
                 <Input value={form.gradeBand} onChange={(e) => setForm({ ...form, gradeBand: e.target.value })} />
               </div>
+            </div>
+            <div className="space-y-1.5 md:col-span-2">
+              <Label>{t("awAudience")} — {lang === "en" ? "audience track (proposal Table 22; the RQ2 instrument is fixed to Kids)" : "የታዛሪያ መስመር (የሀሳብ ሰንተር 22፤ የRQ2 መሣሪያ ለልጆች ተወስኗል)"}</Label>
+              <Select value={form.audience} onValueChange={(v) => setForm({ ...form, audience: v })}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  {["KIDS", "TEENS", "PRO", "AWARE"].map((a) => (
+                    <SelectItem key={a} value={a}>{AUDIENCE_LABEL[a]}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
             <ModuleField label="Title (EN)" value={form.titleEn} onChange={(v) => setForm({ ...form, titleEn: v })} />
             <ModuleField label="ርዕስ (አማርኛ)" value={form.titleAm} onChange={(v) => setForm({ ...form, titleAm: v })} />

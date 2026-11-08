@@ -5,10 +5,15 @@ import { audit } from "@/lib/auth/audit";
 
 export const runtime = "nodejs";
 
+/** Valid audience tracks (proposal Table 22 module architecture). */
+const AUDIENCES = new Set(["KIDS", "TEENS", "PRO", "AWARE"]);
+
 /**
  * PATCH /api/awareness/modules/[id] — update curriculum content or archive /
  * restore a unit. Every content change bumps the version so teachers can see
- * which edition a class studied.
+ * which edition a class studied. Moving a unit out of the KIDS pilot track
+ * removes it from the fixed RQ2 instrument — the audit trail records the
+ * audience change explicitly.
  */
 export async function PATCH(req: NextRequest, ctx: { params: Promise<{ id: string }> }) {
   const guard = await requireAuth(req, "awareness:manage");
@@ -31,12 +36,14 @@ export async function PATCH(req: NextRequest, ctx: { params: Promise<{ id: strin
     if (typeof b.topic === "string" && b.topic.trim()) out.topic = b.topic.trim();
     if (b.durationMin !== undefined && Number(b.durationMin) > 0) out.durationMin = Number(b.durationMin);
     if (typeof b.gradeBand === "string" && b.gradeBand.trim()) out.gradeBand = b.gradeBand.trim();
+    if (typeof b.audience === "string" && AUDIENCES.has(b.audience)) out.audience = b.audience;
     if (typeof b.isActive === "boolean") out.isActive = b.isActive;
     return Object.keys(out).length > 0 ? out : null;
   });
   if ("error" in parsed) return parsed.error;
 
   const isArchiveToggle = typeof parsed.data.isActive === "boolean";
+  const audienceChanged = typeof parsed.data.audience === "string" && parsed.data.audience !== existing.audience;
   const mod = await db.awarenessModule.update({
     where: { id },
     data: {
@@ -51,7 +58,7 @@ export async function PATCH(req: NextRequest, ctx: { params: Promise<{ id: strin
     userId: user.id,
     email: user.email,
     organizationId: null,
-    detail: `Module ${mod.code} updated (v${mod.version}${isArchiveToggle ? `, active=${parsed.data.isActive}` : ""})`,
+    detail: `Module ${mod.code} updated (v${mod.version}${isArchiveToggle ? `, active=${parsed.data.isActive}` : ""}${audienceChanged ? `, audience=${mod.audience}` : ""})`,
   });
 
   return NextResponse.json({ module: { id: mod.id, code: mod.code, version: mod.version, isActive: mod.isActive } });

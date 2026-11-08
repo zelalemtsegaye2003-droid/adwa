@@ -503,6 +503,26 @@ const DICT: Record<string, [string, string]> = {
   learnCorrect: ["Correct", "ትክክል"],
   learnIncorrect: ["Not quite", "ትክክል አይደለም"],
   learnAnswerWas: ["Correct answer", "ትክክለኛው መልስ"],
+
+  // ── AI Enhancement Lab (proposal Table 23) ────────────────────────
+  learnToolsDoor: ["Practice with our AI tools — no code needed", "በAI መሳሪያዎቻችን ተለማመድ — ኮድ አያስፈልግም"],
+  learnToolsDoorHint: [
+    "Six interactive trainers — password checker, phishing radar and more. They run on your device; nothing you type is sent.",
+    "ስድስት ተገቢ ልምምዶች — የይለፍ ቃል መለኪያ፣ የፊሺንግ ራዳር እና ተጨማሪ። በመሣሪያዎ ላይ ይሠራሉ፤ የጻፉት አይላክም።",
+  ],
+  learnToolsOpen: ["Open the AI tools", "AI መሳሪያዎቹን ክፈት"],
+  learnBackToTools: ["Back to AI tools", "ወደ AI መሳሪያዎች ተመለስ"],
+
+  // ── Awareness admin — AI tools & audience tracks ────────────────
+  awToolsTitle: ["AI Enhancement Lab — usage", "የAI ማሻሻያ ላብ — አጠቃቀም"],
+  awToolsSub: [
+    "Aggregate telemetry from the public portal — tool id and language only, never personal data.",
+    "ከመደበኛው በርታል የመጣ ጠቅላላ መረጃ — የመሳሪያ ማንነትና ቋንቋ ብቻ፣ በጭራሽ የግል መረጃ አይደለም።",
+  ],
+  awToolsLast14: ["last 14 days", "ያለፉት 14 ቀናት"],
+  awToolsAmShare: ["Amharic sessions", "በአማርኛ የተደረጉ ክፍለ-ጊዜዎች"],
+  awAudience: ["Track", "መስመር"],
+  awModuleCount: ["Curriculum by audience track", "ትምህርቱ በታዛሪያ መስመሮች"],
 };
 
 interface I18nCtx {
