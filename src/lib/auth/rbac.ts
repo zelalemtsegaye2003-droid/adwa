@@ -63,7 +63,12 @@ export type Permission =
   // Platform-level mission programme: school data (minors, pseudonymised)
   // must never be visible to commercial tenants — SUPER_ADMIN (the education
   // lead's platform account) only.
-  | "awareness:manage";
+  | "awareness:manage"
+  // Track C gated expansion (proposal Phases 4–5 governance, roadmap §3.2
+  // Table 2 + §14). Gate-criteria records are platform-level governance:
+  // SUPER_ADMIN reads/updates; no commercial tenant access by design.
+  | "governance:view"
+  | "governance:manage";
 
 const MATRIX: Record<AppRole, Permission[]> = {
   SUPER_ADMIN: [
@@ -86,6 +91,8 @@ const MATRIX: Record<AppRole, Permission[]> = {
     "threats:contribute",
     "threats:sync",
     "awareness:manage",
+    "governance:view",
+    "governance:manage",
   ],
   ORG_ADMIN: [
     "org:view-own",
