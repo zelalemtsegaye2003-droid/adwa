@@ -479,6 +479,7 @@ model AwarenessModule {
   contentAm   String
   durationMin Int                 @default(15)
   gradeBand   String              @default("7-10")
+  audience    String              @default("KIDS") // KIDS | TEENS | PRO | AWARE (proposal Table 22 tracks)
   version     String              @default("1.0")
   isActive    Boolean             @default(true)
   createdAt   DateTime            @default(now())
@@ -550,4 +551,15 @@ model AwarenessProgress {
   completedAt DateTime?
 
   @@unique([learnerId, moduleId])
+}
+
+// AI Enhancement Lab usage telemetry (proposal Table 23). One row per public
+// ping — aggregate analytics only: no IP, no learner link, no personal data.
+model AwarenessToolPing {
+  id        String   @id @default(cuid())
+  tool      String // password | phishing | sextortion | footprint | flagging | report-guide
+  lang      String   @default("am") // en | am
+  createdAt DateTime @default(now())
+
+  @@index([tool, createdAt])
 }

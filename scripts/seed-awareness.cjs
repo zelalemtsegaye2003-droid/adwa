@@ -27,17 +27,25 @@ const db = new PrismaClient();
 // Curriculum corpus (shared with the app through a tiny TS→JS bridge):
 const path = require("path");
 const fs = require("fs");
-function loadModules() {
+function loadArrays() {
   const src = fs.readFileSync(path.join(__dirname, "..", "src", "lib", "awareness-data.ts"), "utf8");
   // Strip TS types/exports and evaluate the array literal. The array body is
   // plain data (no imports), so a parenthesised eval is safe here.
-  const marker = "export const AWARENESS_MODULES: ModuleSeed[] =";
-  const modStart = src.indexOf(marker) + marker.length;
-  const modEnd = src.indexOf("];", modStart) + 1; // first "];" closes the array
-  const body = src.slice(modStart, modEnd).trim();
-  return eval(`(${body})`);
+  function loadOne(name) {
+    const marker = `export const ${name}: ModuleSeed[] =`;
+    const modStart = src.indexOf(marker) + marker.length;
+    if (modStart < marker.length) return [];
+    const modEnd = src.indexOf("];", modStart) + 1; // first "];" closes the array
+    return eval(`(${src.slice(modStart, modEnd).trim()})`);
+  }
+  return [
+    ...loadOne("AWARENESS_MODULES"),        // KIDS pilot curriculum (RQ2)
+    ...loadOne("AWARENESS_MODULES_TEENS"),  // CyberSmart Teens (Table 22)
+    ...loadOne("AWARENESS_MODULES_PRO"),    // CyberPro (Table 22)
+    ...loadOne("AWARENESS_MODULES_AWARE"),  // CyberAware (Table 22)
+  ];
 }
-const MODULES = loadModules();
+const MODULES = loadArrays();
 
 // ── Deterministic RNG (mulberry32) ────────────────────────────────────────
 function mulberry32(seed) {
@@ -88,6 +96,7 @@ async function main() {
 
   if (!heal) {
     console.log("── Awareness seed: clearing previous data ──");
+    await db.awarenessToolPing.deleteMany();
     await db.awarenessProgress.deleteMany();
     await db.awarenessAssessment.deleteMany();
     await db.awarenessLearner.deleteMany();
@@ -98,22 +107,29 @@ async function main() {
   }
 
   // ── 1. Curriculum modules + question banks ───────────────────────────────
-  console.log("── Curriculum: 8 bilingual modules ──");
+  const audienceCounts = {};
+  for (const m of MODULES) audienceCounts[m.audience] = (audienceCounts[m.audience] || 0) + 1;
+  console.log(`── Curriculum: ${MODULES.length} modules (KIDS ${audienceCounts.KIDS}, TEENS ${audienceCounts.TEENS}, PRO ${audienceCounts.PRO}, AWARE ${audienceCounts.AWARE}) ──`);
   const modIds = {};
   const modQuestionIds = {}; // code -> [questionId by sortOrder]
   for (const m of MODULES) {
     let mod = await db.awarenessModule.findUnique({ where: { code: m.code } });
-    if (!mod) {
+    if (mod) {
+      // Keep audience in step with the corpus (heal/backfill path).
+      if (mod.audience !== m.audience || mod.gradeBand !== m.gradeBand) {
+        mod = await db.awarenessModule.update({ where: { id: mod.id }, data: { audience: m.audience, gradeBand: m.gradeBand } });
+      }
+    } else {
       mod = await db.awarenessModule.create({
         data: {
           code: m.code, sortOrder: m.sortOrder, topic: m.topic,
           titleEn: m.titleEn, titleAm: m.titleAm,
           summaryEn: m.summaryEn, summaryAm: m.summaryAm,
           contentEn: m.contentEn, contentAm: m.contentAm,
-          durationMin: m.durationMin, gradeBand: m.gradeBand,
+          durationMin: m.durationMin, gradeBand: m.gradeBand, audience: m.audience,
         },
       });
-      console.log(`  + module ${m.code} — ${m.titleEn}`);
+      console.log(`  + module ${m.code} [${m.audience}] — ${m.titleEn}`);
     }
     modIds[m.code] = mod.id;
     modQuestionIds[m.code] = {};
@@ -137,6 +153,21 @@ async function main() {
   }
 
   if (heal) {
+    // Heal also restores lost AI-tool ping telemetry (aggregate data only).
+    const pingCount = await db.awarenessToolPing.count();
+    if (pingCount === 0) {
+      console.log("  (heal mode: tool pings missing — reseeding telemetry)");
+      const TOOLS = ["password", "phishing", "sextortion", "footprint", "flagging", "report-guide"];
+      const rows = [];
+      for (let i = 0; i < 2610; i++) {
+        rows.push({
+          tool: TOOLS[Math.floor(rand() * TOOLS.length)],
+          lang: rand() < 0.72 ? "am" : "en",
+          createdAt: new Date(now - Math.floor(rand() * 14) * DAY - Math.floor(rand() * 24) * 60 * 60 * 1000),
+        });
+      }
+      await db.awarenessToolPing.createMany({ data: rows });
+    }
     console.log("  (heal mode: curriculum ensured, pilot data untouched)");
     return;
   }
@@ -198,18 +229,26 @@ async function main() {
   // ── 4. RQ2 pilot data: PRE, curriculum progress, POST ────────────────────
   console.log("── RQ2 assessments (pre/post) + curriculum progress ──");
   const learners = await db.awarenessLearner.findMany({ include: { class: true } });
-  const modules = await db.awarenessModule.findMany({
+  // RQ2 instrument + pilot curriculum are pinned to the KIDS programme:
+  // TEENS/PRO/AWARE units are supplementary learning for other audiences and
+  // never enter the fixed 16-item instrument (proposal Table 22 module
+  // architecture; evaluation design RQ2).
+  const allModules = await db.awarenessModule.findMany({
     orderBy: { sortOrder: "asc" },
     include: { questions: { orderBy: { sortOrder: "asc" }, where: { isActive: true } } },
   });
+  const modules = allModules.filter((m) => m.audience === "KIDS");
 
-  // The fixed 16-item instrument: questions 1 and 3 of each module.
+  // The fixed 16-item instrument: questions 1 and 3 of each KIDS module.
   const instrument = [];
   for (const m of modules) {
     instrument.push(m.questions[0]);
     if (m.questions.length >= 3) instrument.push(m.questions[2]);
   }
   const INSTRUMENT_N = instrument.length;
+  if (INSTRUMENT_N !== 16) {
+    throw new Error(`Expected the fixed 16-item KIDS instrument, found ${INSTRUMENT_N} — refusing to seed inconsistent RQ2 data`);
+  }
 
   let preN = 0, postN = 0, progressN = 0;
   const answersJson = (score) => {
@@ -277,6 +316,64 @@ async function main() {
     postN++;
   }
   console.log(`  PRE sittings: ${preN}, POST sittings: ${postN}, lesson completions: ${progressN}`);
+
+  // ── 4b. Fixed demo participants for the browser E2E ──────────────────────
+  // Created AFTER the RQ2 generation so their journey is fresh: AW-BR001 is
+  // consented with no sittings (full PRE → lesson → POST walkthrough),
+  // AW-BR002 stays PENDING (consent-gate check). Attached to the fixed
+  // treatment class ADWA-M2S-9A.
+  const fixedClass = await db.awarenessClass.findUnique({ where: { joinCode: "ADWA-M2S-9A" } });
+  if (fixedClass) {
+    for (const [demoCode, consent] of [["AW-DEMO01", "GRANTED"], ["AW-DEMO02", "PENDING"]]) {
+      const existing = await db.awarenessLearner.findUnique({ where: { code: demoCode } });
+      if (!existing) {
+        await db.awarenessLearner.create({
+          data: {
+            classId: fixedClass.id,
+            code: demoCode,
+            grade: fixedClass.grade,
+            consent,
+            consentAt: consent === "GRANTED" ? daysAgo(65, 24) : null,
+            consentRef: consent === "GRANTED" ? `FORM-${fixedClass.joinCode}-DEMO` : null,
+          },
+        });
+        console.log(`  + demo participant ${demoCode} (${consent})`);
+      }
+    }
+  }
+
+  // ── 5. AI Enhancement Lab usage telemetry (aggregate, no personal data) ──
+  console.log("── AI tool usage pings (last 14 days, aggregate only) ──");
+  const TOOLS = [
+    { id: "password", weight: 26 },
+    { id: "phishing", weight: 24 },
+    { id: "sextortion", weight: 12 },
+    { id: "footprint", weight: 14 },
+    { id: "flagging", weight: 10 },
+    { id: "report-guide", weight: 14 },
+  ];
+  const totalWeight = TOOLS.reduce((s, t) => s + t.weight, 0);
+  const PINGS = 2610;
+  const pingRows = [];
+  for (let i = 0; i < PINGS; i++) {
+    // Adoption ramps up over the two weeks (soft launch → school rollout).
+    const dayBack = Math.floor(Math.pow(rand(), 1.45) * 14);
+    let pickTool = rand() * totalWeight;
+    let tool = TOOLS[TOOLS.length - 1].id;
+    for (const t of TOOLS) {
+      if ((pickTool -= t.weight) <= 0) { tool = t.id; break; }
+    }
+    pingRows.push({
+      tool,
+      lang: rand() < 0.72 ? "am" : "en",
+      createdAt: new Date(now - dayBack * DAY - Math.floor(rand() * 24) * 60 * 60 * 1000),
+    });
+  }
+  await db.awarenessToolPing.createMany({ data: pingRows });
+  const perTool = {};
+  for (const r of pingRows) perTool[r.tool] = (perTool[r.tool] || 0) + 1;
+  console.log(`  ${PINGS} pings — ` + TOOLS.map((t) => `${t.id}:${perTool[t.id]}`).join(" "));
+
   console.log("── Awareness seed complete ──");
 }
 

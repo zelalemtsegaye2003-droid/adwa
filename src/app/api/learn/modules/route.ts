@@ -15,7 +15,7 @@ export async function GET() {
     select: {
       id: true, code: true, sortOrder: true, topic: true,
       titleEn: true, titleAm: true, summaryEn: true, summaryAm: true,
-      durationMin: true, gradeBand: true,
+      durationMin: true, gradeBand: true, audience: true,
       questions: { where: { isActive: true }, select: { id: true } },
     },
   });
@@ -32,6 +32,7 @@ export async function GET() {
       summaryAm: m.summaryAm,
       durationMin: m.durationMin,
       gradeBand: m.gradeBand,
+      audience: m.audience,
       questions: m.questions.length,
     })),
   });

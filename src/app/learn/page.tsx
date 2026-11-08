@@ -6,16 +6,18 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import {
   ShieldCheck, Languages, LogOut, GraduationCap, BookOpen, ClipboardList,
-  CheckCircle2, Lock, ArrowLeft, Award, Clock,
+  CheckCircle2, Lock, ArrowLeft, Award, Clock, Sparkles,
 } from "lucide-react";
 import { I18nProvider, useI18n } from "@/lib/i18n";
+import { LearnToolsGrid, LearnToolRunner } from "@/components/adwa/learn-tools";
+import { AUDIENCE_LABELS, type Audience, type ToolId } from "@/lib/awareness-tools";
 
 // ── DTOs (mirror the /api/learn contracts) ──────────────────────────────────
 
 interface LearnModuleBrief {
   id: string; code: string; sortOrder: number; topic: string;
   titleEn: string; titleAm: string; summaryEn: string; summaryAm: string;
-  durationMin: number; questions: number;
+  durationMin: number; audience: string; questions: number;
 }
 interface PublicQuestion {
   id: string; moduleCode: string; sortOrder: number;
@@ -45,7 +47,7 @@ interface LearnerStatus {
   progress: { moduleId: string; status: string; quizScore: number | null }[];
 }
 
-type Step = "join" | "code" | "gate" | "hub" | "lesson" | "test" | "testResult";
+type Step = "join" | "code" | "gate" | "hub" | "lesson" | "test" | "testResult" | "tools" | "tool";
 type TestKind = "PRE" | "POST";
 
 const STORE_KEY = "adwa-learn-session";
@@ -78,6 +80,8 @@ function LearnApp() {
   } | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
+  const [activeTool, setActiveTool] = useState<ToolId | null>(null);
+  const [audienceFilter, setAudienceFilter] = useState<"ALL" | Audience>("ALL");
 
   // Amharic-first: default the portal to Amharic when no preference is stored.
   useEffect(() => {
@@ -163,7 +167,6 @@ function LearnApp() {
     if (ok && data.learner) setStatus(data);
   };
 
-  const completedCount = status?.progress.filter((p) => p.status === "completed").length ?? 0;
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-emerald-50 via-background to-background dark:from-emerald-950/40">
@@ -209,6 +212,21 @@ function LearnApp() {
             <Button className="w-full bg-emerald-700 hover:bg-emerald-800" disabled={busy || !joinCode} onClick={() => void doJoin()}>
               {t("learnJoinBtn")}
             </Button>
+          </div>
+        )}
+
+        {step === "join" && (
+          <div className="mx-auto mt-4 max-w-md rounded-2xl border border-emerald-200 bg-emerald-50/60 p-4 dark:border-emerald-900 dark:bg-emerald-950/30">
+            <div className="flex items-start gap-3">
+              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-emerald-700 text-white"><Sparkles className="h-4 w-4" /></span>
+              <div className="space-y-1.5">
+                <p className="text-sm font-semibold">{t("learnToolsDoor")}</p>
+                <p className="text-xs text-muted-foreground">{t("learnToolsDoorHint")}</p>
+                <Button size="sm" variant="outline" className="border-emerald-300 text-emerald-800 dark:border-emerald-800 dark:text-emerald-300" onClick={() => setStep("tools")}>
+                  {t("learnToolsOpen")}
+                </Button>
+              </div>
+            </div>
           </div>
         )}
 
@@ -259,10 +277,12 @@ function LearnApp() {
           <HubStep
             modules={modules}
             status={status}
-            completedCount={completedCount}
             lang={lang}
             t={t}
             pick={pick}
+            audienceFilter={audienceFilter}
+            setAudienceFilter={setAudienceFilter}
+            onOpenTools={() => setStep("tools")}
             onOpenLesson={(id) => { setOpenModuleId(id); setStep("lesson"); }}
             onTakeTest={(kind) => { setTestKind(kind); setStep("test"); }}
           />
@@ -308,6 +328,28 @@ function LearnApp() {
             onBack={async () => { setTestResult(null); setStep("hub"); }}
           />
         )}
+
+        {step === "tools" && (
+          <LearnToolsGrid
+            lang={lang}
+            pick={pick}
+            onOpen={(id) => { setActiveTool(id); setStep("tool"); }}
+            onBack={status ? undefined : () => setStep("join")}
+            backLabel={t("learnExit")}
+            hubLabel={t("learnBackToHub")}
+            onHub={() => setStep("hub")}
+          />
+        )}
+
+        {step === "tool" && activeTool && (
+          <LearnToolRunner
+            toolId={activeTool}
+            lang={lang}
+            pick={pick}
+            onBack={() => setStep("tools")}
+            backLabel={t("learnBackToTools")}
+          />
+        )}
       </main>
 
       <footer className="border-t py-4 text-center text-[11px] text-muted-foreground">
@@ -320,18 +362,35 @@ function LearnApp() {
 // ── Hub (lesson list + tests) ────────────────────────────────────────────────
 
 function HubStep({
-  modules, status, completedCount, lang, t, pick, onOpenLesson, onTakeTest,
+  modules, status, lang, t, pick, audienceFilter, setAudienceFilter, onOpenTools, onOpenLesson, onTakeTest,
 }: {
   modules: LearnModuleBrief[];
   status: LearnerStatus;
-  completedCount: number;
   lang: string;
   t: (k: string, ...a: string[]) => string;
   pick: (en: string, am: string) => string;
+  audienceFilter: "ALL" | Audience;
+  setAudienceFilter: (f: "ALL" | Audience) => void;
+  onOpenTools: () => void;
   onOpenLesson: (id: string) => void;
   onTakeTest: (kind: TestKind) => void;
 }) {
   const progressOf = (id: string) => status.progress.find((p) => p.moduleId === id);
+  // The pilot class curriculum is the CyberSafe Kids programme (8 units) —
+  // the same curriculum the RQ2 instrument measures. Supplementary
+  // TEENS/PRO/AWARE tracks are explorable below via the filter chips, but the
+  // progress bar tracks the class curriculum, not the whole catalogue.
+  const pilotModules = modules.filter((m) => m.audience === "KIDS");
+  const completedPilot = pilotModules.filter((m) => progressOf(m.id)?.status === "completed").length;
+  const visible = audienceFilter === "ALL" ? modules : modules.filter((m) => m.audience === audienceFilter);
+  const tracks: ("ALL" | Audience)[] = ["ALL", "KIDS", "TEENS", "PRO", "AWARE"];
+  const trackShort: Record<string, [string, string]> = {
+    ALL: ["All lessons", "ሁሉም ትምህርቶች"],
+    KIDS: ["Kids 5–8", "ልጆች 5–8"],
+    TEENS: ["Teens 9–12", "ወጣቶች 9–12"],
+    PRO: ["University", "ዩኒቨርሲቲ"],
+    AWARE: ["Staff", "ሠራተኞች"],
+  };
   return (
     <div className="space-y-5">
       {/* Learner header */}
@@ -344,10 +403,10 @@ function HubStep({
         </div>
         <div className="min-w-48 flex-1">
           <div className="flex items-center justify-between text-xs text-muted-foreground">
-            <span>{t("learnLessonProgress", String(completedCount), String(modules.length))}</span>
-            <span>{Math.round((completedCount / Math.max(1, modules.length)) * 100)}%</span>
+            <span>{t("learnLessonProgress", String(completedPilot), String(pilotModules.length))}</span>
+            <span>{Math.round((completedPilot / Math.max(1, pilotModules.length)) * 100)}%</span>
           </div>
-          <Progress value={(completedCount / Math.max(1, modules.length)) * 100} className="mt-1 h-2" />
+          <Progress value={(completedPilot / Math.max(1, pilotModules.length)) * 100} className="mt-1 h-2" />
         </div>
       </div>
 
@@ -374,8 +433,20 @@ function HubStep({
 
       {/* Lessons */}
       <h2 className="flex items-center gap-2 text-base font-bold"><BookOpen className="h-4 w-4 text-emerald-700" />{lang === "en" ? "Lessons" : "ትምህርቶች"}</h2>
+      <div className="flex flex-wrap gap-1.5">
+        {tracks.map((tr) => (
+          <button
+            key={tr}
+            onClick={() => setAudienceFilter(tr)}
+            className={`rounded-full border px-3 py-1 text-xs font-medium transition-colors ${audienceFilter === tr ? "border-emerald-600 bg-emerald-600 text-white" : "bg-card text-muted-foreground hover:border-emerald-400"}`}
+            title={tr === "ALL" ? "" : pick(AUDIENCE_LABELS[tr as Audience].en, AUDIENCE_LABELS[tr as Audience].am)}
+          >
+            {pick(trackShort[tr][0], trackShort[tr][1])}
+          </button>
+        ))}
+      </div>
       <div className="grid gap-3 sm:grid-cols-2">
-        {modules.map((m) => {
+        {visible.map((m) => {
           const pr = progressOf(m.id);
           const done = pr?.status === "completed";
           return (
@@ -391,7 +462,7 @@ function HubStep({
                     <CheckCircle2 className="mr-1 h-3 w-3" />{pr?.quizScore !== null && pr?.quizScore !== undefined ? `${Math.round(pr.quizScore)}%` : ""}
                   </Badge>
                 ) : (
-                  <Badge variant="outline"><Clock className="mr-1 h-3 w-3" />{m.durationMin}′</Badge>
+                  <Badge variant="outline" className="text-[10px]"><Clock className="mr-1 h-3 w-3" />{m.durationMin}′ · {m.audience === "KIDS" ? "Kids" : m.audience === "TEENS" ? "Teens" : m.audience === "PRO" ? "CyberPro" : "CyberAware"}</Badge>
                 )}
               </div>
               <p className="font-semibold leading-snug">{pick(m.titleEn, m.titleAm)}</p>
@@ -400,6 +471,18 @@ function HubStep({
           );
         })}
       </div>
+
+      {/* AI tools door */}
+      <button
+        onClick={onOpenTools}
+        className="flex w-full items-center gap-3 rounded-2xl border border-emerald-200 bg-emerald-50/60 p-4 text-left shadow-sm transition-colors hover:border-emerald-400 dark:border-emerald-900 dark:bg-emerald-950/30"
+      >
+        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-700 text-white"><Sparkles className="h-5 w-5" /></span>
+        <div>
+          <p className="font-semibold">{t("learnToolsDoor")}</p>
+          <p className="text-xs text-muted-foreground">{t("learnToolsDoorHint")}</p>
+        </div>
+      </button>
     </div>
   );
 }

@@ -164,7 +164,7 @@ sleep 1.5
 NAV_AW=$($AB eval "(() => { const items = [...document.querySelectorAll('nav a, [data-sidebar] button, ul button')].map(x => x.textContent); const hit = items.filter(t => t && t.includes('Awareness')).length; const any = [...document.querySelectorAll('button')].filter(b => b.textContent.trim() === 'Awareness').length; return String(hit + any); })()" 2>/dev/null | tail -1 | tr -d '"')
 [ "$NAV_AW" = "0" ] && ok "ORG_ADMIN sidebar hides Awareness" || bad "Awareness leaked to ORG_ADMIN" "hits=$NAV_AW"
 
-echo "── 8. Learner portal: full journey (AW-BR001) ──"
+echo "── 8. Learner portal: full journey (AW-DEMO01) ──"
 $AB cookies clear >/dev/null 2>&1
 $AB open http://localhost:3000/learn >/dev/null 2>&1
 # The portal is Amharic-first when no language preference is stored — clear
@@ -191,7 +191,7 @@ CODE_STEP=$($AB eval "(() => document.body.innerText.includes('Your participant 
 [ "$CODE_STEP" = "true" ] && ok "participant code step" || bad "participant code step missing"
 SNAP=$($AB snapshot -i 2>/dev/null)
 LC=$(ref_of "$(echo "$SNAP" | grep -m1 'textbox "participant code"')")
-$AB fill @$LC "AW-BR001" >/dev/null 2>&1
+$AB fill @$LC "AW-DEMO01" >/dev/null 2>&1
 $AB find role button click --name "Continue" >/dev/null 2>&1
 wait_text "first test (before lessons)" 30 || true
 sleep 2
@@ -251,7 +251,7 @@ GAIN=$($AB eval "(() => /Your improvement: ?\+?62\.5 points/.test(document.body.
 [ "$GAIN" = "true" ] && ok "gain banner +62.5 points" || bad "gain banner missing"
 $AB screenshot /tmp/aw-11-post.png >/dev/null 2>&1
 
-echo "── 9. Consent gate (AW-BR002, PENDING) ──"
+echo "── 9. Consent gate (AW-DEMO02, PENDING) ──"
 $AB eval "(() => { const b = [...document.querySelectorAll('button')].find(x => (x.getAttribute('aria-label') || '') === 'exit'); if (b) { b.click(); return 'ok'; } return 'no'; })()" >/dev/null 2>&1
 sleep 2
 SNAP=$($AB snapshot -i 2>/dev/null)
@@ -261,7 +261,7 @@ $AB find role button click --name "Continue" >/dev/null 2>&1
 sleep 2
 SNAP=$($AB snapshot -i 2>/dev/null)
 LC=$(ref_of "$(echo "$SNAP" | grep -m1 'textbox "participant code"')")
-$AB fill @$LC "AW-BR002" >/dev/null 2>&1
+$AB fill @$LC "AW-DEMO02" >/dev/null 2>&1
 $AB find role button click --name "Continue" >/dev/null 2>&1
 sleep 2
 GATE=$($AB eval "(() => document.body.innerText.includes('Parental consent pending') && document.body.innerText.includes('tests are locked'))()" 2>/dev/null | tail -1)

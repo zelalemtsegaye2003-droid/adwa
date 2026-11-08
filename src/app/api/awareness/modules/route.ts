@@ -5,14 +5,20 @@ import { audit } from "@/lib/auth/audit";
 
 export const runtime = "nodejs";
 
+/** Valid audience tracks (proposal Table 22 module architecture). */
+const AUDIENCES = new Set(["KIDS", "TEENS", "PRO", "AWARE"]);
+
 /** GET /api/awareness/modules — curriculum list with question counts. */
 export async function GET(req: NextRequest) {
   const guard = await requireAuth(req, "awareness:manage");
   if (guard.error) return guard.error;
 
   const includeInactive = req.nextUrl.searchParams.get("all") === "1";
+  const audienceFilter = req.nextUrl.searchParams.get("audience");
+  const where: Record<string, unknown> = includeInactive ? {} : { isActive: true };
+  if (audienceFilter && AUDIENCES.has(audienceFilter)) where.audience = audienceFilter;
   const modules = await db.awarenessModule.findMany({
-    where: includeInactive ? {} : { isActive: true },
+    where,
     orderBy: { sortOrder: "asc" },
     include: { questions: { orderBy: { sortOrder: "asc" } } },
   });
@@ -30,6 +36,7 @@ export async function GET(req: NextRequest) {
       contentAm: m.contentAm,
       durationMin: m.durationMin,
       gradeBand: m.gradeBand,
+      audience: m.audience,
       version: m.version,
       isActive: m.isActive,
       updatedAt: m.updatedAt,
@@ -90,6 +97,7 @@ export async function POST(req: NextRequest) {
       contentAm: String(b.contentAm).trim(),
       durationMin: Number(b.durationMin) || 15,
       gradeBand: String(b.gradeBand ?? "7-10"),
+      audience: AUDIENCES.has(b.audience as string) ? String(b.audience) : "KIDS",
       questions: qs,
     };
   });
