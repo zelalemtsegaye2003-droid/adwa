@@ -1,5 +1,32 @@
 # Adwa Cyber — Deliverables
 
+## Deployment status: READY (verified 2026-11-08)
+
+The platform passes a full production-build verification:
+
+- `bun run build` → clean compile (49 routes, standalone output complete)
+- Standalone server boots and serves: login page 200, public `/learn`
+  portal 200, unauthenticated APIs correctly 401
+- End-to-end round-trip in production mode: captcha → login (SUPER_ADMIN)
+  → authenticated `/api/rules` (77 rules), `/api/stats`, `/api/gates`
+  (8 Track-C criteria), `/api/auth/me` — zero errors in the server log
+  (`scripts/prod-smoke.py`, included in the zip, reproduces this)
+
+Two blockers were found and fixed during verification:
+
+1. **`AUTH_SECRET` was never persisted** — it only lived in a dev shell,
+   so production login failed with 500 `AUTH_SECRET is not configured`.
+   A fresh 64+ char secret is now in `.env` and the officer's TOTP secret
+   re-encrypted under it (`bun scripts/fix-mfa-secret.ts`).
+2. **`.env.example`** restored to the working tree (was only in the zip).
+
+Pre-deploy checklist for the target host: set a fresh `AUTH_SECRET` env
+var (rotating invalidates sessions + MFA seeds — re-run
+`scripts/fix-mfa-secret.ts`), serve over HTTPS behind Caddy/nginx (session
+cookies are `Secure`-flagged in production — plain HTTP will 401 every
+authed call), and point `DATABASE_URL` at PostgreSQL for anything beyond
+pilot scale. Full notes in the README's "Deploying" section.
+
 ## Phase 1 MVP — platform source code
 
 - `adwa-cyber-platform-source.zip` — the complete Phase 1 codebase:

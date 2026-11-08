@@ -106,3 +106,31 @@ docs/AUTH.md                identity module reference
 - Configure `RECAPTCHA_*` or `HCAPTCHA_*` to replace the built-in captcha.
 - The in-memory rate limiter is single-instance; use a shared store when
   scaling horizontally.
+
+## Deploying (`bun run build` → standalone)
+
+`bun run build` produces a self-contained server in `.next/standalone/`
+(static assets and `public/` are copied in by the build script). Verified
+working — `scripts/prod-smoke.py` boots the standalone server and walks
+captcha → login → authed API round-trip end to end.
+
+```bash
+bun run build
+NODE_ENV=production PORT=3000 bun .next/standalone/server.js
+```
+
+Gotchas confirmed by the production smoke test:
+
+- **`.env` must be present at runtime.** The standalone build copies the
+  root `.env` into `.next/standalone/`, but the server does NOT read the
+  project root `.env` — if `AUTH_SECRET` is missing at runtime, login
+  returns 500 with `AUTH_SECRET is not configured` in the server log.
+  Prefer real environment variables on the deployment host over a committed
+  `.env`.
+- **Session cookies are `Secure` in production** (`NODE_ENV=production`),
+  so the app must be served over HTTPS — put it behind Caddy/nginx TLS
+  (see `Caddyfile`). Over plain HTTP browsers will not send the auth
+  cookies and every authed call will 401.
+- `scripts/reset-locks.ts` clears account lockouts if a deploy test
+  trips the brute-force protection.
+
