@@ -166,6 +166,7 @@ model User {
   incidentEvents    IncidentEvent[]
   assignedIncidents Incident[]
   syncRunsTriggered SyncRun[]
+  gateUpdates       ExpansionGate[]
 }
 
 model RefreshToken {
@@ -562,4 +563,34 @@ model AwarenessToolPing {
   createdAt DateTime @default(now())
 
   @@index([tool, createdAt])
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Track C — gated expansion (proposal roadmap §3.2 Table 2, §11.1 R11, §14).
+// Phase 4 (ACFS content filtering) and Phase 5 (CII protection) advance only
+// when EVERY blocking gate criterion is SATISFIED. The roadmap is explicit:
+// "no ACFS deployment without the EMA partnership, EHRC-engaged due diligence,
+// and the proposal's own transparency framework verbatim; no CII monitoring
+// without operator MOUs, confirmed authorisation, and insurance. The gates
+// protect everything else the venture is building."
+// Platform-level governance record: commercial tenants never see or mutate it.
+model ExpansionGate {
+  id          String    @id @default(cuid())
+  phase       String // P4_ACFS | P5_CII
+  code        String // EMA_PARTNERSHIP, EHRC_DUE_DILIGENCE, …
+  titleEn     String
+  titleAm     String
+  detailEn    String
+  detailAm    String
+  category    String // PARTNERSHIP | LEGAL | HUMAN_RIGHTS | FUNDING | DESIGN | INSURANCE
+  status      String    @default("NOT_STARTED") // NOT_STARTED | IN_PROGRESS | SATISFIED | BLOCKED
+  blocking    Boolean   @default(true) // must be SATISFIED before the phase gate opens
+  notes       String?
+  targetDate  DateTime?
+  updatedById String?
+  updatedBy   User?     @relation(fields: [updatedById], references: [id], onDelete: SetNull)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@unique([phase, code])
 }
