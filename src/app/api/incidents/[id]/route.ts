@@ -31,7 +31,12 @@ export async function GET(req: NextRequest, ctx: { params: Promise<{ id: string 
     return NextResponse.json({ error: "This incident belongs to another organization" }, { status: 403 });
   }
 
-  return NextResponse.json({ incident });
+  // RQ3 latency anchor (same derivation as the list endpoint).
+  const notificationLatencyMin = incident.notifiedAt
+    ? Math.round(((new Date(incident.notifiedAt).getTime() - new Date(incident.detectedAt).getTime()) / 60_000) * 10) / 10
+    : null;
+
+  return NextResponse.json({ incident: { ...incident, notificationLatencyMin } });
 }
 
 /**
