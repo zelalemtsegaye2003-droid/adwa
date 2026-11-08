@@ -30,7 +30,14 @@ export async function GET(req: NextRequest) {
   const gates = await db.expansionGate.findMany({
     where: { phase: { in: [...GATE_PHASES] } },
     orderBy: [{ phase: "asc" }, { code: "asc" }],
-    include: { updatedBy: { select: { name: true, email: true } } },
+    include: {
+      updatedBy: { select: { name: true, email: true } },
+      evidence: {
+        orderBy: { createdAt: "desc" },
+        include: { uploadedBy: { select: { name: true } } },
+      },
+      _count: { select: { events: true } },
+    },
   });
 
   const phases = GATE_PHASES.map((p) => {
@@ -53,6 +60,17 @@ export async function GET(req: NextRequest) {
         targetDate: g.targetDate,
         updatedBy: g.updatedBy ? { name: g.updatedBy.name } : null,
         updatedAt: g.updatedAt,
+        evidence: g.evidence.map((e) => ({
+          id: e.id,
+          fileName: e.fileName,
+          description: e.description,
+          mimeType: e.mimeType,
+          fileSize: e.fileSize,
+          checksum: e.checksum,
+          uploadedBy: e.uploadedBy ? { name: e.uploadedBy.name } : null,
+          createdAt: e.createdAt,
+        })),
+        eventCount: g._count.events,
       })),
     };
   });

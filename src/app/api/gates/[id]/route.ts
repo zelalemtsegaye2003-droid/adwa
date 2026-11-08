@@ -12,8 +12,11 @@ export const runtime = "nodejs";
  * Body: { status, note?, targetDate? }
  * Status progression is forward-only (NOT_STARTED → IN_PROGRESS → SATISFIED);
  * BLOCKED can be set from (and cleared back to IN_PROGRESS from) any state.
- * Every change is audit-logged: gate state is exactly the record a funder,
- * regulator, or university partner would ask to see.
+ * Accountability layer: SATISFIED requires ≥1 evidence artefact attached to
+ * the criterion (a note alone is self-declared), and every change is written
+ * to the per-criterion GateEvent timeline in addition to the platform
+ * AuthEvent log — exactly the record a funder, regulator, or university
+ * partner would ask to see.
  */
 export async function PATCH(req: NextRequest, ctx: { params: Promise<{ id: string }> }) {
   const guard = await requireAuth(req, "governance:manage");
@@ -53,6 +56,21 @@ export async function PATCH(req: NextRequest, ctx: { params: Promise<{ id: strin
       { status: 400 }
     );
   }
+  // …and the artefact itself: self-declared satisfaction is not verifiable.
+  if (status === "SATISFIED") {
+    const evidenceCount = await db.gateEvidence.count({ where: { gateId: id } });
+    if (evidenceCount < 1) {
+      return NextResponse.json(
+        {
+          error: {
+            code: "EVIDENCE_REQUIRED",
+            message: `Satisfying a gate criterion requires at least one evidence artefact to be attached first (signed instrument, published report, or funding letter). ${gate.phase}/${gate.code} has none.`,
+          },
+        },
+        { status: 409 }
+      );
+    }
+  }
 
   const updated = await db.expansionGate.update({
     where: { id },
@@ -61,6 +79,18 @@ export async function PATCH(req: NextRequest, ctx: { params: Promise<{ id: strin
       ...(note !== null ? { notes: note } : {}),
       ...(targetDate ? { targetDate } : {}),
       updatedById: user.id,
+    },
+  });
+
+  // Append-only per-criterion timeline entry.
+  await db.gateEvent.create({
+    data: {
+      gateId: id,
+      actorId: user.id,
+      kind: "STATUS_CHANGE",
+      fromStatus: gate.status,
+      toStatus: status,
+      ...(note ? { note } : {}),
     },
   });
 

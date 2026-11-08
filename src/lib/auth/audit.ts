@@ -60,7 +60,13 @@ export type AuthEventType =
   | "AWARENESS_SCHOOL_CREATED"
   | "AWARENESS_CLASS_CREATED"
   | "AWARENESS_LEARNERS_ISSUED"
-  | "AWARENESS_CONSENT_RECORDED";
+  | "AWARENESS_CONSENT_RECORDED"
+  // Track C gated expansion (proposal Phases 4–5 governance)
+  | "GATE_STATUS_CHANGED"
+  | "GATE_EVIDENCE_ATTACHED"
+  | "GATE_EVIDENCE_DOWNLOADED"
+  | "GATE_EVIDENCE_INTEGRITY_FAIL"
+  | "GATE_DOSSIER_EXPORTED";
 
 export interface AuditInput {
   type: AuthEventType;

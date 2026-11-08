@@ -69,7 +69,11 @@ export async function api<T = unknown>(
     ...init,
     credentials: "same-origin",
     headers: {
-      ...(init.body ? { "Content-Type": "application/json" } : {}),
+      // FormData bodies set their own multipart boundary — forcing JSON here
+      // would corrupt uploads (Track C gate evidence, tenant vault).
+      ...(init.body && !(typeof FormData !== "undefined" && init.body instanceof FormData)
+        ? { "Content-Type": "application/json" }
+        : {}),
       ...(init.headers ?? {}),
       "X-Requested-With": "adwa-cyber",
     },
