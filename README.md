@@ -34,6 +34,25 @@ Bilingual (English / አማርኛ) · Proclamation 1321/2024 · NCSP 2024 · Dig
 See `docs/AUTH.md` for the full identity-module reference (API surface,
 permission matrix, OWASP hardening notes).
 
+## System architecture
+
+![System architecture](docs/architecture.png)
+
+Six layers, top to bottom: **users** (tenant staff in 4 roles, platform staff,
+public learners) → **presentation** (one bilingual SPA with role-scoped panes
+plus public auth/learner screens) → **API + identity** (route handlers with
+RBAC guard, JWT session rotation, MFA, captcha, rate limits, audit on every
+call) → **domain engines** (pure TypeScript: compliance, rules, SOC, awareness,
+SLA, Track C gate enforcement, PDF generators — deterministic and
+regulator-auditable by design) → **data** (Prisma over SQLite/PostgreSQL,
+SHA-256-anchored evidence vault, audit stores) → **integrations & operations**
+(Google OIDC, Ethio-CERT exchange, SMTP, captcha providers, Docker Compose +
+Caddy TLS, CI, backup/restore drills). Everything drawn with a **dashed amber
+border is a dev/pilot substitute** — honestly labelled and swapped by
+configuration, never silently (decisions D3/D4). Regenerate the diagram with
+`python3 scripts/render-architecture.py` (source:
+`scripts/architecture-diagram.html`).
+
 ## Tech stack
 
 Next.js 16 (App Router) · TypeScript · Prisma (SQLite dev DB, PostgreSQL-ready) ·
@@ -71,6 +90,55 @@ without real credentials (enabled via `GOOGLE_*` overrides in `.env`).
 | officer@cbe.com.et | COMPLIANCE_OFFICER (CBE) | `Adwa#Demo2026!` | **TOTP on** |
 | auditor@dashen.com.et | AUDITOR (Dashen) | `Adwa#Demo2026!` | off |
 | viewer@ethiotelecom.et | VIEWER (Ethio Telecom) | `Adwa#Demo2026!` | off |
+
+## Who can do what — end-to-end, per user
+
+**Yes — every role has a complete, working end-to-end path.** No role hits a
+dead end, and every journey below is machine-verified: the 683-check battery
+walks each one through the real API (real captcha logins, real HTTP status
+codes, real tenant-isolation probes). The authoritative permission matrix is
+`src/lib/auth/rbac.ts` (reference: `docs/AUTH.md`).
+
+### Before login — public flows (no account needed)
+
+- **Register** → captcha → email verification (24 h single-use link) → sign in.
+- **Forgot password** → single-use reset link (30 min, enumeration-resistant) →
+  all sessions revoked on success.
+- **Sign in with Google** → OAuth/OIDC (real provider or the labelled dev mock).
+- **TOTP challenge** for MFA-enabled accounts (QR enrollment + 8 backup codes).
+
+### Per-role end-to-end journeys
+
+| Role | The journey a user can complete, start to finish |
+|---|---|
+| **SUPER_ADMIN**<br>(platform staff) | Onboard an organization → create its first ORG_ADMIN → run an assessment for any tenant → review every tenant's findings/evidence → operate the national threat hub: ingest the Ethio-CERT feed, publish anonymised upward reports with SHA-256 receipts → run the awareness programme (schools, classes, parental-consent register, RQ2 evaluation) → govern Track C (gate board, CII + ACFS registers, funder dossier PDF) → review the platform-wide audit log. |
+| **ORG_ADMIN**<br>(tenant) | Manage the org profile → invite the team and assign the 4 tenant roles → run the 47-question scan (autosave, resume, N/A justification enforced) → work the findings: remediate or waive with SLA deadlines (30/60/90 d) → upload evidence (SHA-256 anchored, tamper-evident) → link evidence to obligations (coverage SATISFIED/STALE/GAP) → generate the bilingual executive PDF → manage the org's SOC incidents and share threat indicators → read the own-org audit trail. |
+| **COMPLIANCE_OFFICER**<br>(tenant) | The full assessment workflow — run scans, work findings, upload/link evidence, generate reports, manage own-org SOC — everything except user management and org settings. This is the daily-driver account; the demo officer has TOTP MFA enabled. |
+| **AUDITOR**<br>(read-only) | Independently verify: browse the catalogue, open any own-org scan, check findings + on-time/late SLA proof, inspect evidence with integrity verification, view the SOC overview and the own-org audit log. Every write attempt returns 403 (verified). |
+| **VIEWER**<br>(read-only) | Observe: dashboard, catalogue, own-org scans/findings/evidence/SOC, executive report — no mutations, no audit log. |
+| **Learner**<br>(public, no account) | Open `/learn` → join with a class code → study Amharic-first modules → take quizzes → use the safe-browsing tools → see progress. Pseudonymised throughout; the RQ2 group assignment is never revealed. |
+| **Anyone** | All public flows listed above (register, reset, Google, MFA challenge). |
+
+### Capability matrix
+
+| Capability | SUPER_ADMIN | ORG_ADMIN | OFFICER | AUDITOR | VIEWER |
+|---|---|---|---|---|---|
+| Onboard / manage organizations | all tenants | own profile | — | — | — |
+| Manage users | all tenants | own tenant | — | — | — |
+| Run compliance scans | any org | own org | own org | — | — |
+| Findings + SLA workflow | manage all | manage own | manage own | view | view |
+| Evidence vault | manage all | upload + manage | upload + manage | view | view |
+| Executive PDF report | all orgs | own org | own org | view | view |
+| SOC incidents (NIST lifecycle) | manage all | manage own | manage own | view | view |
+| Threat-intel sharing | + national ingest (only role) | contribute + upward report | contribute + upward report | view | view |
+| Awareness programme (schools, RCT) | only role | — | — | — | — |
+| Track C governance (gates, CII/ACFS) | manage | own operator, read-only (API) | own operator, read-only (API) | — | — |
+| Audit log | platform-wide | own org | — | own org | — |
+| Self account security (MFA, password change) | ✓ | ✓ | ✓ | ✓ | ✓ |
+
+Read-only roles are enforced **server-side** (403), not just hidden in the UI —
+the OWASP and evidence-security suites probe every cross-tenant and
+privilege-escalation path.
 
 ## Tests (against the running dev server)
 
@@ -115,6 +183,7 @@ src/components/adwa/        dashboard, catalogue, scan wizard, findings, report,
                             SOC, awareness, Track C (gate board + CII + ACFS)
 src/components/auth/        login screen (with password reset), MFA setup +
                             password change, users, audit
+docs/architecture.png      system architecture diagram (see above)
 mini-services/              mock Google OIDC (:3010), mock Ethio-CERT (:3020)
 docs/                       DECISIONS, AUTH, EVIDENCE, DEPLOY, TESTING, OPS,
                             USER_GUIDE, PILOT_ONBOARDING, INCIDENT_RUNBOOK
