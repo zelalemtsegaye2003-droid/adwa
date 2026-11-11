@@ -54,3 +54,13 @@ server.log
 /skills/
 # evidence vault storage (tenant artefact files — never commit)
 .data/
+# local SQLite database (regenerate with bunx prisma db push + bun run seed:demo)
+db/
+# npm lockfile leftover — this project locks with bun.lock
+package-lock.json
+# sandbox tooling / agent working dirs — not part of the product
+tool-results/
+.devscripts/
+# deliverable archives (the repo IS the source — zips live in Releases)
+download/*.zip
+download/*.bundle
