@@ -1,0 +1,23 @@
+# Docker build context — keep the image lean and secrets out
+node_modules
+.next
+.git
+.env
+.env.*
+!.env.example
+db
+backups
+download
+upload
+tool-results
+scripts/extract
+scripts/gen
+scripts/adwa
+scripts/assets
+*.log
+*.db
+*.db.gz
+Caddyfile
+docker-compose.yml
+Dockerfile
+.dockerignore

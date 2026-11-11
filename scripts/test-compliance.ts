@@ -89,7 +89,9 @@ let scanId = "";
 let testFindingId = "";
 try {
   console.log("══ 1. Catalogue integrity (47 obligations) ══");
-  const rulesRes = await fetch(`${BASE}/api/rules`, { headers: authed(superS.jar) });
+  // The catalogue is multi-framework (PD-1321 + NBE-IT); this suite
+  // verifies the Proclamation 1321/2024 obligation set.
+  const rulesRes = await fetch(`${BASE}/api/rules?framework=PD-1321`, { headers: authed(superS.jar) });
   const rulesDto = await rulesRes.json();
   ok("GET /api/rules → 200", rulesRes.status === 200);
   const rules = rulesDto.rules ?? [];
@@ -110,16 +112,16 @@ try {
 
   console.log("══ 2. Catalogue filters ══");
   const tech = rules.filter((r: any) => r.pillar === "Technical");
-  const f1 = await (await fetch(`${BASE}/api/rules?pillar=Technical`, { headers: authed(superS.jar) })).json();
+  const f1 = await (await fetch(`${BASE}/api/rules?framework=PD-1321&pillar=Technical`, { headers: authed(superS.jar) })).json();
   ok("filter ?pillar=Technical", f1.rules.length === tech.length, `${f1.rules.length} vs ${tech.length}`);
   const art2 = rules.filter((r: any) => r.article === "Art. 2");
-  const f2 = await (await fetch(`${BASE}/api/rules?article=${encodeURIComponent("Art. 2")}`, { headers: authed(superS.jar) })).json();
+  const f2 = await (await fetch(`${BASE}/api/rules?framework=PD-1321&article=${encodeURIComponent("Art. 2")}`, { headers: authed(superS.jar) })).json();
   ok("filter ?article=Art. 2", f2.rules.length === art2.length, `${f2.rules.length} rules`);
   const crit = rules.filter((r: any) => r.severity === "critical");
-  const f3 = await (await fetch(`${BASE}/api/rules?severity=critical`, { headers: authed(superS.jar) })).json();
+  const f3 = await (await fetch(`${BASE}/api/rules?framework=PD-1321&severity=critical`, { headers: authed(superS.jar) })).json();
   ok("filter ?severity=critical", f3.rules.length === crit.length, `${f3.rules.length} rules`);
   const qHit = rules.filter((r: any) => `${r.code} ${r.titleEn} ${r.statementEn}`.toLowerCase().includes("breach"));
-  const f4 = await (await fetch(`${BASE}/api/rules?q=breach`, { headers: authed(superS.jar) })).json();
+  const f4 = await (await fetch(`${BASE}/api/rules?framework=PD-1321&q=breach`, { headers: authed(superS.jar) })).json();
   ok("free-text search ?q=breach", f4.rules.length === qHit.length, `${f4.rules.length} hits`);
   const combo = await (await fetch(`${BASE}/api/rules?pillar=Technical&severity=critical`, { headers: authed(superS.jar) })).json();
   ok("combined filters", combo.rules.every((r: any) => r.pillar === "Technical" && r.severity === "critical"));
