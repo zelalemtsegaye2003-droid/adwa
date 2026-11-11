@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --text: #111827;
+    --text-sub: #6B7280;
+    --text-muted: #9CA3AF;
+    --border: #CBD5E1;
+    --chip-bg: #FFFFFF;
+    --connector: #94A3B8;
+  }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'DejaVu Sans', system-ui, sans-serif;
+    background: #FFFFFF;
+    color: var(--text);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  #root { width: 1400px; margin: 0 auto; padding: 44px 44px 36px; background: #FFFFFF; }
+
+  .flow-title { font-size: 24px; font-weight: 700; text-align: center; color: #111827; }
+  .flow-subtitle { font-size: 13.5px; color: var(--text-sub); text-align: center; margin-top: 7px; margin-bottom: 34px; }
+
+  /* ── Layer card (Layout C phase-group pattern) ── */
+  .layer {
+    border-radius: 12px;
+    border: 1.5px solid #E2E8F0;
+    padding: 0 0 18px;
+    background: #FFFFFF;
+    box-shadow: 0 1px 3px rgba(15,23,42,0.05);
+  }
+  .layer-bar {
+    display: flex; align-items: baseline; gap: 12px;
+    border-radius: 10px 10px 0 0;
+    padding: 10px 18px;
+    margin-bottom: 16px;
+  }
+  .layer-bar .lname { font-size: 15.5px; font-weight: 700; color: #1E293B; }
+  .layer-bar .ldesc { font-size: 12px; color: #475569; font-weight: 500; }
+
+  .l1 .layer-bar { background: #F0F4F8; border-left: 5px solid #64748B; }
+  .l2 .layer-bar { background: #EBF0F5; border-left: 5px solid #5B7A99; }
+  .l3 .layer-bar { background: #E6EDF3; border-left: 5px solid #4F7090; }
+  .l4 .layer-bar { background: #E1E9F1; border-left: 5px solid #436687; }
+  .l5 .layer-bar { background: #DCE5EE; border-left: 5px solid #385D7E; }
+  .l6 .layer-bar { background: #D7E1EB; border-left: 5px solid #2D5475; }
+
+  /* ── Connector between layers ── */
+  .arrow-row {
+    display: flex; align-items: center; justify-content: center;
+    gap: 10px; height: 34px;
+  }
+  .arrow-row svg { display: block; }
+  .arrow-label { font-size: 11.5px; color: var(--text-sub); font-weight: 600; letter-spacing: 0.02em; }
+
+  /* ── Chips (feature boxes) ── */
+  .chips { display: flex; flex-wrap: wrap; gap: 10px; padding: 0 18px; }
+  .chip {
+    background: var(--chip-bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 8px 12px;
+    min-width: 96px;
+    flex: 0 1 auto;
+    box-shadow: 0 1px 2px rgba(15,23,42,0.04);
+  }
+  .chip .ct { font-size: 13px; font-weight: 600; color: #1F2937; line-height: 1.35; }
+  .chip .cd { font-size: 11px; color: var(--text-sub); margin-top: 2px; line-height: 1.4; }
+
+  .chip.role { background: #F8FAFC; border: 1.5px solid #94A3B8; min-width: 300px; }
+  .chip.role .ct { font-size: 13.5px; }
+  .chip.role .cd { font-size: 11.5px; }
+
+  .chip.engine { flex: 1 1 380px; }
+  .chip.engine .ct { font-size: 13.5px; }
+
+  .chip.mock { border: 1.5px dashed #F59E0B; background: #FFFBF3; }
+  .chip.mock .ct::after {
+    content: "DEV/PROMISE SUBSTITUTE";
+    display: inline-block;
+    font-size: 8.5px; font-weight: 700; letter-spacing: 0.06em;
+    color: #92400E; background: #FEF3C7;
+    border-radius: 4px; padding: 1px 6px;
+    margin-left: 7px; vertical-align: 1px;
+  }
+
+  .subgroup {
+    border: 1.5px dashed #E2E8F0;
+    border-radius: 10px;
+    padding: 12px 14px 12px;
+    margin: 0 18px;
+    background: #FCFDFE;
+  }
+  .subgroup + .subgroup { margin-top: 12px; }
+  .sg-label {
+    font-size: 11.5px; font-weight: 700; color: #64748B;
+    letter-spacing: 0.05em; text-transform: uppercase;
+    margin-bottom: 9px;
+  }
+  .subgroup .chips { padding: 0; }
+
+  .split { display: flex; gap: 14px; padding: 0 18px; }
+  .split > .subgroup { flex: 1 1 0; margin: 0; }
+
+  .legend {
+    display: flex; gap: 26px; justify-content: center;
+    margin-top: 26px; padding-top: 16px;
+    border-top: 1px solid #EEF2F6;
+  }
+  .legend .item { display: flex; align-items: center; gap: 8px; font-size: 11.5px; color: var(--text-sub); }
+  .legend .sw { width: 26px; height: 14px; border-radius: 4px; background: #FFFFFF; }
+  .legend .sw.real { border: 1.5px solid #94A3B8; }
+  .legend .sw.mock { border: 1.5px dashed #F59E0B; background: #FFFBF3; }
+</style>
+</head>
+<body>
+<div id="root">
+  <div class="flow-title">Adwa Cyber — System Architecture</div>
+  <div class="flow-subtitle">Multi-tenant compliance platform for Ethiopian financial institutions · Next.js 16 + Prisma · bilingual EN / AM · 683 automated checks green</div>
+
+  <!-- L1 USERS -->
+  <div class="layer l1">
+    <div class="layer-bar"><span class="lname">Users</span><span class="ldesc">who touches the platform</span></div>
+    <div class="chips">
+      <div class="chip role"><div class="ct">Bank / MFI staff — 4 tenant roles</div><div class="cd">ORG_ADMIN · COMPLIANCE_OFFICER · AUDITOR · VIEWER — each scoped to one organization (tenant isolation on every query)</div></div>
+      <div class="chip role"><div class="ct">Adwa Cyber platform staff</div><div class="cd">SUPER_ADMIN — cross-tenant governance, onboarding, national analytics, Track C</div></div>
+      <div class="chip role"><div class="ct">School learners — public</div><div class="cd">/learn portal, class join code, no account — pseudonymised participants (minors)</div></div>
+    </div>
+  </div>
+
+  <div class="arrow-row">
+    <svg width="18" height="26" viewBox="0 0 18 26"><path d="M9 1 v18 M3 13 l6 7 6-7" stroke="#94A3B8" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    <span class="arrow-label">browser · HTTPS · Secure cookies</span>
+  </div>
+
+  <!-- L2 PRESENTATION -->
+  <div class="layer l2">
+    <div class="layer-bar"><span class="lname">Presentation — Next.js App Router UI</span><span class="ldesc">single-page shell · EN / AM toggle · dark mode · role-scoped navigation</span></div>
+    <div class="subgroup">
+      <div class="sg-label">Signed-in panes (per permission)</div>
+      <div class="chips">
+        <div class="chip"><div class="ct">Dashboard</div><div class="cd">posture + SLA banner</div></div>
+        <div class="chip"><div class="ct">Rule Catalogue</div><div class="cd">77 obligations, bilingual</div></div>
+        <div class="chip"><div class="ct">Scan Wizard</div><div class="cd">47 questions · autosave · resume</div></div>
+        <div class="chip"><div class="ct">Findings + SLA</div><div class="cd">remediate / waive · deadlines</div></div>
+        <div class="chip"><div class="ct">Evidence Vault</div><div class="cd">upload · versions · integrity</div></div>
+        <div class="chip"><div class="ct">SOC</div><div class="cd">incidents · threat intel · sync</div></div>
+        <div class="chip"><div class="ct">Awareness</div><div class="cd">schools · modules · consent</div></div>
+        <div class="chip"><div class="ct">Track C Gate Board</div><div class="cd">CII + ACFS registers · dossier</div></div>
+        <div class="chip"><div class="ct">Executive Report</div><div class="cd">PDF, EN / AM</div></div>
+        <div class="chip"><div class="ct">Team &amp; Roles</div><div class="cd">tenant user management</div></div>
+        <div class="chip"><div class="ct">Audit Log</div><div class="cd">every security event</div></div>
+      </div>
+    </div>
+    <div class="subgroup">
+      <div class="sg-label">Public screens (no account)</div>
+      <div class="chips">
+        <div class="chip"><div class="ct">Sign in</div><div class="cd">captcha + MFA challenge + Google</div></div>
+        <div class="chip"><div class="ct">Register</div><div class="cd">captcha + email verification</div></div>
+        <div class="chip"><div class="ct">Password reset</div><div class="cd">single-use 30-min link</div></div>
+        <div class="chip"><div class="ct">/learn portal</div><div class="cd">join code · modules · quizzes</div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="arrow-row">
+    <svg width="18" height="26" viewBox="0 0 18 26"><path d="M9 1 v18 M3 13 l6 7 6-7" stroke="#94A3B8" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    <span class="arrow-label">fetch /api/* · JWT access cookie (15 min) + rotating refresh</span>
+  </div>
+
+  <!-- L3 API + IDENTITY -->
+  <div class="layer l3">
+    <div class="layer-bar"><span class="lname">API layer — Next.js route handlers</span><span class="ldesc">canonical errors · rate limiting · every query tenant-scoped</span></div>
+    <div class="subgroup">
+      <div class="sg-label">Route groups</div>
+      <div class="chips">
+        <div class="chip"><div class="ct">auth/*</div><div class="cd">login · MFA · Google · reset · captcha · users · audit</div></div>
+        <div class="chip"><div class="ct">scans</div><div class="cd">create · answers · submit (WS-2 hardened) · report</div></div>
+        <div class="chip"><div class="ct">findings</div><div class="cd">workflow + SLA states</div></div>
+        <div class="chip"><div class="ct">evidence</div><div class="cd">upload · download · verify · link</div></div>
+        <div class="chip"><div class="ct">incidents · threats · soc</div><div class="cd">NIST lifecycle · sharing · sync</div></div>
+        <div class="chip"><div class="ct">awareness · learn</div><div class="cd">schools · classes · consent · public portal</div></div>
+        <div class="chip"><div class="ct">gates · cii · acfs</div><div class="cd">Track C governance, enforced server-side</div></div>
+        <div class="chip"><div class="ct">organizations · stats · health</div><div class="cd">onboarding · analytics · liveness</div></div>
+      </div>
+    </div>
+    <div class="subgroup">
+      <div class="sg-label">Identity &amp; security (cross-cutting — src/lib/auth)</div>
+      <div class="chips">
+        <div class="chip"><div class="ct">JWT sessions</div><div class="cd">HS256 + refresh rotation, reuse detection</div></div>
+        <div class="chip"><div class="ct">scrypt passwords</div><div class="cd">N=16384 · lockout after failures</div></div>
+        <div class="chip"><div class="ct">TOTP MFA</div><div class="cd">AES-256-GCM seeds · backup codes</div></div>
+        <div class="chip"><div class="ct">Google OIDC</div><div class="cd">ID token vs JWKS · CSRF state</div></div>
+        <div class="chip"><div class="ct">Captcha</div><div class="cd">built-in SVG / hCaptcha / reCAPTCHA</div></div>
+        <div class="chip"><div class="ct">RBAC guard</div><div class="cd">5 roles × permission matrix on every route</div></div>
+        <div class="chip"><div class="ct">Rate limits</div><div class="cd">login · captcha · learn portal</div></div>
+        <div class="chip"><div class="ct">Audit trail</div><div class="cd">auth + governance events, IP + UA</div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="arrow-row">
+    <svg width="18" height="26" viewBox="0 0 18 26"><path d="M9 1 v18 M3 13 l6 7 6-7" stroke="#94A3B8" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    <span class="arrow-label">pure TypeScript functions — deterministic, auditable (no hidden AI)</span>
+  </div>
+
+  <!-- L4 ENGINES -->
+  <div class="layer l4">
+    <div class="layer-bar"><span class="lname">Domain engines</span><span class="ldesc">the compliance logic — transparent and regulator-auditable by design</span></div>
+    <div class="chips">
+      <div class="chip engine"><div class="ct">Compliance engine</div><div class="cd">pillar-weighted scoring (Legal 35 / Technical 30 / Organisational 20 / Awareness 15) · risk-ranked findings · remediation plan</div></div>
+      <div class="chip engine"><div class="ct">Rules engine</div><div class="cd">NBE SBB/83/2022 30 obligations · evidence coverage SATISFIED / STALE / GAP · freshness policies</div></div>
+      <div class="chip engine"><div class="ct">SOC engine</div><div class="cd">NIST SP 800-61 lifecycle · alert prioritisation (severity × sector × confidence × freshness) · hybrid TLP sharing + anonymisation</div></div>
+      <div class="chip engine"><div class="ct">Awareness engine</div><div class="cd">Amharic-first curriculum · RQ2 treatment/control evaluation · consent register</div></div>
+      <div class="chip engine"><div class="ct">SLA engine</div><div class="cd">corrective-action deadlines 30/60/90 d (Procl. 1426/2026) · on-time vs late closure proof</div></div>
+      <div class="chip engine"><div class="ct">Track C gate enforcement</div><div class="cd">8 blocking criteria · CII double gate (MOU × INSA) · ACFS register — 409 + audit on gated actions</div></div>
+      <div class="chip engine" style="flex: 1 1 100%;"><div class="ct">Report generators (pdfkit)</div><div class="cd">bilingual executive PDF (pillar charts, SLA table, SHA-256 payload hash per page) · Track C Gate Dossier PDF for funders</div></div>
+    </div>
+  </div>
+
+  <div class="arrow-row">
+    <svg width="18" height="26" viewBox="0 0 18 26"><path d="M9 1 v18 M3 13 l6 7 6-7" stroke="#94A3B8" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    <span class="arrow-label">Prisma client</span>
+  </div>
+
+  <!-- L5 DATA -->
+  <div class="layer l5">
+    <div class="layer-bar"><span class="lname">Data layer</span><span class="ldesc">one schema, two providers — kept in sync</span></div>
+    <div class="chips">
+      <div class="chip engine"><div class="ct">Database — Prisma ORM</div><div class="cd">SQLite (dev, zero setup) · PostgreSQL 16 (Docker production) · organizations, rules, scans, findings, users, sessions, audit, Track C registers</div></div>
+      <div class="chip engine"><div class="ct">Evidence vault (DATA_DIR volume)</div><div class="cd">artefact files · SHA-256 checksum anchored at upload · tamper-evident downloads (mismatch → 409 + security audit)</div></div>
+      <div class="chip engine"><div class="ct">Auth + audit stores</div><div class="cd">hashed refresh tokens (reuse-detection families) · auth events with IP + user agent · append-only gate timelines</div></div>
+    </div>
+  </div>
+
+  <div class="arrow-row">
+    <svg width="18" height="26" viewBox="0 0 18 26"><path d="M9 1 v18 M3 13 l6 7 6-7" stroke="#94A3B8" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    <span class="arrow-label">deployment boundary</span>
+  </div>
+
+  <!-- L6 EXTERNALS + OPS -->
+  <div class="layer l6">
+    <div class="layer-bar"><span class="lname">External integrations &amp; operations</span><span class="ldesc">every mock is honestly labelled and swappable by config (decisions D3 / D4)</span></div>
+    <div class="split">
+      <div class="subgroup">
+        <div class="sg-label">Integrations</div>
+        <div class="chips">
+          <div class="chip engine"><div class="ct">Google OAuth 2.0 / OIDC</div><div class="cd">real provider via GOOGLE_CLIENT_ID/SECRET</div></div>
+          <div class="chip engine mock"><div class="ct">Mock Google provider</div><div class="cd">mini-services/mock-google :3010 — dev sign-in flow</div></div>
+          <div class="chip engine"><div class="ct">Ethio-CERT exchange</div><div class="cd">live adapter: national feed ingest + anonymised upward reports (SHA-256 receipts)</div></div>
+          <div class="chip engine mock"><div class="ct">Mock Ethio-CERT exchange</div><div class="cd">mini-services/mock-ethiocert :3020 — pilot binding</div></div>
+          <div class="chip engine mock"><div class="ct">SMTP mail</div><div class="cd">console transport until SMTP_HOST is set (D3)</div></div>
+          <div class="chip engine mock"><div class="ct">Built-in SVG captcha</div><div class="cd">replaced by hCaptcha / reCAPTCHA in production (D4)</div></div>
+        </div>
+      </div>
+      <div class="subgroup">
+        <div class="sg-label">Operations</div>
+        <div class="chips">
+          <div class="chip engine"><div class="ct">Docker Compose</div><div class="cd">app + PostgreSQL 16 (health-checked) + Caddy auto-HTTPS · guarded idempotent seeds on boot</div></div>
+          <div class="chip engine"><div class="ct">CI — every push</div><div class="cd">lint → zero-error typecheck → production build → 683-check battery → compose boot/health smoke</div></div>
+          <div class="chip engine"><div class="ct">Backup + restore drills</div><div class="cd">backup-db.sh / restore-db.sh · restore-drill.sh proves recoverability</div></div>
+          <div class="chip engine"><div class="ct">Runbooks</div><div class="cd">docs/: DEPLOY · OPS · INCIDENT (NIST 800-61, SEV levels) · PILOT_ONBOARDING (90 min)</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="legend">
+    <div class="item"><span class="sw real"></span> production path</div>
+    <div class="item"><span class="sw mock"></span> dev / pilot substitute — swapped by configuration, never silently</div>
+  </div>
+</div>
+</body>
+</html>
