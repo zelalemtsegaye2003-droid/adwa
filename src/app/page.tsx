@@ -228,7 +228,7 @@ function Shell() {
               />
             )}
             {view === "awareness" && <AwarenessView />}
-            {view === "trackc" && <TrackCView />}
+            {view === "trackc" && <TrackCView canManageCii={perms.has("cii:manage")} />}
             {view === "team" && <UsersView canManage={canManageUsers} isSuperAdmin={isSuper} />}
             {view === "audit" && <AuditView isSuperAdmin={isSuper} />}
           </div>

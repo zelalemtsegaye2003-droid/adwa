@@ -7,7 +7,11 @@
  *   4.  GET  /api/scans           → answeredCount on in_progress drafts
  *   5.  RBAC: VIEWER/AUDITOR cannot run or draft-save (403)
  *   6.  Cross-tenant draft save → 403
- *   7.  Submit → 200, complete, auditorName recorded, SCAN_COMPLETED audit
+ *   7.  Submit hardening (WS-2): malformed JSON → 400; non-array → 400;
+ *       partial answers → 400 INCOMPLETE (missing codes listed — a partial
+ *       submission can never inflate the score); invalid answer → 400;
+ *       unknown rule → 400; duplicate rule → 400; unjustified N/A → 400;
+ *       full explicit set → 200, score, audit; re-submit → 409
  *   8.  Draft save after completion → 409 (immutable record)
  *   9.  Findings: waiver without note → 400; with note → 200 + FINDING_STATUS_CHANGED audit
  *  10.  DELETE completed scan as ORG_ADMIN → 409; in_progress → 200 + SCAN_DELETED audit
@@ -52,7 +56,7 @@ async function recentAudit(session, type, contains) {
 }
 
 // ── Setup ────────────────────────────────────────────────────────────────────
-const { PrismaClient } = await import("/home/z/my-project/node_modules/.prisma/client/index.js").catch(() => import("@prisma/client"));
+const { PrismaClient } = await import("@prisma/client").catch(() => import("/home/z/my-project/node_modules/.prisma/client/index.js"));
 const db = new PrismaClient();
 const cbe = await db.organization.findFirst({ where: { name: { contains: "Commercial" } } });
 await db.$disconnect();
@@ -156,18 +160,85 @@ check("cross-tenant delete blocked (403)", r.status === 403, `status=${r.status}
 // cleanup probe
 await jfetch(`/api/scans/${dashenScan.id}`, { method: "DELETE", ...authed(superAdmin) });
 
-// ── 7. Submit ───────────────────────────────────────────────────────────────
+// ── 7. Submit hardening (WS-2: scores must be trustworthy) ───────────────
 const { rules: pdRules } = (await jfetch("/api/rules?framework=PD-1321", authed(cbeAdmin))).body;
-const submitAnswers = pdRules.slice(0, 10).map((rule, i) => ({
+
+// 7a. Malformed JSON → 400 (never a 500)
+r = await jfetch(`/api/scans/${scan.id}/submit`, {
+  method: "POST", ...authed(cbeAdmin),
+  headers: { ...authed(cbeAdmin).headers },
+  body: "this is not json{",
+});
+check("malformed JSON → 400 INVALID_JSON", r.status === 400 && r.body?.error?.code === "INVALID_JSON", `status=${r.status} body=${JSON.stringify(r.body).slice(0, 80)}`);
+
+// 7b. answers must be an array
+r = await jfetch(`/api/scans/${scan.id}/submit`, {
+  method: "POST", ...authed(cbeAdmin),
+  body: JSON.stringify({ answers: { "ART22-01": "yes" } }),
+});
+check("non-array answers → 400", r.status === 400, `status=${r.status}`);
+
+// 7c. Partial submission → 400 INCOMPLETE with the missing codes.
+//     (10 explicit answers + 37 unanswered can no longer inflate a score.)
+const partial = pdRules.slice(0, 10).map((rule, i) => ({
   ruleCode: rule.code,
   answer: i % 3 === 0 ? "yes" : i % 3 === 1 ? "no" : "partial",
-  evidenceNote: i === 0 ? "Kept from draft" : undefined,
 }));
 r = await jfetch(`/api/scans/${scan.id}/submit`, {
   method: "POST", ...authed(cbeAdmin),
-  body: JSON.stringify({ answers: submitAnswers }),
+  body: JSON.stringify({ answers: partial }),
 });
-check("submit (200)", r.status === 200, `status=${r.status}, body=${JSON.stringify(r.body).slice(0, 160)}`);
+check("partial submission → 400 INCOMPLETE", r.status === 400 && r.body?.error?.code === "INCOMPLETE", `status=${r.status} body=${JSON.stringify(r.body).slice(0, 100)}`);
+check("missing codes are listed", Array.isArray(r.body?.error?.missing) && r.body.error.missing.length === pdRules.length - 10, `missing=${r.body?.error?.missing?.length}`);
+
+// 7d. Invalid answer value
+r = await jfetch(`/api/scans/${scan.id}/submit`, {
+  method: "POST", ...authed(cbeAdmin),
+  body: JSON.stringify({ answers: [{ ruleCode: "ART22-01", answer: "maybe" }] }),
+});
+check("invalid answer value → 400 INVALID_ANSWER", r.status === 400 && r.body?.error?.code === "INVALID_ANSWER", `status=${r.status} body=${JSON.stringify(r.body).slice(0, 80)}`);
+
+// 7e. Unknown rule code
+r = await jfetch(`/api/scans/${scan.id}/submit`, {
+  method: "POST", ...authed(cbeAdmin),
+  body: JSON.stringify({ answers: [{ ruleCode: "NBE-99", answer: "yes" }] }),
+});
+check("unknown rule code → 400 UNKNOWN_RULE", r.status === 400 && r.body?.error?.code === "UNKNOWN_RULE", `status=${r.status} body=${JSON.stringify(r.body).slice(0, 80)}`);
+
+// 7f. Duplicate rule in one payload
+r = await jfetch(`/api/scans/${scan.id}/submit`, {
+  method: "POST", ...authed(cbeAdmin),
+  body: JSON.stringify({ answers: [
+    { ruleCode: "ART22-01", answer: "yes" },
+    { ruleCode: "ART22-01", answer: "no" },
+  ] }),
+});
+check("duplicate rule → 400 DUPLICATE_RULE", r.status === 400 && r.body?.error?.code === "DUPLICATE_RULE", `status=${r.status} body=${JSON.stringify(r.body).slice(0, 80)}`);
+
+// 7g. Full set but an unjustified N/A → 400 (D1: N/A is a legal claim)
+const naCodes = [pdRules[4].code, pdRules[9].code, pdRules[14].code, pdRules[19].code, pdRules[24].code];
+const fullAnswers = pdRules.map((rule, i) => {
+  if (naCodes.includes(rule.code)) return { ruleCode: rule.code, answer: "na", evidenceNote: "No such processing at this organisation" };
+  return {
+    ruleCode: rule.code,
+    answer: i % 3 === 0 ? "yes" : i % 3 === 1 ? "no" : "partial",
+    evidenceNote: i === 0 ? "Kept from draft" : undefined,
+  };
+});
+const unjustified = fullAnswers.map((a) => ({ ...a }));
+unjustified.find((a) => a.ruleCode === naCodes[0]).evidenceNote = "x"; // < 5 chars
+r = await jfetch(`/api/scans/${scan.id}/submit`, {
+  method: "POST", ...authed(cbeAdmin),
+  body: JSON.stringify({ answers: unjustified }),
+});
+check("unjustified N/A → 400 NA_JUSTIFICATION_REQUIRED", r.status === 400 && r.body?.error?.code === "NA_JUSTIFICATION_REQUIRED", `status=${r.status} body=${JSON.stringify(r.body).slice(0, 100)}`);
+
+// 7h. Full explicit set (justified N/A included) → 200
+r = await jfetch(`/api/scans/${scan.id}/submit`, {
+  method: "POST", ...authed(cbeAdmin),
+  body: JSON.stringify({ answers: fullAnswers }),
+});
+check("submit full explicit set (200)", r.status === 200, `status=${r.status}, body=${JSON.stringify(r.body).slice(0, 160)}`);
 check("scan completed", r.body.scan?.status === "complete");
 check("overall score computed", typeof r.body.scan?.overallScore === "number", `score=${r.body.scan?.overallScore}`);
 check("auditorName records submitting user", r.body.scan?.auditorName === cbeAdmin.user.name, `auditorName=${r.body.scan?.auditorName}`);
@@ -175,6 +246,21 @@ check("engine findings > 0", r.body.engine?.findingsCount > 0, `findings=${r.bod
 
 r = await recentAudit(cbeAdmin, "SCAN_COMPLETED", scan.name);
 check("SCAN_COMPLETED audit event recorded", r.length >= 1);
+
+// 7i. Explicit N/A survives: answeredAt stamped, answer stays "na"
+r = await jfetch(`/api/scans/${scan.id}`, authed(cbeAdmin));
+const naRow = r.body.scan.results.find((x) => x.rule.code === naCodes[0]);
+check("explicit na persisted with answeredAt", naRow?.answer === "na" && Boolean(naRow?.answeredAt), `answer=${naRow?.answer} answeredAt=${naRow?.answeredAt}`);
+r = await jfetch("/api/scans", authed(cbeAdmin));
+const completedRow = (r.body.scans ?? []).find((s) => s.id === scan.id);
+check("completed scan answeredCount === all rules", completedRow?.answeredCount === pdRules.length, `answeredCount=${completedRow?.answeredCount}/${pdRules.length}`);
+
+// 7j. Re-submission → 409
+r = await jfetch(`/api/scans/${scan.id}/submit`, {
+  method: "POST", ...authed(cbeAdmin),
+  body: JSON.stringify({ answers: fullAnswers }),
+});
+check("re-submit → 409", r.status === 409, `status=${r.status}`);
 
 // ── 8. Immutable after completion ───────────────────────────────────────────
 r = await jfetch(`/api/scans/${scan.id}/answers`, {

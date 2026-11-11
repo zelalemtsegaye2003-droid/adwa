@@ -10,7 +10,7 @@ Bilingual (English / አማርኛ) · Proclamation 1321/2024 · NCSP 2024 · Dig
 
 | Module | Details |
 |---|---|
-| **Authentication** | Password sign-in (scrypt, N=16384), JWT access cookies (HS256, 15 min) + rotating opaque refresh tokens with reuse detection & family revocation |
+| **Authentication** | Password sign-in (scrypt, N=16384), JWT access cookies (HS256, 15 min) + rotating opaque refresh tokens with reuse detection & family revocation; logged-in password change re-authenticates with the current password and revokes every session |
 | **Account recovery** | Self-service password reset (30-min single-use SHA-256-hashed tokens, enumeration-resistant) + email verification (24 h); sessions fully revoked on reset; pluggable mail transport (SMTP or console) |
 | **MFA (OTP)** | RFC 6238 TOTP (Google Authenticator / Authy / Aegis), QR enrollment, AES-256-GCM encrypted secrets, replay protection, 8 single-use backup codes |
 | **Sign in with Google** | OAuth 2.0 / OIDC authorization-code flow, state-CSRF cookie, ID token verified against Google's JWKS, domain-restricted auto-provisioning |
@@ -24,7 +24,10 @@ Bilingual (English / አማርኛ) · Proclamation 1321/2024 · NCSP 2024 · Dig
 | **Executive PDF** | Server-side bilingual (EN/አማርኛ) pdfkit reports with pillar charts, SLA table, per-page footers + payload hash |
 | **SOC / CERT-as-a-Service** | Phase 2 pilot: threat-intelligence hub with hybrid sharing (anonymised hub broadcasts + peer-to-peer for sensitive indicators, AAU framework), NIST SP 800-61 incident lifecycle (detect → triage → contain → eradicate → recover → close), alert prioritisation, predictive threat forecast, automated containment, Ethio-CERT synchronisation (national-feed ingest + anonymised upward reports with sha256-proof payloads), RQ3 detection→notification latency tracking (<15 min median target) |
 | **Awareness platform** | Phase 3 (Track B): Amharic-first cyber-safety curriculum (8 bilingual units, 32 quiz items) for the five-school Addis Ababa pilot, pseudonymised minor participants, parental-consent register, RQ2 treatment/control evaluation, public learner portal + safe-browsing tools |
+| **Scan integrity (WS-2)** | Submission requires 100% explicit answers (INCOMPLETE lists the missing codes — a partial submission can never inflate a score), every N/A needs a ≥5-char justification (decision D1), duplicates/unknown rules/invalid values rejected, all writes in one transaction; drafts autosave per-question with `answeredAt` tracking so an intentional N/A survives resume |
 | **Track C gate board** | Phases 4–5 governance (ACFS content filtering + CII protection): 8 blocking gate criteria with forward-only status lifecycle, evidence-backed satisfaction (SHA-256-sealed artefacts, refusals without one), append-only per-criterion timeline, funder-facing Gate Dossier PDF (EN/አማርኛ) — deployment stays locked until every blocking criterion is satisfied |
+| **CII monitoring register (P5)** | 4 named operators (EEP, Ethio Telecom, CBE, Ethiopian Airlines), MOU version lifecycle (DRAFTING→…→ACTIVE), INSA authorisation tracking, registered-system readiness ladder; monitoring is doubly gated per operator (in-force MOU + ACTIVE INSA licence) and advancing a system to MONITORING_AUTHORIZED on a shut gate is refused with 409; tenants get a read-only feed of their own operator |
+| **ACFS precondition register (P4)** | 13 preconditions across 4 domains (EMA partnership, EHRC due diligence, transparency framework, dedicated funding) with SATISFIED-requires-evidence rule, periodic board decisions (REMAINED_LOCKED/UNLOCKED), server-side unlock enforcement — register currently LOCKED |
 | **UI** | Dashboard, catalogue, organizations, 47-question scan wizard, findings, executive report, evidence vault, SOC (overview/incidents/threat intel), team & roles, audit log — EN/AM toggle, dark mode |
 | **Audit trail** | Every auth event (logins, MFA, lockouts, token reuse, user CRUD, Google logins) persisted with IP + user agent |
 
@@ -42,15 +45,18 @@ Tailwind CSS 4 + shadcn/ui · jose (JWT) · Node crypto (scrypt, AES-256-GCM, TO
 bun install
 
 # .env needs DATABASE_URL and AUTH_SECRET (64+ chars) — see .env.example
-bun prisma db push          # create schema
-bun prisma seed.ts          # 47 rules + pilot orgs + 2 demo scans
-bun scripts/seed-users.ts   # demo accounts (idempotent)
-bun scripts/seed-soc.cjs    # SOC demo data: Ethio-CERT feed + incidents (idempotent)
-bun scripts/seed-gates.ts   # Track C gate criteria (Phases 4–5, idempotent)
-bun scripts/seed-gate-evidence.ts  # fixture artefact + timeline backfill
-
-bun run dev                 # http://localhost:3000
+bunx prisma db push             # create schema
+bun run seed:demo               # catalogue + demo accounts + evidence + SOC +
+                                 #   awareness RCT + SLA + gates + Track C
+bun run dev                     # http://localhost:3000
 ```
+
+`seed:demo` chains: `db:seed` (77 rules + pilot orgs + demo scans) →
+`seed:users` → `seed:evidence` → `seed:evidence-links` → `seed:soc` →
+`seed:awareness` → `seed:sla` → `seed:gates` → `seed:trackc` →
+`seed:gate-evidence`. Every step is idempotent, and all of them refuse to run
+against `NODE_ENV=production` unless `SEED_ON_BOOT=1` (bootstrap) or
+`ALLOW_DEMO_SEED=1` (full demo) is set — decision D6, `docs/DECISIONS.md`.
 
 Optional: `cd mini-services/mock-google && bun run dev` starts the mock Google
 OAuth/OIDC provider on :3010 so the full Google sign-in flow can be exercised
@@ -69,41 +75,51 @@ without real credentials (enabled via `GOOGLE_*` overrides in `.env`).
 ## Tests (against the running dev server)
 
 ```bash
-bash scripts/run-api-tests.sh            # 7 API suites — 248 checks (SOC, SLA,
-                                        #   report, rules engine, scan lifecycle,
-                                        #   evidence security, Ethio-CERT binding)
-bash scripts/ci-run-auth-suites.sh       # auth + OWASP + compliance + Google
-                                        #   — 180 checks
-bash scripts/run-recovery-tests.sh       # password reset + email verification
-                                        #   — 26 checks
+bun run test:integration     # alias: bash scripts/run-api-tests.sh
+bash scripts/run-api-tests.sh       # 10 API suites — 465 checks (Ethio-CERT
+                                    #   binding, SOC, SLA, report, rules engine,
+                                    #   scan lifecycle incl. WS-2 submit hardening,
+                                    #   evidence security, Track C gate board,
+                                    #   CII/ACFS, awareness, awareness tools)
+bash scripts/ci-run-auth-suites.sh  # auth + OWASP + compliance + Google
+                                    #   — 180 checks
+bash scripts/run-recovery-tests.sh  # password reset + email verification +
+                                    #   logged-in change — 38 checks
 ```
 
-**454 checks total, all green.** The same battery runs in CI
+**683 checks total, all green.** The same battery runs in CI
 (`.github/workflows/ci.yml`: lint → zero-error typecheck → production build →
-full test battery) on every push and pull request. Suites are
-order-independent and self-healing (429-aware retries, TOTP-window retries);
-`scripts/reset-locks.ts` clears account lockouts between runs.
+full test battery → Docker compose boot/health smoke) on every push and pull
+request. Suites are order-independent and self-healing (429-aware retries,
+TOTP-window retries); `scripts/reset-locks.ts` clears account lockouts between
+runs. Seed prerequisites per suite are documented in `docs/TESTING.md`.
 
 ## Project structure
 
 ```
 prisma/schema.prisma        Organization, Rule, Scan, ScanResult, User,
-                            RefreshToken, AuthEvent, CaptchaChallenge, AuthToken
-prisma/schema.postgres.prisma  PostgreSQL variant (used by the Docker build)
+                            RefreshToken, AuthEvent, CaptchaChallenge, AuthToken,
+                            + Track C: ExpansionGate, GateEvidence, GateEvent,
+                              CiiOperator/Mou/Authorization/System, AcfsGateItem/Decision
+prisma/schema.postgres.prisma  PostgreSQL variant (kept in sync — used by Docker)
 src/lib/rules-data.ts       the 47 obligations (bilingual, mapped to articles)
 src/lib/engine.ts           scoring / risk-ranking / remediation engine
+src/lib/env.ts              boot-time env validation (fail fast in production)
+src/lib/api-error.ts        canonical { error: { code, message, fieldErrors } }
 src/lib/auth/               jwt, totp, crypto, session, guard, rbac, captcha,
                             google, rate-limit, audit, passwords, mail, tokens
 src/app/api/                auth/* · rules · organizations · scans · findings ·
-                            evidence (+upload) · gates · incidents · threats ·
-                            awareness · learn · soc · health
-src/components/adwa/        dashboard, catalogue, scan wizard, findings, report
-src/components/auth/        login screen (with password reset), MFA setup, users, audit
+                            evidence (+upload) · gates · cii/* · acfs/* ·
+                            incidents · threats · awareness · learn · soc · health
+src/components/adwa/        dashboard, catalogue, scan wizard, findings, report,
+                            SOC, awareness, Track C (gate board + CII + ACFS)
+src/components/auth/        login screen (with password reset), MFA setup +
+                            password change, users, audit
 mini-services/              mock Google OIDC (:3010), mock Ethio-CERT (:3020)
-docs/                       AUTH, EVIDENCE, USER_GUIDE, PILOT_ONBOARDING,
-                            INCIDENT_RUNBOOK, OPS
+docs/                       DECISIONS, AUTH, EVIDENCE, DEPLOY, TESTING, OPS,
+                            USER_GUIDE, PILOT_ONBOARDING, INCIDENT_RUNBOOK
 Dockerfile · docker-compose.yml · deploy/Caddyfile   one-command deploy
-.github/workflows/ci.yml    lint + typecheck + build + full test battery
+.github/workflows/ci.yml    lint + typecheck + build + test battery + compose smoke
 scripts/backup-db.sh · restore-db.sh · restore-drill.sh · sqlite_tool.py
 ```
 
@@ -125,9 +141,16 @@ Migrations and idempotent seeds run on boot. Full operations guide
 - Replace the mock Google provider with real `GOOGLE_CLIENT_ID/SECRET` and
   remove the `GOOGLE_*_URL` overrides.
 - Point `DATABASE_URL` at PostgreSQL and switch the Prisma provider.
-- Configure `RECAPTCHA_*` or `HCAPTCHA_*` to replace the built-in captcha.
+- Configure `RECAPTCHA_*` or `HCAPTCHA_*` to replace the built-in captcha
+  (dev-only by decision D4 — a determined bot can parse the SVG glyphs).
 - The in-memory rate limiter is single-instance; use a shared store when
   scaling horizontally.
+- Evidence artefacts live under `DATA_DIR` (compose mounts a named volume at
+  `/data`) — include them in backups alongside the database.
+- Seeding is guarded in production (decision D6): bootstrap seeds need
+  `SEED_ON_BOOT=1`, demo seeds need `ALLOW_DEMO_SEED=1`.
+- The server refuses to boot in production with an invalid `DATABASE_URL` or
+  a missing/short `AUTH_SECRET` (`src/lib/env.ts` — fail fast, clear log).
 
 ## Deploying (`bun run build` → standalone)
 

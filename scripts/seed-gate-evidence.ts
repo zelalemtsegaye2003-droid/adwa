@@ -19,8 +19,12 @@ import { PrismaClient } from "@prisma/client";
 import { createHash, randomBytes } from "crypto";
 import fs from "fs";
 import path from "path";
+import { assertSeedAllowed } from "./seed-guard";
 
 const db = new PrismaClient();
+
+// D6 guard — refuses to seed a production DB without explicit opt-in
+assertSeedAllowed("demo");
 const STORAGE_ROOT = path.join(process.cwd(), ".data", "gate-evidence");
 
 const FIXTURE_BODY = `ADWA CYBER — TRACK C GATE EVIDENCE (SEED FIXTURE)

@@ -209,6 +209,64 @@ async function main() {
     ok("verification token single-use → 400", vAgain.status === 400);
   }
 
+  section("logged-in password change (WS-7)");
+  const CHANGE_IP = "10.77.60.1";
+  // newJar = current session of the viewer (password = NEW_PASSWORD at this point)
+  const pcHeaders = { "Content-Type": "application/json", "X-Forwarded-For": CHANGE_IP, Cookie: cookieHeader(newJar) };
+
+  const pcNoAuth = await fetch(`${BASE}/api/auth/password`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", "X-Forwarded-For": "10.77.60.2" },
+    body: JSON.stringify({ currentPassword: NEW_PASSWORD, newPassword: "Whatever#2026z" }),
+  });
+  ok("unauthenticated change → 401", pcNoAuth.status === 401);
+
+  const pcWrong = await fetch(`${BASE}/api/auth/password`, {
+    method: "POST", headers: pcHeaders,
+    body: JSON.stringify({ currentPassword: "Definitely#Wrong1", newPassword: "Whatever#2026z" }),
+  });
+  ok("wrong current password → 400 WRONG_PASSWORD", pcWrong.status === 400 && (await pcWrong.json()).error.code === "WRONG_PASSWORD");
+
+  const pcWeak = await fetch(`${BASE}/api/auth/password`, {
+    method: "POST", headers: pcHeaders,
+    body: JSON.stringify({ currentPassword: NEW_PASSWORD, newPassword: "password1234" }),
+  });
+  ok("weak/common new password → 400 WEAK_PASSWORD", pcWeak.status === 400 && (await pcWeak.json()).error.code === "WEAK_PASSWORD");
+
+  const pcSame = await fetch(`${BASE}/api/auth/password`, {
+    method: "POST", headers: pcHeaders,
+    body: JSON.stringify({ currentPassword: NEW_PASSWORD, newPassword: NEW_PASSWORD }),
+  });
+  ok("same password → 400 SAME_PASSWORD", pcSame.status === 400 && (await pcSame.json()).error.code === "SAME_PASSWORD");
+
+  const CHANGED_PASSWORD = "Adwa#Changed2026y";
+  const pcOk = await fetch(`${BASE}/api/auth/password`, {
+    method: "POST", headers: pcHeaders,
+    body: JSON.stringify({ currentPassword: NEW_PASSWORD, newPassword: CHANGED_PASSWORD }),
+  });
+  ok("valid change → 200 ok:true", pcOk.status === 200 && (await pcOk.json()).ok === true);
+
+  const pcStale = await fetch(`${BASE}/api/auth/me`, { headers: { Cookie: cookieHeader(newJar) } });
+  ok("all sessions revoked on change → /me 401", pcStale.status === 401);
+
+  const pcOldLogin = await login({ email: VIEWER.email, password: NEW_PASSWORD }, "10.77.60.3");
+  ok("pre-change password no longer works → 401", pcOldLogin.status === 401);
+
+  const pcNewLogin = await login({ email: VIEWER.email, password: CHANGED_PASSWORD }, "10.77.60.4");
+  const pcNewJar = pcNewLogin.status === 200 ? parseCookies(pcNewLogin) : {};
+  ok("changed password signs in → 200", pcNewLogin.status === 200);
+
+  // Restore the demo password through the same endpoint (also proves the
+  // per-user rate bucket allows the documented 5 changes / 15 min).
+  const pcRestore = await fetch(`${BASE}/api/auth/password`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", "X-Forwarded-For": "10.77.60.5", Cookie: cookieHeader(pcNewJar) },
+    body: JSON.stringify({ currentPassword: CHANGED_PASSWORD, newPassword: VIEWER.password }),
+  });
+  ok("demo password restored via change endpoint", pcRestore.status === 200);
+  const pcCheck = await login(VIEWER, "10.77.60.6");
+  ok("restored demo password signs in → 200", pcCheck.status === 200);
+
   section("audit trail");
   const superLogin = await login(SUPER, "10.77.54.1");
   const superJar = parseCookies(superLogin);
@@ -219,6 +277,8 @@ async function main() {
   ok("PASSWORD_RESET_COMPLETED audited", types.has("PASSWORD_RESET_COMPLETED"));
   ok("EMAIL_VERIFICATION_SENT audited", types.has("EMAIL_VERIFICATION_SENT"));
   ok("EMAIL_VERIFIED audited", types.has("EMAIL_VERIFIED"));
+  ok("PASSWORD_CHANGED audited", types.has("PASSWORD_CHANGED"));
+  ok("PASSWORD_CHANGE_FAILED audited", types.has("PASSWORD_CHANGE_FAILED"));
 
   section("rate limiting");
   const floodIp = "10.77.55.9";

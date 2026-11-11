@@ -57,7 +57,7 @@ interface ScanDetailForResume {
   name: string;
   organizationId: string;
   frameworkId: string | null;
-  results: { answer: string; evidenceNote: string | null; rule: { code: string } }[];
+  results: { answer: string; answeredAt: string | null; evidenceNote: string | null; rule: { code: string } }[];
 }
 
 export function ScanWizard({
@@ -93,9 +93,13 @@ export function ScanWizard({
   const notesRef = useRef(notes);
   const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const scanIdRef = useRef<string | null>(null);
-  answersRef.current = answers;
-  notesRef.current = notes;
-  scanIdRef.current = scanId;
+  // Mirror the latest state into refs (read by the debounced autosave timer).
+  // Effects — never render-time assignment — keep this lint-clean under
+  // react-hooks/refs, and the 1.5s debounce makes the post-render update
+  // timing irrelevant.
+  useEffect(() => { answersRef.current = answers; }, [answers]);
+  useEffect(() => { notesRef.current = notes; }, [notes]);
+  useEffect(() => { scanIdRef.current = scanId; }, [scanId]);
 
   useEffect(() => {
     api<{ organizations: OrgDTO[] }>("/api/organizations").then((d) => {
@@ -133,10 +137,13 @@ export function ScanWizard({
         setScanId(scan.id);
         setScanName(scan.name);
         setOrgId(scan.organizationId);
+        // Restore EXPLICIT answers only — keyed on answeredAt so an
+        // intentional N/A survives a resume (the pre-set "na" placeholder
+        // for untouched rules does not).
         const restoredAnswers: Record<string, Answer> = {};
         const restoredNotes: Record<string, string> = {};
         for (const r of scan.results) {
-          if (r.answer && r.answer !== "na") restoredAnswers[r.rule.code] = r.answer as Answer;
+          if (r.answeredAt && r.answer) restoredAnswers[r.rule.code] = r.answer as Answer;
           if (r.evidenceNote) restoredNotes[r.rule.code] = r.evidenceNote;
         }
         setAnswers(restoredAnswers);
@@ -155,13 +162,14 @@ export function ScanWizard({
       })
       .catch(() => { if (!cancelled) toast.error(t("noData")); });
     return () => { cancelled = true; };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [resumeScanId]);
 
   // ── Autosave: flush dirty answers 1.5s after the last edit ────────────────
   const flushDraft = async () => {
     const id = scanIdRef.current;
-    const dirty = [...dirtyRef.current];
+    // Only rules with an EXPLICIT answer are sent — an unanswered rule must
+    // never be persisted as "na" (that would fake completeness).
+    const dirty = [...dirtyRef.current].filter((code) => answersRef.current[code]);
     if (!id || dirty.length === 0) return;
     dirtyRef.current = new Set();
     setSaveState("saving");
@@ -171,7 +179,7 @@ export function ScanWizard({
         body: JSON.stringify({
           answers: dirty.map((code) => ({
             ruleCode: code,
-            answer: answersRef.current[code] ?? "na",
+            answer: answersRef.current[code]!,
             evidenceNote: notesRef.current[code] || undefined,
           })),
         }),
@@ -213,6 +221,22 @@ export function ScanWizard({
   const answeredCount = Object.values(answers).filter((a) => a).length;
   const progress = rules?.length ? Math.round((answeredCount / rules.length) * 100) : 0;
 
+  // ── Submit gating (D1 + D2): complete & justified, or no submit ───────────
+  const unansweredRules = rules ? rules.filter((r) => !answers[r.code]) : [];
+  const unjustifiedNa = rules
+    ? rules.filter((r) => answers[r.code] === "na" && (notes[r.code] ?? "").trim().length < 5)
+    : [];
+  const canSubmit = !!rules && !!scanId && unansweredRules.length === 0 && unjustifiedNa.length === 0;
+
+  /** Scroll the first problem obligation into view. */
+  const jumpToFirstProblem = () => {
+    const code = unansweredRules[0]?.code ?? unjustifiedNa[0]?.code;
+    if (!code) return;
+    document
+      .querySelector(`[data-rule-code="${code}"]`)
+      ?.scrollIntoView({ behavior: "smooth", block: "center" });
+  };
+
   const startScan = async () => {
     if (!orgId) { toast.error(t("step1")); return; }
     let scan: { id: string };
@@ -240,15 +264,27 @@ export function ScanWizard({
 
   const runEngine = async () => {
     if (!scanId || !rules) return;
+    // Defense in depth (the server enforces the same contract):
+    // every obligation answered + every N/A justified.
+    if (unansweredRules.length > 0 || unjustifiedNa.length > 0) {
+      toast.error(
+        unansweredRules.length > 0
+          ? `${t("answerAllToSubmit")} — ${unansweredRules.length} ${t("remaining")}`
+          : t("naNoteRequired")
+      );
+      jumpToFirstProblem();
+      return;
+    }
     setRunning(true);
     // Cancel any pending draft save — the submit payload is authoritative.
     if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
     dirtyRef.current = new Set();
+    // Explicit answers ONLY — never default an unanswered rule to "na".
     const payload = {
       answers: rules.map((r) => ({
         ruleCode: r.code,
-        answer: answers[r.code] ?? "na",
-        evidenceNote: notes[r.code] || undefined,
+        answer: answers[r.code]!,
+        evidenceNote: notes[r.code]?.trim() || undefined,
       })),
     };
     try {
@@ -417,6 +453,18 @@ export function ScanWizard({
             <Progress value={progress} className="flex-1 min-w-40 h-2" aria-label="progress" />
             <span className="text-sm text-muted-foreground tabular-nums whitespace-nowrap">
               {answeredCount}/{rules?.length ?? "…"} {t("answered")}
+              {rules && unansweredRules.length > 0 && (
+                <>
+                  {" · "}
+                  <button
+                    type="button"
+                    onClick={jumpToFirstProblem}
+                    className="font-medium text-amber-700 underline decoration-dotted underline-offset-2 hover:text-amber-800 dark:text-amber-400"
+                  >
+                    {unansweredRules.length} {t("remaining")}
+                  </button>
+                </>
+              )}
             </span>
             {scanId && (
               <span
@@ -457,8 +505,13 @@ export function ScanWizard({
                   <div className="mt-3 space-y-3">
                     {rs.map((r) => {
                       const cov = coverage?.get(r.code) ?? null;
+                      const naNeedsNote = answers[r.code] === "na" && (notes[r.code] ?? "").trim().length < 5;
                       return (
-                      <Card key={r.id} className={answers[r.code] ? "border-emerald-200 dark:border-emerald-900" : ""}>
+                      <Card
+                        key={r.id}
+                        data-rule-code={r.code}
+                        className={answers[r.code] ? "border-emerald-200 dark:border-emerald-900" : ""}
+                      >
                         <CardContent className="p-4">
                           <div className="flex flex-wrap items-start justify-between gap-3">
                             <div className="flex-1 min-w-[240px]">
@@ -537,13 +590,18 @@ export function ScanWizard({
                             ))}
                           </div>
                           <Textarea
-                            className="mt-2 text-sm"
+                            className={`mt-2 text-sm${naNeedsNote ? " border-amber-400 focus-visible:ring-amber-400" : ""}`}
                             rows={1}
-                            placeholder={t("evidenceNote")}
+                            placeholder={answers[r.code] === "na" ? t("evidenceNoteNa") : t("evidenceNote")}
                             value={notes[r.code] ?? ""}
                             onChange={(e) => setNote(r.code, e.target.value)}
             aria-label={`${t("evidenceNote")} ${r.code}`}
                           />
+                          {naNeedsNote && (
+                            <p className="mt-1 text-xs font-medium text-amber-700 dark:text-amber-400" role="alert">
+                              ⚠ {t("naNoteRequired")}
+                            </p>
+                          )}
                         </CardContent>
                       </Card>
                       );
@@ -568,9 +626,20 @@ export function ScanWizard({
                 </Button>
               )}
             </div>
-            <Button onClick={runEngine} disabled={running || answeredCount === 0} className="bg-emerald-700 hover:bg-emerald-800 text-white">
-              {running ? <><AlertTriangle className="h-4 w-4 animate-pulse" aria-hidden /> {t("running")}</> : <><Play className="h-4 w-4" aria-hidden /> {t("runEngine")}</>}
-            </Button>
+            <div className="flex flex-col items-end gap-1.5">
+              <Button onClick={runEngine} disabled={running || !canSubmit} className="bg-emerald-700 hover:bg-emerald-800 text-white">
+                {running ? <><AlertTriangle className="h-4 w-4 animate-pulse" aria-hidden /> {t("running")}</> : <><Play className="h-4 w-4" aria-hidden /> {t("runEngine")}</>}
+              </Button>
+              {rules && !canSubmit && (
+                <span className="text-xs text-muted-foreground tabular-nums" aria-live="polite">
+                  {unansweredRules.length > 0
+                    ? `${t("answerAllToSubmit")} — ${unansweredRules.length} ${t("remaining")}`
+                    : unjustifiedNa.length > 0
+                      ? `${t("naNoteRequired")} (${unjustifiedNa.length})`
+                      : ""}
+                </span>
+              )}
+            </div>
           </div>
         </div>
       )}

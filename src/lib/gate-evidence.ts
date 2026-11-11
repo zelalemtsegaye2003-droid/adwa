@@ -20,11 +20,11 @@
 import { createHash } from "crypto";
 import fs from "fs";
 import path from "path";
-import { checkFileType, makeStoredName } from "./evidence";
+import { checkFileType, makeStoredName, dataRoot } from "./evidence";
 
 export { formatBytes } from "./evidence-shared";
 
-const STORAGE_ROOT = path.join(process.cwd(), ".data", "gate-evidence");
+const STORAGE_ROOT = dataRoot("gate-evidence");
 
 /** Validate an uploaded artefact with the shared allow-list. */
 export function checkGateFileType(fileName: string, declaredMime: string, size: number, bufferHead: Buffer) {

@@ -10,8 +10,12 @@ import { PrismaClient } from "@prisma/client";
 // reuse the platform's crypto/TOTP implementations (relative import, bun runs TS natively)
 import { hashPassword, encryptSecret, sha256 } from "../src/lib/auth/crypto";
 import { generateBackupCodes } from "../src/lib/auth/totp";
+import { assertSeedAllowed } from "./seed-guard";
 
 const db = new PrismaClient();
+
+// D6 guard — refuses to seed a production DB without explicit opt-in
+assertSeedAllowed("bootstrap");
 
 const SUPER_PASSWORD = "Adwa#Admin2026!";
 const ORG_PASSWORD = "Adwa#Demo2026!";

@@ -20,7 +20,7 @@
  * Usage: node scripts/soc-test.mjs
  */
 const BASE = process.env.BASE_URL ?? "http://localhost:3000";
-const { PrismaClient } = await import("/home/z/my-project/node_modules/.prisma/client/index.js").catch(() => import("@prisma/client"));
+const { PrismaClient } = await import("@prisma/client").catch(() => import("/home/z/my-project/node_modules/.prisma/client/index.js"));
 const db = new PrismaClient();
 const crypto = await import("crypto");
 

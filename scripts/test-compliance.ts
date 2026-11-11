@@ -150,11 +150,13 @@ try {
   ok("scan starts in_progress with na answers",
     detailDto.scan?.status === "in_progress" && detailDto.scan.results.every((r: any) => r.answer === "na"));
 
-  // Answer plan: 25 yes / 12 partial / 8 no / 2 na (by sortOrder)
+  // Answer plan: 25 yes / 12 partial / 8 no / 2 na (by sortOrder).
+  // D1: an N/A is a legal claim — it carries a justification note.
   const answers = rules.map((r: any, i: number) => ({
     ruleCode: r.code,
     answer: i < 25 ? "yes" : i < 37 ? "partial" : i < 45 ? "no" : "na",
     ...(i === 30 ? { evidenceNote: "Policy drafted, board approval pending." } : {}),
+    ...(i >= 45 ? { evidenceNote: "No such processing at this organisation." } : {}),
   }));
   const submitRes = await fetch(`${BASE}/api/scans/${scanId}/submit`, {
     method: "POST", headers: authed(superS.jar), body: JSON.stringify({ answers }),

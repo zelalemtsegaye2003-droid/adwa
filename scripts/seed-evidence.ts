@@ -12,9 +12,14 @@ import { PrismaClient } from "@prisma/client";
 import { createHash, randomBytes } from "crypto";
 import fs from "fs";
 import path from "path";
+import { dataRoot } from "../src/lib/evidence";
+import { assertSeedAllowed } from "./seed-guard";
 
 const db = new PrismaClient();
-const STORAGE_ROOT = path.join(process.cwd(), ".data", "evidence");
+
+// D6 guard — refuses to seed a production DB without explicit opt-in
+assertSeedAllowed("demo");
+const STORAGE_ROOT = dataRoot("evidence");
 
 const sha256 = (b: Buffer) => createHash("sha256").update(b).digest("hex");
 const storedName = (ext: string) => `${randomBytes(16).toString("hex")}.${ext}`;

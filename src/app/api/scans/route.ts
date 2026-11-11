@@ -22,13 +22,15 @@ export async function GET(req: NextRequest) {
     include: {
       organization: { select: { id: true, name: true, nameAm: true, sector: true, tier: true } },
       framework: { select: { code: true, name: true, instrumentNo: true } },
-      results: { select: { answer: true } },
+      results: { select: { answeredAt: true } },
     },
   });
   return NextResponse.json({
     scans: scans.map(({ results, ...s }) => ({
       ...s,
-      answeredCount: results.filter((r) => r.answer !== "na").length,
+      // Answered = explicitly answered (answeredAt != null). An intentional
+      // N/A counts; the pre-set "na" placeholder of an untouched rule does not.
+      answeredCount: results.filter((r) => r.answeredAt !== null).length,
     })),
   });
 }
@@ -84,7 +86,9 @@ export async function POST(req: NextRequest) {
       status: "in_progress",
     },
   });
-  // Create empty result rows for every active rule of the framework
+  // Create empty result rows for every active rule of the framework.
+  // answer "na" is the PLACEHOLDER for an untouched obligation — completeness
+  // is tracked by answeredAt (stamped on explicit answers), never by `answer`.
   await db.scanResult.createMany({
     data: rules.map((r) => ({ scanId: scan.id, ruleId: r.id, answer: "na", score: 0 })),
   });

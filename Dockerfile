@@ -20,9 +20,10 @@ COPY prisma ./prisma
 RUN cp prisma/schema.postgres.prisma prisma/schema.prisma
 
 COPY . .
-# Dummy sqlite URL satisfies prisma generate during the Next build;
-# the runtime uses the real DATABASE_URL env var.
-ENV DATABASE_URL="file:/tmp/build.db"
+# Syntactically valid PostgreSQL URL for `prisma generate` during the Next
+# build (never a file: URL — the postgres schema variant is in use here).
+# The runtime container receives the real DATABASE_URL from compose.
+ENV DATABASE_URL="postgresql://build:build@localhost:5432/build?schema=public"
 ENV NEXT_TELEMETRY_DISABLED=1
 RUN bun prisma generate \
  && bun run build \

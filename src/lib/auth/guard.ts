@@ -101,11 +101,15 @@ export async function requireAuthAny(
   return { error: null, user };
 }
 
-/** Validate that a JSON body parses and matches a zod-like schema function. */
+/**
+ * Validate that a JSON body parses and matches a zod-like schema function.
+ * The optional-counterpart union lets callers narrow with
+ * `if (parsed.error) return parsed.error;` and then use `parsed.data`.
+ */
 export async function parseBody<T>(
   req: NextRequest,
   schema: (data: unknown) => T | null
-): Promise<{ data: T } | { error: NextResponse }> {
+): Promise<{ error: NextResponse; data?: undefined } | { error?: undefined; data: T }> {
   let raw: unknown;
   try {
     raw = await req.json();

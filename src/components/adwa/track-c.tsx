@@ -34,6 +34,8 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { useI18n } from "@/lib/i18n";
+import { CiiMonitorView } from "./cii-monitor";
+import { AcfsGateView } from "./acfs-gate";
 import { api, ApiCallError } from "@/lib/auth-client";
 
 // ── DTOs ─────────────────────────────────────────────────────────────────────
@@ -143,10 +145,11 @@ function StatusChip({ status }: { status: CriterionDTO["status"] }) {
   );
 }
 
-export function TrackCView() {
+export function TrackCView({ canManageCii = false }: { canManageCii?: boolean }) {
   const { t, lang } = useI18n();
   const [data, setData] = useState<GatesResponse | null>(null);
   const [loading, setLoading] = useState(true);
+  const [trackPane, setTrackPane] = useState<"board" | "cii" | "acfs">("board");
 
   // review dialog state
   const [reviewing, setReviewing] = useState<CriterionDTO | null>(null);
@@ -241,7 +244,7 @@ export function TrackCView() {
     }
   };
 
-  if (loading && !data) {
+  if (loading && !data && trackPane === "board") {
     return (
       <div className="space-y-4">
         <Skeleton className="h-10 w-1/3" />
@@ -250,9 +253,9 @@ export function TrackCView() {
       </div>
     );
   }
-  if (!data) return null;
+  if (!data && trackPane === "board") return null;
 
-  const locked = !data.trackC.deploymentAllowed;
+  const locked = !data?.trackC.deploymentAllowed;
 
   return (
     <div className="space-y-6">
@@ -264,16 +267,40 @@ export function TrackCView() {
           </h1>
           <p className="max-w-3xl text-sm text-muted-foreground">{t("gateSub")}</p>
         </div>
-        <a
-          href={`/api/gates/dossier?lang=${lang}`}
-          className="inline-flex h-9 items-center gap-1.5 rounded-md border border-input bg-background px-3 text-sm font-medium shadow-sm transition-colors hover:bg-accent"
-          title={t("gateDossierHint")}
-        >
-          <FileDown className="h-4 w-4 text-emerald-700" />
-          {t("gateDossier")}
-        </a>
+        {trackPane === "board" && (
+          <a
+            href={`/api/gates/dossier?lang=${lang}`}
+            className="inline-flex h-9 items-center gap-1.5 rounded-md border border-input bg-background px-3 text-sm font-medium shadow-sm transition-colors hover:bg-accent"
+            title={t("gateDossierHint")}
+          >
+            <FileDown className="h-4 w-4 text-emerald-700" />
+            {t("gateDossier")}
+          </a>
+        )}
       </div>
 
+      {/* Pane switcher: gate board (§11.1) · CII readiness (P5) · ACFS register (P4) */}
+      <div role="tablist" aria-label={t("gateTitle")} className="flex w-full max-w-xl rounded-lg border bg-muted p-1 text-sm">
+        {(["board", "cii", "acfs"] as const).map((pane) => (
+          <button
+            key={pane}
+            role="tab"
+            aria-selected={trackPane === pane}
+            onClick={() => setTrackPane(pane)}
+            className={`flex-1 rounded-md px-3 py-1.5 font-medium transition-colors ${
+              trackPane === pane ? "bg-background text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            {pane === "board" ? t("gateTabBoard") : pane === "cii" ? t("gateTabCii") : t("gateTabAcfs")}
+          </button>
+        ))}
+      </div>
+
+      {trackPane === "cii" && <CiiMonitorView canManage={canManageCii} />}
+      {trackPane === "acfs" && <AcfsGateView />}
+
+      {trackPane === "board" && (
+        <>
       {/* Posture banner */}
       <div className={`flex flex-col gap-1 rounded-xl border p-4 sm:flex-row sm:items-center sm:gap-4 ${locked ? "border-amber-200 bg-amber-50" : "border-emerald-200 bg-emerald-50"}`}>
         {locked ? <Lock className="h-8 w-8 shrink-0 text-amber-600" /> : <LockOpen className="h-8 w-8 shrink-0 text-emerald-600" />}
@@ -281,11 +308,11 @@ export function TrackCView() {
           <p className={`text-sm font-semibold ${locked ? "text-amber-800" : "text-emerald-800"}`}>
             {locked ? t("gateLocked") : t("gateOpen")}
           </p>
-          <p className="text-xs text-muted-foreground">{data.trackC.policy}</p>
+          <p className="text-xs text-muted-foreground">{data?.trackC.policy}</p>
         </div>
       </div>
 
-      {data.phases.map((p) => (
+      {data?.phases.map((p) => (
         <Card key={p.phase}>
           <CardHeader>
             <div className="flex flex-wrap items-center justify-between gap-3">
@@ -360,6 +387,8 @@ export function TrackCView() {
           </CardContent>
         </Card>
       ))}
+        </>
+      )}
 
       {/* ── Review dialog: status · evidence · timeline ─────────────────────── */}
       <Dialog open={!!reviewing} onOpenChange={(o) => !o && setReviewing(null)}>
