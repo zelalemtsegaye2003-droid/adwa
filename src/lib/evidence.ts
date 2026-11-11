@@ -100,7 +100,16 @@ export function makeStoredName(originalName: string): string {
   return randomBytes(16).toString("hex") + (extMatch ? "." + extMatch.ext : "");
 }
 
-const STORAGE_ROOT = path.join(process.cwd(), ".data", "evidence");
+// Storage root: DATA_DIR (docker compose volume) when set, else ./.data
+// relative to the working directory. Evidence must survive container
+// recreation — compose mounts a named volume at /data and sets DATA_DIR=/data.
+export function dataRoot(subdir: string): string {
+  return process.env.DATA_DIR
+    ? path.join(path.resolve(process.env.DATA_DIR), subdir)
+    : path.join(process.cwd(), ".data", subdir);
+}
+
+const STORAGE_ROOT = dataRoot("evidence");
 
 export function orgStorageDir(orgId: string): string {
   return path.join(STORAGE_ROOT, orgId);

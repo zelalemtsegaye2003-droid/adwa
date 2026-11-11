@@ -145,6 +145,14 @@ export function MfaSetupDialog({ open, onClose, onMfaChanged, mfaEnabled }: Prop
                 resetAndClose();
               }}
             />
+            <Separator className="my-4" />
+            <div className="space-y-3">
+              <p className="flex items-center gap-2 text-sm font-medium">
+                <KeyRound className="h-4 w-4 text-emerald-700 dark:text-emerald-400" aria-hidden />
+                {t("changePassword")}
+              </p>
+              <PasswordChangePanel />
+            </div>
           </>
         )}
 
@@ -181,6 +189,14 @@ export function MfaSetupDialog({ open, onClose, onMfaChanged, mfaEnabled }: Prop
                   {t("mfaEnable")}
                 </Button>
                 <Button variant="ghost" onClick={resetAndClose}>{t("cancel")}</Button>
+              </div>
+              <Separator className="my-4" />
+              <div className="space-y-3">
+                <p className="flex items-center gap-2 text-sm font-medium">
+                  <KeyRound className="h-4 w-4 text-emerald-700 dark:text-emerald-400" aria-hidden />
+                  {t("changePassword")}
+                </p>
+                <PasswordChangePanel />
               </div>
             </div>
           </>
@@ -262,6 +278,86 @@ export function MfaSetupDialog({ open, onClose, onMfaChanged, mfaEnabled }: Prop
         )}
       </DialogContent>
     </Dialog>
+  );
+}
+
+/** Self-service password change (WS-7): current + new password, then all
+ *  sessions are revoked server-side and the user signs in again. */
+export function PasswordChangePanel() {
+  const { t } = useI18n();
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const submit = async () => {
+    setBusy(true);
+    setError(null);
+    try {
+      await api("/api/auth/password", {
+        method: "POST",
+        body: JSON.stringify({ currentPassword, newPassword }),
+      });
+      setCurrentPassword("");
+      setNewPassword("");
+      setConfirmPassword("");
+      alert(t("passwordChangedRelogin"));
+      window.location.href = "/"; // hard reload → 401 → login screen
+    } catch (err) {
+      setError(err instanceof ApiCallError ? err.message : "Network error.");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <div className="space-y-3">
+      {error && (
+        <div role="alert" className="flex items-start gap-2 rounded-lg border border-red-300 bg-red-50 p-3 text-sm text-red-800 dark:border-red-900 dark:bg-red-950/50 dark:text-red-300">
+          <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" aria-hidden />
+          <span>{error}</span>
+        </div>
+      )}
+      <div className="space-y-2">
+        <Label htmlFor="pw-cur">{t("currentPassword")}</Label>
+        <div className="relative">
+          <Lock className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" aria-hidden />
+          <Input
+            id="pw-cur" type="password" className="pl-9" autoComplete="current-password"
+            value={currentPassword} onChange={(e) => setCurrentPassword(e.target.value)} disabled={busy}
+          />
+        </div>
+      </div>
+      <div className="space-y-2">
+        <Label htmlFor="pw-new">{t("newPassword")}</Label>
+        <div className="relative">
+          <Lock className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" aria-hidden />
+          <Input
+            id="pw-new" type="password" className="pl-9" autoComplete="new-password"
+            value={newPassword} onChange={(e) => setNewPassword(e.target.value)} disabled={busy}
+          />
+        </div>
+      </div>
+      <div className="space-y-2">
+        <Label htmlFor="pw-confirm">{t("confirmPassword")}</Label>
+        <div className="relative">
+          <Lock className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" aria-hidden />
+          <Input
+            id="pw-confirm" type="password" className="pl-9" autoComplete="new-password"
+            value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} disabled={busy}
+          />
+        </div>
+      </div>
+      <Button
+        variant="outline" className="w-full" onClick={submit}
+        disabled={busy || !newPassword || newPassword !== confirmPassword}
+      >
+        {busy ? <Loader2 className="mr-2 h-4 w-4 animate-spin" aria-hidden /> : <KeyRound className="mr-2 h-4 w-4" aria-hidden />}
+        {t("changePassword")}
+      </Button>
+      <p className="text-xs text-muted-foreground">{t("passwordChangeHint")}</p>
+    </div>
   );
 }
 

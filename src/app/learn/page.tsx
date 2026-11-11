@@ -88,7 +88,6 @@ function LearnApp() {
     try {
       if (!localStorage.getItem("adwa-lang")) setLang("am");
     } catch {}
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const identify = useCallback(async (jc: string, lc: string, restoring = false) => {
@@ -130,7 +129,6 @@ function LearnApp() {
         void identify(s.joinCode, s.learnerCode, true);
       }
     } catch {}
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const doJoin = async () => {

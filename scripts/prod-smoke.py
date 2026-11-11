@@ -61,6 +61,26 @@ criteria_n = sum(len(p["criteria"]) for p in gates["phases"])
 print(f"authed /api/gates ok -> {criteria_n} gate criteria across {[p['phase'] for p in gates['phases']]}")
 assert criteria_n == 8
 
+# 5b. Track C: CII readiness register (P5) + ACFS precondition register (P4)
+cii = json.loads(get("/api/cii/overview").read())
+ops = cii.get("operators", [])
+print(f"authed /api/cii/overview ok -> {ops.__len__()} operators, "
+      f"gateOpen={cii.get('summary', {}).get('gatesOpen')}, systems={cii.get('summary', {}).get('systemsTotal')}")
+assert cii.get("scope") == "platform" and len(ops) == 4
+
+acfs = json.loads(get("/api/acfs/overview").read())
+items_n = sum(len(d.get("items", d.get("preconditions", []))) for d in acfs.get("domains", []))
+print(f"authed /api/acfs/overview ok -> verdict={acfs.get('gate', {}).get('verdict')}, "
+      f"{len(acfs.get('domains', []))} domains, {items_n} preconditions, "
+      f"{len(acfs.get('decisions', []))} decisions")
+assert (acfs.get("gate", {}) or {}).get("verdict") in ("LOCKED", "OPEN")
+assert len(acfs.get("domains", [])) == 4
+
+# 5c. WS-2: an unauthenticated submit probe must 401 (never 500)
+probe = post("/api/scans/nonexistent/submit", {"answers": []})
+print(f"unauthenticated submit probe -> {probe.status}")
+assert probe.status == 401
+
 # 6. /api/auth/me + refresh
 me = json.loads(get("/api/auth/me").read())
 print(f"/api/auth/me ok -> {me.get('user',{}).get('email')}")

@@ -204,7 +204,7 @@ try {
   check("per-criterion timeline entries written (≥2 per touched criterion)", gateEvents >= 12, `n=${gateEvents}`);
 
   // ── 9. Re-seed preserves governance state ──────────────────────────────────
-  execSync("npx tsx scripts/seed-gates.ts", { cwd: "/adwa", stdio: "pipe" });
+  execSync("bun scripts/seed-gates.ts", { cwd: process.cwd(), stdio: "pipe" });
   r = await jfetch("/api/gates", { headers: H(superAdmin) });
   const after = r.body.phases.find((p) => p.phase === "P4_ACFS");
   check("re-seed does NOT reset satisfied criteria", after.criteria.every((c) => c.status === "SATISFIED"));

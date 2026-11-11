@@ -9,6 +9,8 @@ const isDev = process.env.NODE_ENV !== "production";
  *  - img: data: URIs carry the built-in captcha SVG; blob: for avatars.
  *  - frame-ancestors: deny arbitrary framers (clickjacking) but allow the
  *    platform's own preview host (the sandbox renders the app in a frame).
+ *    NOTE: remove `https://*.preview.invalid` for non-sandbox deployments — it is
+ *    preview-environment specific (decision D4 / WS-8).
  */
 const csp = [
   "default-src 'self'",
@@ -32,7 +34,9 @@ const nextConfig: NextConfig = {
   typescript: {
     ignoreBuildErrors: true,
   },
-  reactStrictMode: false,
+  // StrictMode double-invokes effects in dev — surfaces accidental
+  // side-effect duplication (e.g. double autosave POSTs) before production.
+  reactStrictMode: true,
   async headers() {
     return [
       {

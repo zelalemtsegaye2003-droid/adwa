@@ -1,17 +1,21 @@
 /**
  * Adwa Cyber — professional CAPTCHA service.
  *
- * Primary provider: self-hosted SVG CAPTCHA (works fully offline):
- *  - 5-character unambiguous alphanumeric code (0/O/1/I/L excluded)
+ * Primary provider: self-hosted SVG CAPTCHA (works fully offline — DEV/PILOT
+ * ONLY; a determined bot can parse the glyph <text> nodes, see decision D4):
+ *  - 5-character unambiguous alphanumeric code (0/O/1/I/L excluded), drawn
+ *    from crypto-secure randomness
  *  - per-character rotation, baseline jitter, wave distortion, noise paths
  *  - one-time challenges with 5-minute expiry, case-insensitive answer
  *
- * Optional providers (enabled via env, no code change needed):
- *  - hCaptcha   (HCAPTCHA_SECRET)
- *  - reCAPTCHA  (RECAPTCHA_SECRET)  — client token verified server-side
+ * Production provider (decision D4 — configure one of these when the pilot
+ * goes public; no code change needed, verifyCaptcha auto-detects):
+ *  - hCaptcha   (HCAPTCHA_SITE_KEY + HCAPTCHA_SECRET)
+ *  - reCAPTCHA  (RECAPTCHA_SITE_KEY + RECAPTCHA_SECRET)
  */
 import { db } from "@/lib/db";
 import { sha256 } from "./crypto";
+import { randomInt } from "crypto";
 
 const CAPTCHA_TTL_MS = 5 * 60 * 1000;
 const SAFE_CHARS = "ABCDEFGHJKMNPQRSTUVWXYZ23456789"; // no 0/O/1/I/L
@@ -22,12 +26,14 @@ export interface CaptchaChallengeDto {
   expiresAt: string;
 }
 
+// Cryptographically secure randomness ONLY — Math.random is seedable and
+// would make challenge codes predictable (WS-8 hardening).
 function randInt(min: number, max: number): number {
-  return Math.floor(Math.random() * (max - min + 1)) + min;
+  return randomInt(min, max + 1);
 }
 
 function pick<T>(arr: T[]): T {
-  return arr[Math.floor(Math.random() * arr.length)];
+  return arr[randomInt(0, arr.length - 1)];
 }
 
 function randomColor(min = 40, max = 160): string {
@@ -70,7 +76,8 @@ function renderSvg(code: string): string {
   const dots = Array.from({ length: 26 })
     .map(
       () =>
-        `<circle cx="${randInt(2, width - 2)}" cy="${randInt(2, height - 2)}" r="${randInt(1, 2.4)}" fill="${randomColor(20, 80)}" opacity="0.5"/>`
+        // randomInt needs integer bounds — fractional radius via /10.
+        `<circle cx="${randInt(2, width - 2)}" cy="${randInt(2, height - 2)}" r="${randInt(10, 24) / 10}" fill="${randomColor(20, 80)}" opacity="0.5"/>`
     )
     .join("");
 
@@ -89,7 +96,7 @@ function randomCode(length = 5): string {
 
 /** Clean up expired challenges (cheap, probabilistic). */
 async function cleanup(): Promise<void> {
-  if (Math.random() < 0.15) {
+  if (randomInt(0, 6) === 0) {
     await db.captchaChallenge.deleteMany({ where: { expiresAt: { lt: new Date() } } });
   }
 }

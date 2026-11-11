@@ -13,8 +13,12 @@ import { PrismaClient } from "@prisma/client";
 import { RULES } from "../src/lib/rules-data";
 import { NBE_RULES } from "../src/lib/nbe-rules-data";
 import { evaluate, pillarConfFromJson, type PillarConf, type Answer } from "../src/lib/engine";
+import { assertSeedAllowed } from "../scripts/seed-guard";
 
 const db = new PrismaClient();
+
+// D6 guard — refuses to seed a production DB without explicit opt-in
+assertSeedAllowed("bootstrap");
 
 function weightFor(severity: string): number {
   return severity === "critical" ? 3 : severity === "high" ? 2 : 1;
@@ -265,6 +269,8 @@ async function main() {
           scanId: scan.id,
           ruleId: r.id,
           answer: res.answer,
+          // Seeded scans are complete evaluations — every answer is explicit.
+          answeredAt: scan.completedAt ?? new Date(),
           evidenceNote:
             res.answer === "yes"
               ? "Evidence pack verified by engine (configuration export + policy document)."

@@ -78,6 +78,10 @@ POST /api/auth/mfa/verify      step 2: TOTP / backup code → session
 POST /api/auth/mfa/setup       generate TOTP secret + QR (auth required)
 POST /api/auth/mfa/enable      confirm code → enable, issue backup codes
 POST /api/auth/mfa/disable     password + code → disable, revoke all sessions
+POST /api/auth/password        logged-in change: currentPassword + newPassword
+                                → re-auth + policy + SAME_PASSWORD checks, then
+                                hash update + sessionsRevokedAt + refresh wipe
+                                (Google-only accounts may SET an initial password)
 POST /api/auth/refresh         rotate refresh token (reuse detection)
 POST /api/auth/logout          revoke session
 GET  /api/auth/me              identity + tenant + permissions
@@ -88,6 +92,10 @@ GET  /api/auth/audit           auth event log (RBAC-scoped)
 GET  /api/auth/google          start OAuth flow
 GET  /api/auth/google/callback finish OAuth flow
 GET  /api/auth/config          public capabilities (providers, captcha, policy)
+POST /api/auth/password-reset/request   enumeration-safe reset link (30-min single-use token)
+POST /api/auth/password-reset/confirm   redeem token → new password + revoke sessions
+POST /api/auth/verify-email/request      send verification token (24 h)
+POST /api/auth/verify-email/confirm      redeem token → emailVerifiedAt
 ```
 
 ## Tests
@@ -99,6 +107,10 @@ bun scripts/test-auth.ts        # 54 checks — captcha, login, MFA, RBAC matrix
 bun scripts/test-google.ts      # 15 checks — full OAuth dance via the mock provider
 bun scripts/test-compliance.ts  # 44 checks — 47-rule catalogue integrity, scan
                                 # lifecycle, engine maths, findings, tenant isolation
+bun scripts/test-password-reset.ts  # 38 checks — reset lifecycle, enumeration
+                                # resistance, single-use tokens, session revocation,
+                                # email verification, logged-in change (WS-7),
+                                # rate limiting, audit trail
 ```
 
 All four run against the dev server. They are **order-independent and

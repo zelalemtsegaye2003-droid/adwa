@@ -68,7 +68,14 @@ export type Permission =
   // Table 2 + §14). Gate-criteria records are platform-level governance:
   // SUPER_ADMIN reads/updates; no commercial tenant access by design.
   | "governance:view"
-  | "governance:manage";
+  | "governance:manage"
+  // Track C Phase 4 (ACFS): the content-filtering precondition register is
+  // platform governance — SUPER_ADMIN only (tenants get 403 by design).
+  | "acfs:manage"
+  // Track C Phase 5 (CII): platform staff manage the readiness register;
+  // tenant roles may view their OWN operator's readiness, read-only.
+  | "cii:manage"
+  | "cii:view-own";
 
 const MATRIX: Record<AppRole, Permission[]> = {
   SUPER_ADMIN: [
@@ -93,6 +100,8 @@ const MATRIX: Record<AppRole, Permission[]> = {
     "awareness:manage",
     "governance:view",
     "governance:manage",
+    "acfs:manage",
+    "cii:manage",
   ],
   ORG_ADMIN: [
     "org:view-own",
@@ -113,6 +122,7 @@ const MATRIX: Record<AppRole, Permission[]> = {
     "threats:view",
     "threats:contribute",
     "threats:sync",
+    "cii:view-own",
   ],
   COMPLIANCE_OFFICER: [
     "org:view-own",
@@ -128,6 +138,7 @@ const MATRIX: Record<AppRole, Permission[]> = {
     "threats:view",
     "threats:contribute",
     "threats:sync",
+    "cii:view-own",
   ],
   AUDITOR: [
     "org:view-own",

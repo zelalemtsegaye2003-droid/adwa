@@ -41,9 +41,17 @@ evidence library that backs compliance answers with verifiable artefacts
 | `/api/evidence/[id]` | DELETE | Soft delete (manage permission; file retained for forensics) |
 | `/api/evidence/[id]/download` | GET | Streams the file. Integrity gate + download counter + audit. `?inline=1` for preview |
 
-Error codes: `FILE_REJECTED` (type/size/magic-byte), `VALIDATION`, `ORG_REQUIRED`,
-`CROSS_TENANT`, `CHAIN_ACTIVE` (restore blocked — newer version active),
-`INTEGRITY_FAILED` (checksum mismatch — download blocked), `FILE_MISSING`.
+Error codes: `FILE_REJECTED` (type/size/magic-byte), `VALIDATION`,
+`BAD_REQUEST` (multipart body expected), `ORG_REQUIRED` (super admin must
+pick a target organization), `ORG_NOT_FOUND`→`VALIDATION` (unknown
+organization id), `CROSS_TENANT` (replaceId from another organization),
+`CHAIN_ACTIVE` (only the active version can be replaced / restore blocked —
+newer version active), `INTEGRITY_FAILED` (checksum mismatch — download
+blocked), `FILE_MISSING`.
+
+Storage root: `DATA_DIR/evidence/<orgId>/` when `DATA_DIR` is set (the
+compose stack mounts a named volume at `/data`), else `./.data/evidence/`
+(see `src/lib/evidence.ts → dataRoot()`).
 
 ## Data model (`prisma/schema.prisma` → `EvidenceDocument`)
 

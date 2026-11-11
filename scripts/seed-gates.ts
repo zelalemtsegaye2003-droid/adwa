@@ -6,8 +6,12 @@
  */
 import { PrismaClient } from "@prisma/client";
 import { GATE_CRITERIA } from "../src/lib/gates";
+import { assertSeedAllowed } from "./seed-guard";
 
 const db = new PrismaClient();
+
+// D6 guard — refuses to seed a production DB without explicit opt-in
+assertSeedAllowed("bootstrap");
 
 (async () => {
   let created = 0;

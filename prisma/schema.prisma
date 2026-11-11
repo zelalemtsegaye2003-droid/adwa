@@ -111,7 +111,11 @@ model ScanResult {
   scan         Scan      @relation(fields: [scanId], references: [id], onDelete: Cascade)
   ruleId       String
   rule         Rule      @relation(fields: [ruleId], references: [id], onDelete: Cascade)
-  answer       String // yes | partial | no | na
+  answer       String // yes | partial | no | na ("na" is also the pre-set draft placeholder)
+  // When this obligation received an EXPLICIT answer (draft save or submit).
+  // Distinguishes an intentional N/A from an untouched placeholder — the
+  // answered-count and completeness checks key off this, never off `answer`.
+  answeredAt   DateTime?
   evidenceNote String?
   score        Float // 0 | 50 | 100 (na excluded)
   riskRank     Float?
@@ -540,7 +544,9 @@ model AwarenessAssessment {
   answers   String // JSON [{qId, picked, correct}] — the system-of-record trail
   takenAt   DateTime         @default(now())
 
-  @@index([learnerId, kind])
+  // One sitting per learner per kind: the API rejects retakes and this
+  // constraint makes a race (two concurrent POSTs) unrepresentable too.
+  @@unique([learnerId, kind])
 }
 
 // Lesson progress + module-quiz outcome per learner.
@@ -644,6 +650,106 @@ model GateEvent {
 
 // Self-service account-recovery tokens (password reset / email verification).
 // Only the SHA-256 hash of the token is stored — a DB leak cannot be replayed.
+// ── Track C Phase 4: ACFS gate register (src/lib/acfs-gates.ts) ────────────
+// The 13 preconditions across 4 domains that gate any content-filtering
+// engineering, plus the periodic board decisions recorded against them.
+model AcfsGateItem {
+  id          String    @id @default(cuid())
+  domain      String // EMA_PARTNERSHIP | EHRC_DUE_DILIGENCE | TRANSPARENCY_FRAMEWORK | DEDICATED_FUNDING
+  code        String    @unique
+  titleEn     String
+  titleAm     String?
+  description String?
+  status      String    @default("NOT_STARTED") // NOT_STARTED | IN_PROGRESS | EVIDENCE_SUBMITTED | SATISFIED | BLOCKED
+  owner       String?
+  notes       String?
+  evidenceRef String?
+  dueDate     DateTime?
+  sortOrder   Int       @default(0)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([domain, sortOrder])
+}
+
+model AcfsGateDecision {
+  id        String   @id @default(cuid())
+  decision  String // REMAINED_LOCKED | OPENED | RE_LOCKED
+  rationale String
+  decidedBy String
+  createdAt DateTime @default(now())
+}
+
+// ── Track C Phase 5: CII readiness register (src/lib/cii-engine.ts) ────────
+// Operators, MOU versions, INSA authorisations and registered systems.
+// Monitoring is doubly gated per operator: an in-force MOU AND an ACTIVE
+// INSA authorisation — evaluateCiiGate enforces the pairing.
+model CiiOperator {
+  id             String             @id @default(cuid())
+  code           String             @unique
+  name           String
+  nameAm         String             @default("")
+  sector         String
+  tier           String             @default("TIER1")
+  orgId          String? // link to an onboarded tenant (no FK — matched in the API layer)
+  contactEmail   String?
+  isActive       Boolean            @default(true)
+  mous           CiiMou[]
+  authorizations CiiAuthorization[]
+  systems        CiiSystem[]
+  createdAt      DateTime           @default(now())
+  updatedAt      DateTime           @updatedAt
+}
+
+model CiiMou {
+  id         String     @id @default(cuid())
+  operatorId String
+  operator   CiiOperator @relation(fields: [operatorId], references: [id], onDelete: Cascade)
+  version    Int
+  status     String // DRAFTING | LEGAL_REVIEW | SIGNED | ACTIVE | EXPIRED | TERMINATED
+  scope      String // JSON array of authorised telemetry categories
+  dataTerms  String?
+  signedAt   DateTime?
+  expiresAt  DateTime?
+  notes      String?
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
+
+  @@unique([operatorId, version])
+}
+
+model CiiAuthorization {
+  id         String     @id @default(cuid())
+  operatorId String
+  operator   CiiOperator @relation(fields: [operatorId], references: [id], onDelete: Cascade)
+  reference  String? // e.g. INSA/CII/2026/041
+  status     String // PENDING | UNDER_REVIEW | GRANTED | ACTIVE | SUSPENDED | REVOKED | EXPIRED
+  issuedAt   DateTime?
+  expiresAt  DateTime?
+  scope      String?
+  notes      String?
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
+
+  @@index([operatorId])
+}
+
+model CiiSystem {
+  id          String     @id @default(cuid())
+  operatorId  String
+  operator    CiiOperator @relation(fields: [operatorId], references: [id], onDelete: Cascade)
+  name        String
+  nameAm      String?
+  category    String // SCADA | CORE_BANKING | PAYMENT_SWITCH | DATA_CENTER | ...
+  criticality String // CRITICAL | HIGH | MEDIUM
+  readiness   String     @default("REGISTERED") // REGISTERED → INVENTORY_MAPPED → AGENT_READY → MONITORING_AUTHORIZED
+  notes       String?
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  @@index([operatorId])
+}
+
 model AuthToken {
   id         String    @id @default(cuid())
   userId     String

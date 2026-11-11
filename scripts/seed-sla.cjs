@@ -14,6 +14,17 @@
 const { PrismaClient } = require("@prisma/client");
 const db = new PrismaClient();
 
+// D6 guard — refuses to seed a production DB without explicit opt-in
+if (process.env.NODE_ENV === "production") {
+  var bootstrapOk = process.env.SEED_ON_BOOT === "1" || process.env.ALLOW_DEMO_SEED === "1";
+  var guardOk = "demo" === "bootstrap" ? bootstrapOk : process.env.ALLOW_DEMO_SEED === "1";
+  if (!guardOk) {
+    var needed = "demo" === "bootstrap" ? "SEED_ON_BOOT=1" : "ALLOW_DEMO_SEED=1";
+    console.error("[seed-guard] " + "demo" + " seeding refused: NODE_ENV=production without " + needed + " (decision D6 — docs/DECISIONS.md).");
+    process.exit(1);
+  }
+}
+
 const SLA_DAYS = { critical: 30, high: 60, medium: 90 };
 const DAY = 86_400_000;
 const slaDue = (severity, from) => new Date(from.getTime() + (SLA_DAYS[severity] ?? 90) * DAY);

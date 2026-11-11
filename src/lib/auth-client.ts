@@ -88,10 +88,13 @@ export async function api<T = unknown>(
   const data = isJson ? await res.json().catch(() => null) : null;
 
   if (!res.ok) {
-    const err = (data as { error?: ApiError } | null)?.error ?? {
-      code: "UNKNOWN",
-      message: `Request failed (${res.status})`,
-    };
+    // Normalize both server shapes: canonical { error: { code, message } }
+    // and legacy { error: "message" } — so a toast never renders "undefined".
+    const raw = (data as { error?: ApiError | string } | null)?.error;
+    const err: ApiError =
+      typeof raw === "string"
+        ? { code: "UNKNOWN", message: raw }
+        : raw ?? { code: "UNKNOWN", message: `Request failed (${res.status})` };
     throw new ApiCallError(res.status, err);
   }
   return data as T;
