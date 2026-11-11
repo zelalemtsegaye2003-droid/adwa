@@ -150,6 +150,7 @@ model User {
   mfaSecret         String? // AES-256-GCM encrypted TOTP secret
   mfaConfirmedAt    DateTime?
   lastTotpCounter   Int? // highest accepted TOTP step (replay protection)
+  emailVerifiedAt   DateTime? // set when the user confirms ownership via the emailed token
   backupCodes       String? // JSON array of sha256-hashed one-time codes
   failedAttempts    Int                @default(0)
   lockedUntil       DateTime?
@@ -163,6 +164,7 @@ model User {
   evidenceLinks     EvidenceLink[]
   indicatorsCreated ThreatIndicator[]
   indicatorShares   IndicatorShare[]
+  authTokens        AuthToken[]
   incidentEvents    IncidentEvent[]
   assignedIncidents Incident[]
   syncRunsTriggered SyncRun[]
@@ -638,4 +640,20 @@ model GateEvent {
   createdAt  DateTime  @default(now())
 
   @@index([gateId, createdAt])
+}
+
+// Self-service account-recovery tokens (password reset / email verification).
+// Only the SHA-256 hash of the token is stored — a DB leak cannot be replayed.
+model AuthToken {
+  id         String    @id @default(cuid())
+  userId     String
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type       String // PASSWORD_RESET | EMAIL_VERIFY
+  tokenHash  String    @unique // sha256(token) hex
+  expiresAt  DateTime
+  consumedAt DateTime? // single-use: set on first redemption
+  requestIp  String?
+  createdAt  DateTime  @default(now())
+
+  @@index([userId, type])
 }

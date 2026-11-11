@@ -62,6 +62,27 @@ export function LoginScreen({ onAuthenticated }: { onAuthenticated: (me: MeRespo
   const [regName, setRegName] = useState("");
   const [regEmail, setRegEmail] = useState("");
   const [regPassword, setRegPassword] = useState("");
+  const [forgotMode, setForgotMode] = useState(false);
+  const [forgotEmail, setForgotEmail] = useState("");
+  const [forgotDone, setForgotDone] = useState(false);
+
+  const submitForgot = async (e?: React.FormEvent) => {
+    e?.preventDefault();
+    setError(null);
+    if (!forgotEmail.trim()) return;
+    setBusy(true);
+    try {
+      await api("/api/auth/password-reset/request", {
+        method: "POST",
+        body: JSON.stringify({ email: forgotEmail.trim() }),
+      });
+      setForgotDone(true);
+    } catch (err) {
+      setError(err instanceof ApiCallError ? err.message : "Network error — please retry.");
+    } finally {
+      setBusy(false);
+    }
+  };
 
   const loadCaptcha = useCallback(async () => {
     setCaptchaAnswer("");
@@ -430,6 +451,49 @@ export function LoginScreen({ onAuthenticated }: { onAuthenticated: (me: MeRespo
                       </>
                     )}
 
+                    {forgotMode ? (
+                      <div className="space-y-4">
+                        <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-900 dark:border-emerald-900 dark:bg-emerald-950/40 dark:text-emerald-300">
+                          {t("forgotSub")}
+                        </div>
+                        {forgotDone ? (
+                          <div role="status" className="rounded-lg border border-emerald-300 bg-emerald-50 p-3 text-sm text-emerald-900 dark:border-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300">
+                            {t("forgotSent")}
+                          </div>
+                        ) : (
+                          <form onSubmit={submitForgot} className="space-y-4" noValidate>
+                            {error && (
+                              <div role="alert" className="flex items-start gap-2 rounded-lg border border-red-300 bg-red-50 p-3 text-sm text-red-800 dark:border-red-900 dark:bg-red-950/50 dark:text-red-300">
+                                <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" aria-hidden />
+                                <span>{error}</span>
+                              </div>
+                            )}
+                            <div className="space-y-2">
+                              <Label htmlFor="forgot-email">{t("email")}</Label>
+                              <div className="relative">
+                                <Mail className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" aria-hidden />
+                                <Input
+                                  id="forgot-email" type="email" autoComplete="email" required
+                                  className="pl-9" placeholder="you@organization.et"
+                                  value={forgotEmail} onChange={(e) => setForgotEmail(e.target.value)}
+                                  disabled={busy}
+                                />
+                              </div>
+                            </div>
+                            <Button type="submit" className="w-full bg-emerald-700 hover:bg-emerald-800" disabled={busy}>
+                              {busy ? <Loader2 className="mr-2 h-4 w-4 animate-spin" aria-hidden /> : <Mail className="mr-2 h-4 w-4" aria-hidden />}
+                              {t("forgotSubmit")}
+                            </Button>
+                          </form>
+                        )}
+                        <Button
+                          type="button" variant="ghost" className="w-full"
+                          onClick={() => { setForgotMode(false); setForgotDone(false); setError(null); }}
+                        >
+                          {t("backToSignIn")}
+                        </Button>
+                      </div>
+                    ) : (
                     <form onSubmit={submitCredentials} className="space-y-4" noValidate>
                       <div className="space-y-2">
                         <Label htmlFor="email">{t("email")}</Label>
@@ -446,6 +510,13 @@ export function LoginScreen({ onAuthenticated }: { onAuthenticated: (me: MeRespo
                       <div className="space-y-2">
                         <div className="flex items-center justify-between">
                           <Label htmlFor="password">{t("password")}</Label>
+                          <button
+                            type="button"
+                            className="text-xs font-medium text-emerald-700 underline-offset-4 hover:underline dark:text-emerald-400"
+                            onClick={() => { setForgotMode(true); setForgotEmail(email); setError(null); setForgotDone(false); }}
+                          >
+                            {t("forgotPassword")}
+                          </button>
                         </div>
                         <div className="relative">
                           <Lock className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" aria-hidden />
@@ -498,6 +569,7 @@ export function LoginScreen({ onAuthenticated }: { onAuthenticated: (me: MeRespo
                         {t("signIn")}
                       </Button>
                     </form>
+                    )}
 
                     {/* Demo accounts */}
                     <div className="rounded-lg border border-dashed border-emerald-300/70 bg-emerald-50/50 p-3 dark:border-emerald-900 dark:bg-emerald-950/30">

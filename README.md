@@ -11,6 +11,7 @@ Bilingual (English / አማርኛ) · Proclamation 1321/2024 · NCSP 2024 · Dig
 | Module | Details |
 |---|---|
 | **Authentication** | Password sign-in (scrypt, N=16384), JWT access cookies (HS256, 15 min) + rotating opaque refresh tokens with reuse detection & family revocation |
+| **Account recovery** | Self-service password reset (30-min single-use SHA-256-hashed tokens, enumeration-resistant) + email verification (24 h); sessions fully revoked on reset; pluggable mail transport (SMTP or console) |
 | **MFA (OTP)** | RFC 6238 TOTP (Google Authenticator / Authy / Aegis), QR enrollment, AES-256-GCM encrypted secrets, replay protection, 8 single-use backup codes |
 | **Sign in with Google** | OAuth 2.0 / OIDC authorization-code flow, state-CSRF cookie, ID token verified against Google's JWKS, domain-restricted auto-provisioning |
 | **Captcha** | Built-in distorted SVG captcha (single-use server-side challenges) on login & registration; pluggable hCaptcha / reCAPTCHA |
@@ -68,33 +69,54 @@ without real credentials (enabled via `GOOGLE_*` overrides in `.env`).
 ## Tests (against the running dev server)
 
 ```bash
-bun scripts/test-auth.ts        # 54 checks — captcha, login, MFA, RBAC matrix,
-                                #   tenant isolation, rotation/reuse, lockout
-bun scripts/test-owasp.ts       # 67 checks — OWASP Top 10 (2021) A01–A10
-bun scripts/test-google.ts      # 15 checks — full OAuth dance via mock provider
-bun scripts/test-compliance.ts  # 44 checks — catalogue integrity, scan lifecycle,
-                                #   engine maths, findings workflow, tenant isolation
+bash scripts/run-api-tests.sh            # 7 API suites — 248 checks (SOC, SLA,
+                                        #   report, rules engine, scan lifecycle,
+                                        #   evidence security, Ethio-CERT binding)
+bash scripts/ci-run-auth-suites.sh       # auth + OWASP + compliance + Google
+                                        #   — 180 checks
+bash scripts/run-recovery-tests.sh       # password reset + email verification
+                                        #   — 26 checks
 ```
 
-**180 checks total.** The suites are order-independent and self-healing
-(429-aware retries, TOTP-window retries); `scripts/reset-locks.ts` clears
-account lockouts between runs.
+**454 checks total, all green.** The same battery runs in CI
+(`.github/workflows/ci.yml`: lint → zero-error typecheck → production build →
+full test battery) on every push and pull request. Suites are
+order-independent and self-healing (429-aware retries, TOTP-window retries);
+`scripts/reset-locks.ts` clears account lockouts between runs.
 
 ## Project structure
 
 ```
 prisma/schema.prisma        Organization, Rule, Scan, ScanResult, User,
-                            RefreshToken, AuthEvent, CaptchaChallenge
+                            RefreshToken, AuthEvent, CaptchaChallenge, AuthToken
+prisma/schema.postgres.prisma  PostgreSQL variant (used by the Docker build)
 src/lib/rules-data.ts       the 47 obligations (bilingual, mapped to articles)
 src/lib/engine.ts           scoring / risk-ranking / remediation engine
 src/lib/auth/               jwt, totp, crypto, session, guard, rbac, captcha,
-                            google, rate-limit, audit, passwords
-src/app/api/                auth/* · rules · organizations · scans · findings · stats
+                            google, rate-limit, audit, passwords, mail, tokens
+src/app/api/                auth/* · rules · organizations · scans · findings ·
+                            evidence (+upload) · gates · incidents · threats ·
+                            awareness · learn · soc · health
 src/components/adwa/        dashboard, catalogue, scan wizard, findings, report
-src/components/auth/        login screen, MFA setup, users, audit views
-mini-services/mock-google   dev-only Google OAuth/OIDC simulator
-docs/AUTH.md                identity module reference
+src/components/auth/        login screen (with password reset), MFA setup, users, audit
+mini-services/              mock Google OIDC (:3010), mock Ethio-CERT (:3020)
+docs/                       AUTH, EVIDENCE, USER_GUIDE, PILOT_ONBOARDING,
+                            INCIDENT_RUNBOOK, OPS
+Dockerfile · docker-compose.yml · deploy/Caddyfile   one-command deploy
+.github/workflows/ci.yml    lint + typecheck + build + full test battery
+scripts/backup-db.sh · restore-db.sh · restore-drill.sh · sqlite_tool.py
 ```
+
+## Deploying (Docker — one command)
+
+```bash
+cp .env.example .env   # set AUTH_SECRET, POSTGRES_PASSWORD, SITE_ADDRESS, SMTP_*
+docker compose up -d   # app + PostgreSQL 16 + Caddy (automatic HTTPS)
+curl -s https://<host>/api/health
+```
+
+Migrations and idempotent seeds run on boot. Full operations guide
+(deploy, monitor, back up, restore, upgrade): `docs/OPS.md`.
 
 ## Production notes
 

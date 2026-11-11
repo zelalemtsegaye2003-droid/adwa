@@ -4,6 +4,8 @@ import { hashPassword } from "@/lib/auth/crypto";
 import { isCommonPassword } from "@/lib/auth/passwords";
 import { verifyCaptcha } from "@/lib/auth/captcha";
 import { issueSession, setAuthCookies } from "@/lib/auth/session";
+import { issueAuthToken } from "@/lib/auth/tokens";
+import { sendMail, emailVerificationEmail } from "@/lib/auth/mail";
 import { audit } from "@/lib/auth/audit";
 import { rateLimit, clientIp } from "@/lib/auth/rate-limit";
 
@@ -152,6 +154,28 @@ export async function POST(req: NextRequest) {
     ip,
     detail: `ORG_ADMIN ${adminEmail} created via self-registration.`,
   });
+
+  // Best-effort verification email — never block registration on mail failure
+  try {
+    const { token } = await issueAuthToken(user.id, "EMAIL_VERIFY", ip);
+    const origin = process.env.APP_ORIGIN ?? req.nextUrl.origin;
+    const mail = emailVerificationEmail(
+      user.name,
+      `${origin}/verify-email?token=${token}`
+    );
+    await sendMail({ ...mail, to: user.email });
+    await audit({
+      type: "EMAIL_VERIFICATION_SENT",
+      userId: user.id,
+      email: user.email,
+      organizationId: org.id,
+      ip,
+      userAgent: req.headers.get("user-agent"),
+      detail: "sent at registration",
+    });
+  } catch (mailErr) {
+    console.error("[register] verification email failed", mailErr);
+  }
 
   // Sign the new admin straight in.
   const tokens = await issueSession(user, req);

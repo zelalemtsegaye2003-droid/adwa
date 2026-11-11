@@ -18,3 +18,21 @@ const COMMON_PASSWORDS = new Set([
 export function isCommonPassword(password: string): boolean {
   return COMMON_PASSWORDS.has(password.trim().toLowerCase());
 }
+
+/**
+ * Shared password policy (10–200 chars, letters + numbers, no common
+ * passwords). Used by registration, admin user creation, and the
+ * self-service password reset so the rules can never drift apart.
+ */
+export function validatePasswordPolicy(password: string): string | null {
+  if (
+    password.length < 10 ||
+    password.length > 200 ||
+    !/[a-zA-Z]/.test(password) ||
+    !/[0-9]/.test(password) ||
+    isCommonPassword(password)
+  ) {
+    return "Password must be 10–200 characters, include letters and numbers, and not be a common password.";
+  }
+  return null;
+}

@@ -1,0 +1,24 @@
+# Adwa Cyber — production reverse proxy (docker compose mounts this file).
+# SITE_ADDRESS comes from .env (e.g. platform.adwacyber.et). For a real
+# domain, Caddy obtains and renews Let's Encrypt certificates automatically.
+# Use "localhost" only for local pilots — Caddy then serves a self-signed cert.
+{$SITE_ADDRESS} {
+	encode zstd gzip
+
+	# Security headers (defense-in-depth; the app also sets its own CSP/HSTS)
+	header {
+		Strict-Transport-Security "max-age=31536000; includeSubDomains"
+		X-Content-Type-Options "nosniff"
+		X-Frame-Options "SAMEORIGIN"
+		Referrer-Policy "strict-origin-when-cross-origin"
+		-Server
+	}
+
+	# The API and app itself
+	reverse_proxy app:3000 {
+		header_up Host {host}
+		header_up X-Forwarded-For {remote_host}
+		header_up X-Forwarded-Proto {scheme}
+		header_up X-Real-IP {remote_host}
+	}
+}
