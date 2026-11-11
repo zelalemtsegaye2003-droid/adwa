@@ -53,13 +53,24 @@ automated checks green across 15 suites** (was 454):
   vault with integrity anchoring, SOC/CERT-as-a-Service, awareness
   platform, Track C gated expansion incl. CII + ACFS registers).
 
+- `adwa-cyber-repo-with-history.zip` — the same project **including the
+  full `.git` history** (secrets purged: `.env` and the dev database were
+  removed from every commit). For pushing to GitHub: unzip →
+  `git remote add origin https://github.com/<you>/<repo>.git` →
+  `git push -u origin main`. The source zip above is the plain-code
+  alternative (no history) — `git init && git add -A && git commit` works
+  just as well from it.
+
   Quick start (Bun): `bun install` → set `DATABASE_URL` + `AUTH_SECRET`
   (see `.env.example`) → `bunx prisma db push` → `bun run seed:demo` →
-  `bun run dev`.
+  `bun run dev`. Stop: `Ctrl+C` (or `lsof -ti:3000 | xargs kill` for a
+  stray background process); full run/stop/restart tables for dev,
+  standalone and Docker are in the project `README.md`.
 
   Production: `cp .env.example .env` → `docker compose up -d`
   (app + PostgreSQL 16 + Caddy auto-HTTPS; schema + guarded idempotent
-  seeds run on boot). Backups: `sh scripts/backup-db.sh`; prove the restore
+  seeds run on boot; stop with `docker compose down`). Backups:
+  `sh scripts/backup-db.sh`; prove the restore
   with `bash scripts/restore-drill.sh`.
 
   Test battery (**683 checks, all passing**): `bun run test:integration` /
