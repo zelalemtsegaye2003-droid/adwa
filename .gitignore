@@ -64,3 +64,6 @@ tool-results/
 # deliverable archives (the repo IS the source — zips live in Releases)
 download/*.zip
 download/*.bundle
+# sandbox template leftovers (not part of the product)
+tests/*.sh
+examples/
