@@ -27,7 +27,7 @@ ETB = '#,##0;(#,##0)'
 PCT = '0.0%'
 
 wb = Workbook()
-wb.properties.creator = "Z.ai"
+wb.properties.creator = "Zelalem Tsegaye"
 
 # ═══ Sheet 1: Assumptions ═══════════════════════════════════════════════════
 ws = wb.active
@@ -86,7 +86,7 @@ style_header_row(ws, row_num=r, col_start=2, col_end=4)
 r += 1
 payroll = [
     ("Founder / CEO — Solomon Asalif", 75_000, "Feb 2027"),
-    ("Co-founder / CTO — Zelalem Tsegaaye", 130_000, "Feb 2027"),
+    ("Co-founder / CTO — Zelalem Tsegaye", 130_000, "Feb 2027"),
     ("Full-stack Engineer", 90_000, "Jul 2027"),
     ("SOC Analyst", 75_000, "Sep 2027"),
     ("Operations & Admin (PT)", 50_000, "Jul 2027"),

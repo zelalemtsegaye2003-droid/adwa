@@ -1,4 +1,4 @@
-/** 01 Founder CVs — Solomon Asalif (Founder & CEO) + Zelalem Tsegaaye (Co-founder & CTO).
+/** 01 Founder CVs — Solomon Asalif (Founder & CEO) + Zelalem Tsegaye (Co-founder & CTO).
  * Resume scene, Template B, English. Four pages: two per founder.
  * Personal fields (contact, education, prior employment, certifications) are clearly
  * marked placeholders — only the founders can complete them. Venture facts are final. */
@@ -147,7 +147,7 @@ const solomonP1 = [
   section("Profile"),
   new Paragraph({
     alignment: AlignmentType.JUSTIFIED, spacing: { line: 276, after: 120 },
-    children: [t("Founder and CEO of Adwa Sec, an Addis Ababa-based cybersecurity venture building the platform Ethiopia's regulated financial sector is now required to defend itself with. Designed and single-handedly engineered the full MVP — a bilingual (English/Amharic) compliance, vulnerability-assessment and SOC platform — and authored the venture's startup proposal, implementation roadmap and NBE LOT4 tender response. Rare hybrid profile: ships production-grade software (766 automated checks green), practices hands-on attack-path analysis, and formalises regulation (47 + 30 machine-readable obligations) into working engines. Co-leads the venture with Zelalem Tsegaaye, Co-founder & CTO, who owns engineering leadership and security operations; this founder retains strategy, regulation, anchor sales and the university and regulator relationships. Seeking incubation and pre-seed backing to convert the MVP into Ethiopia's first locally-built cybersecurity platform business.", { size: 20 })],
+    children: [t("Founder and CEO of Adwa Sec, an Addis Ababa-based cybersecurity venture building the platform Ethiopia's regulated financial sector is now required to defend itself with. Designed and single-handedly engineered the full MVP — a bilingual (English/Amharic) compliance, vulnerability-assessment and SOC platform — and authored the venture's startup proposal, implementation roadmap and NBE LOT4 tender response. Rare hybrid profile: ships production-grade software (766 automated checks green), practices hands-on attack-path analysis, and formalises regulation (47 + 30 machine-readable obligations) into working engines. Co-leads the venture with Zelalem Tsegaye, Co-founder & CTO, who owns engineering leadership and security operations; this founder retains strategy, regulation, anchor sales and the university and regulator relationships. Seeking incubation and pre-seed backing to convert the MVP into Ethiopia's first locally-built cybersecurity platform business.", { size: 20 })],
   }),
   section("Core Skills"),
   skill("Cybersecurity engineering", 4, "VAPT, OWASP-aligned web/API DAST, CVSS/EPSS/CISA-KEV prioritisation, BloodHound-style AD attack-path analysis"),
@@ -162,7 +162,7 @@ const solomonP1 = [
   b("Built the VAPT Center for the NBE/NCB/S/02/2026/27 LOT4 tender: attack-surface registry (managed + shadow-IT EASM), live OWASP-aligned non-destructive DAST engine with proof bundles, CVSS+EPSS+KEV dynamic risk scoring (P1–P4), remediation SLA queue, and promotion of critical findings into NBE-anchored corrective actions."),
   b("Delivered the AD Attack Paths engine (tender §G): BloodHound-style multi-hop analysis over a 15-node/19-edge reference topology — BFS shortest paths, 12 computed attack paths, chokepoint and tier-0 exposure identification — with interactive bilingual SVG visualisation."),
   b("Transcribed the full 66-line NBE LOT4 bid capability matrix with honest full/partial/roadmap status (27/21/18), vendor-response text and evidence pointers, plus SBD-shaped CSV export."),
-  b("Co-founded the two-founder leadership team with Zelalem Tsegaaye (Co-founder & CTO): retains strategy, regulation, compliance-engine rule content, anchor sales, Bahir Dar University technology-transfer and INSA relationships; engineering leadership and security operations sit with the CTO."),
+  b("Co-founded the two-founder leadership team with Zelalem Tsegaye (Co-founder & CTO): retains strategy, regulation, compliance-engine rule content, anchor sales, Bahir Dar University technology-transfer and INSA relationships; engineering leadership and security operations sit with the CTO."),
   b("Enforced quality discipline: 766 automated checks across the full test battery, CI on every push (lint, typecheck, build, tests, Docker smoke), and honest labelling of every simulated vs live component."),
   entryHeader("【Previous positions — to be completed】", "【Role】", "【dates】"),
   bRuns([t("【Please fill in: previous employer(s), title(s), date ranges and 2–3 quantified achievements per role. Delete this block if the Adwa Sec founding work is the first professional engagement.】", { color: S.sec, italics: true })]),
@@ -189,9 +189,9 @@ const solomonP2 = [
   bRuns([t("References: ", { bold: true, size: 19, color: S.title }), t("Available on request — Adwa Cyber Research Lab, Bahir Dar University; platform codebase and 766-check test battery open to technical due diligence.", {})]),
 ];
 
-// ═════════════════════ ZELALEM TSEGAAYE — CO-FOUNDER & CTO ═══════════════════
+// ═════════════════════ ZELALEM TSEGAYE — CO-FOUNDER & CTO ═══════════════════
 const zelalemP1 = [
-  banner("ZELALEM TSEGAAYE", "Co-founder & CTO — Adwa Sec", "Cybersecurity platform CTO · Engineering & security-operations lead · Bilingual delivery"),
+  banner("ZELALEM TSEGAYE", "Co-founder & CTO — Adwa Sec", "Cybersecurity platform CTO · Engineering & security-operations lead · Bilingual delivery"),
   section("Profile"),
   new Paragraph({
     alignment: AlignmentType.JUSTIFIED, spacing: { line: 276, after: 120 },
@@ -215,7 +215,7 @@ const zelalemP1 = [
 ];
 
 const zelalemP2 = [
-  page2Bar("ZELALEM TSEGAAYE", "Co-founder & CTO — Adwa Sec"),
+  page2Bar("ZELALEM TSEGAYE", "Co-founder & CTO — Adwa Sec"),
   new Paragraph({ spacing: { after: 120 }, children: [] }),
   section("Selected Projects & Mandates (Adwa Sec)"),
   entryHeader("VAPT Center — live scanning engine", "Engineering mandate", "2026 — 2027"),

@@ -8,7 +8,7 @@ const cover = C.buildCoverR1({
   englishLabel: "PRODUCT ROADMAP",
   metaLines: [
     "Venture: Adwa Sec",
-    "Authors: Solomon Asalif & Zelalem Tsegaaye, Founders",
+    "Authors: Solomon Asalif & Zelalem Tsegaye, Founders",
     "Date: November 2026",
     "Scope: platform modules, services, certification and market milestones",
   ],
@@ -52,7 +52,7 @@ const body = [
   }),
   C.h1("3. 2027 in Detail — the Make-or-Break Year"),
   C.h2("3.1 First quarter: institution and infrastructure"),
-  C.para("The quarter converts a research artefact into a company. The PLC is registered with the two founders — Solomon Asalif and Zelalem Tsegaaye — as initial shareholders and a clean IP ledger assigning all pre-incorporation work to the company; the technology-transfer and affiliation agreement is executed with Bahir Dar University; and the engineering hiring plan is funded, with the first engineers landing from July 2027 per the payroll plan. In parallel the platform moves from development to production: PostgreSQL deployment on Ethiopian hosting (satisfying the data-localisation provisions of Proclamation 1321/2024), and the vulnerability catalogue is swapped from the bundled reference set to a live NVD/CISA-KEV feed — a data-source change behind the existing engine interface, which is how the engine was designed. Exit criteria: company registered, agreement signed, production URL serving health checks, live feed refreshing on schedule, letters of intent converted into at least two paid pilot contracts."),
+  C.para("The quarter converts a research artefact into a company. The PLC is registered with the two founders — Solomon Asalif and Zelalem Tsegaye — as initial shareholders and a clean IP ledger assigning all pre-incorporation work to the company; the technology-transfer and affiliation agreement is executed with Bahir Dar University; and the engineering hiring plan is funded, with the first engineers landing from July 2027 per the payroll plan. In parallel the platform moves from development to production: PostgreSQL deployment on Ethiopian hosting (satisfying the data-localisation provisions of Proclamation 1321/2024), and the vulnerability catalogue is swapped from the bundled reference set to a live NVD/CISA-KEV feed — a data-source change behind the existing engine interface, which is how the engine was designed. Exit criteria: company registered, agreement signed, production URL serving health checks, live feed refreshing on schedule, letters of intent converted into at least two paid pilot contracts."),
   C.h2("3.2 Second quarter: pilots with consequences"),
   C.para("Pilot institutions are onboarded with the tenant workflow: their own obligation scans, findings queues, evidence vaults and executive reports. Each pilot runs under a steering committee that meets monthly — the customer-success motion disguised as governance. Pricing is pilot-priced: a discount against annual list, never free, so that renewal is a commercial decision rather than a reawakening. Exit criteria: all pilot tenants producing regulator-grade evidence packs; at least one executive report consumed by a bank board; zero critical audit findings on the platform's own hardening checks."),
   C.h2("3.3 Third quarter: SOC stand-up and certification"),

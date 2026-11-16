@@ -129,7 +129,7 @@ function walk(dir: string, exts: string[], out: string[] = []): string[] {
   for (const entry of readdirSync(dir)) {
     const p = join(dir, entry);
     if (statSync(p).isDirectory()) {
-      if (["node_modules", ".next", "scripts", "mini-services", ".zscripts"].includes(entry)) continue;
+      if (["node_modules", ".next", "scripts", "mini-services"].includes(entry)) continue;
       walk(p, exts, out);
     } else if (exts.some((e) => p.endsWith(e))) out.push(p);
   }

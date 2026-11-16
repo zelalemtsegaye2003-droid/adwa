@@ -48,7 +48,7 @@ Y1_REV = sum(y1_rev.values())
 # ── Y1 2027: monthly cost build — two founders from February ────────────────
 sal_plan = [  # role, monthly ETB (anchored to levels.fyi median), start month (1-12)
     ("Founder / CEO — Solomon Asalif", 75_000, 2),      # 1.35x median (founder discount)
-    ("Co-founder / CTO — Zelalem Tsegaaye", 130_000, 2),  # 2.33x median (senior security band)
+    ("Co-founder / CTO — Zelalem Tsegaye", 130_000, 2),  # 2.33x median (senior security band)
     ("Full-stack Engineer", 90_000, 7),                  # 1.6x median
     ("SOC Analyst", 75_000, 9),                          # 1.35x median
     ("Operations & Admin (PT)", 50_000, 7),              # 0.9x median (part-time)
@@ -81,7 +81,7 @@ y2_rev = {
 Y2_REV = sum(y2_rev.values())
 y2_sal = {  # annual ETB, rates x1.10
     "Founder / CEO — Solomon Asalif": round(75_000 * (1 + ESC) * 12, -3),
-    "Co-founder / CTO — Zelalem Tsegaaye": round(130_000 * (1 + ESC) * 12, -3),
+    "Co-founder / CTO — Zelalem Tsegaye": round(130_000 * (1 + ESC) * 12, -3),
     "Full-stack Engineer": round(90_000 * (1 + ESC) * 12, -3),
     "Full-stack Engineer #2": round(90_000 * (1 + ESC) * 12, -3),
     "SOC Manager": round(140_000 * (1 + ESC) * 12, -3),          # 2.5x median
@@ -112,7 +112,7 @@ y3_rev = {
 Y3_REV = sum(y3_rev.values())
 y3_sal = {  # annual ETB, rates x1.10x1.10
     "Founder / CEO — Solomon Asalif": round(75_000 * (1 + ESC) ** 2 * 12, -3),
-    "Co-founder / CTO — Zelalem Tsegaaye": round(130_000 * (1 + ESC) ** 2 * 12, -3),
+    "Co-founder / CTO — Zelalem Tsegaye": round(130_000 * (1 + ESC) ** 2 * 12, -3),
     "Full-stack Engineers (3)": round(90_000 * (1 + ESC) ** 2 * 12 * 3, -3),
     "SOC Manager": round(140_000 * (1 + ESC) ** 2 * 12, -3),
     "SOC Analysts (6)": round(75_000 * (1 + ESC) ** 2 * 12 * 6, -3),

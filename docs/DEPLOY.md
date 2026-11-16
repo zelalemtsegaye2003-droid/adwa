@@ -83,8 +83,6 @@ project root `.env`); cookies are `Secure` in production → serve over HTTPS.
 - [ ] `RECAPTCHA_*` or `HCAPTCHA_*` configured (built-in captcha is dev-only, D4)
 - [ ] `SMTP_HOST/PORT/USER/PASS` set and tested
 - [ ] `SEED_ON_BOOT=0` once real tenants are onboarded; rotate demo passwords
-- [ ] Remove the sandbox-only CSP `frame-ancestors https://*.space-z.ai`
-      (`next.config.ts`) if you deploy outside this environment
 - [ ] Rate limiter is in-memory (single instance) — add a shared store before
       scaling to multiple replicas
 - [ ] Schedule `backup-db.sh` + evidence-volume snapshots

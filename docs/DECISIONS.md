@@ -39,8 +39,8 @@ The SVG captcha's codes are drawn from **crypto-secure** randomness
 (`crypto.randomInt`, WS-8), but the glyphs are still `<text>` nodes — a
 determined bot can parse them. For public deployments configure
 `RECAPTCHA_*` or `HCAPTCHA_*` (`verifyCaptcha` auto-detects; no code change).
-The sandbox-only CSP `frame-ancestors https://*.space-z.ai` entry is the same
-category of environment-specific exception — remove it for other deployments.
+The CSP `frame-ancestors` is `'self'` only — no environment-specific
+exceptions are shipped (WS-8).
 
 ## D5 — Reference deployment is Docker Compose + PostgreSQL 16 — 2026-11-12
 
