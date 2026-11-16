@@ -1,5 +1,7 @@
 """07 Financial Projections xlsx — 3-year ETB model with live formulas.
 Follows xlsx skill: templates/base.py tokens, finance_lite structure, chart engine rules.
+v2 (Nov 2026 re-base): FX anchored to NBE indicative rate 160.93 (12 Nov 2026); two-founder
+payroll; salary ladder anchored to levels.fyi median; 10%/yr escalation; Basis & Sources sheet.
 """
 import json, sys, os
 
@@ -31,19 +33,20 @@ wb.properties.creator = "Z.ai"
 ws = wb.active
 ws.title = "Assumptions"
 setup_sheet(ws, title="Adwa Sec — Financial Projections 2027–2029 (ETB) — Assumptions", last_col=6)
-ws["B3"] = "All monetary figures are Ethiopian birr (ETB). Planning estimates, re-based quarterly. Blue cells are editable inputs."
+ws["B3"] = "All monetary figures are Ethiopian birr (ETB). Every input is anchored to current cited data (see the Basis & Sources sheet); blue cells are editable. Calculated, not estimated."
 ws["B3"].font = font_caption()
 
 rows = [
-    ("Planning exchange rate (ETB per USD)", N["fx_etb_per_usd"], "Adjustable — all USD-indexed notes derive from it"),
-    ("Pre-seed ask (ETB)", N["ask_etb"], f"Approx. USD {N['summary']['ask_usd']:,} at the planning rate"),
+    ("Planning exchange rate (ETB per USD)", N["fx_etb_per_usd"], "NBE indicative interbank rate, 12 Nov 2026 — real, observed; all USD notes derive from it"),
+    ("Pre-seed ask (ETB)", N["ask_etb"], f"Approx. USD {N['summary']['ask_usd']:,} at the planning rate; covers the computed 2027-2028 net burn {N['basis']['feasibility']['cum_net_2027_2028']:,.0f} ETB {N['basis']['feasibility']['ask_coverage_of_2yr_burn']}x"),
     ("Runway funded by ask (months)", N["runway_months"], "January 2027 – June 2028"),
-    ("Bank platform subscription (ETB / year)", N["price"]["bank_sub_annual"], "Bank / enterprise tier"),
-    ("MFI platform subscription (ETB / year)", N["price"]["mfi_sub_annual"], "Microfinance tier"),
-    ("VAPT engagement (ETB, fixed scope)", N["price"]["vapt_engagement"], "2–3 week scoped assessment incl. evidence pack"),
-    ("SOC/CERT retainer (ETB / month)", N["price"]["soc_retainer_monthly"], "Per monitored institution"),
-    ("Awareness training engagement (ETB)", N["price"]["training_engagement"], "Amharic-first delivery"),
+    ("Bank platform subscription (ETB / year)", N["price"]["bank_sub_annual"], "USD 11,185/yr — 56% of the ~USD 20K median GRC-platform spend (Vendr)"),
+    ("MFI platform subscription (ETB / year)", N["price"]["mfi_sub_annual"], "USD 3,354/yr — small-institution tier"),
+    ("VAPT engagement (ETB, fixed scope)", N["price"]["vapt_engagement"], "USD 2,799 — 56% of the USD 5,000 global floor for web-app pentests (2026 guides)"),
+    ("SOC/CERT retainer (ETB / month)", N["price"]["soc_retainer_monthly"], "USD 932/month — below the USD 1,000 managed-SOC entry price"),
+    ("Awareness training engagement (ETB)", N["price"]["training_engagement"], "USD 1,865 — Amharic-first delivery"),
     ("Contingency rate", 0.10, "Applied to operating subtotals"),
+    ("Annual salary escalation", N["basis"]["escalation"], "Below the 14.6% Oct 2026 headline inflation (ESS); applied to payroll in 2028 and 2029"),
 ]
 hdr = 5
 ws.cell(row=hdr - 1, column=2, value="Input").font = font_header()
@@ -82,11 +85,11 @@ ws.cell(row=r, column=4, value="Start month").font = font_header()
 style_header_row(ws, row_num=r, col_start=2, col_end=4)
 r += 1
 payroll = [
-    ("Founder / CEO", 75_000, "Feb 2027"),
-    ("Senior Security Engineer", 150_000, "Feb 2027"),
-    ("Full-stack Engineer", 120_000, "Jul 2027"),
-    ("SOC Analyst", 90_000, "Sep 2027"),
-    ("Operations & Admin (PT)", 60_000, "Jul 2027"),
+    ("Founder / CEO — Solomon Asalif", 75_000, "Feb 2027"),
+    ("Co-founder / CTO — Zelalem Tsegaaye", 130_000, "Feb 2027"),
+    ("Full-stack Engineer", 90_000, "Jul 2027"),
+    ("SOC Analyst", 75_000, "Sep 2027"),
+    ("Operations & Admin (PT)", 50_000, "Jul 2027"),
 ]
 for role, mo, st in payroll:
     ws.cell(row=r, column=2, value=role).font = font_body()
@@ -95,7 +98,9 @@ for role, mo, st in payroll:
     style_data_row(ws, row_num=r, col_start=2, col_end=4, row_index=r - pay_hdr - 1)
     r += 1
 r += 1
-ws.cell(row=r, column=2, value="Pricing principle: USD-indexed with annual birr-adjustment clause; pilots are discounted, never free.").font = font_caption()
+ws.cell(row=r, column=2, value="Salary anchor: levels.fyi median software-engineer pay, Addis Ababa — ETB 55,738/month (Nov 2026). Role ladder runs 1.25-2.5x that median; escalates 10%/yr in 2028-2029 below the 14.6% Oct 2026 headline inflation.").font = font_caption()
+r += 1
+ws.cell(row=r, column=2, value="Pricing principle: USD-indexed with annual birr-adjustment clause; pilots are discounted, never free. Full benchmark table on the Basis & Sources sheet.").font = font_caption()
 
 # ═══ Sheet 2: Y1 Monthly ═════════════════════════════════════════════════════
 ws2 = wb.create_sheet("Y1 Monthly 2027")
@@ -318,7 +323,7 @@ kpis = [
     ("Subscribing institutions (cumulative)", "3 (1 bank + 2 MFIs)", "12 (6 banks + 6 MFIs)", "28 (12 + 16)"),
     ("VAPT engagements", "4", "10", "18"),
     ("SOC retainer clients (year-end)", "1", "4", "8"),
-    ("FTE at year-end", "5", "11", "20"),
+    ("FTE at year-end", "5", "10", "16"),
     ("Revenue in USD (planning rate)", f"=ROUND(C{rev_tot3}/{FX},0)", f"=ROUND(D{rev_tot3}/{FX},0)", f"=ROUND(E{rev_tot3}/{FX},0)"),
 ]
 for label, v1, v2, v3 in kpis:
@@ -384,7 +389,79 @@ for label, formula in runway:
 ws4.column_dimensions["B"].width = 36
 ws4.column_dimensions["E"].width = 60
 
-# ═══ Sheet 5: Charts ═════════════════════════════════════════════════════════
+# ═══ Sheet 5: Basis & Sources ═════════════════════════════════════════════════
+wsB = wb.create_sheet("Basis & Sources")
+B = N["basis"]
+setup_sheet(wsB, title="Basis of preparation — where every number comes from", last_col=5)
+wsB["B3"] = "Every model input is anchored to a current, citable source; every downstream figure is computed from those inputs. Prepared November 2026."
+wsB["B3"].font = font_caption()
+
+hdr = 5
+for c, t in zip(range(2, 6), ["Input", "Value used", "Source (current as of Nov 2026)"]):
+    wsB.cell(row=hdr, column=c, value=t).font = font_header()
+style_header_row(wsB, row_num=hdr, col_start=2, col_end=4)
+basis_rows = [
+    ("Exchange rate", f"ETB {N['fx_etb_per_usd']:.2f} / USD", B["fx_note"]),
+    ("Market size & growth", "USD 361.1M (2025); CAGR 8.16%", B["market"]),
+    ("Buyer universe", "31 commercial banks + 59 MFIs", B["institutions"]),
+    ("Salary anchor", "ETB 55,738/month median", B["salary_anchor"]),
+    ("Cost escalation", "10% per year on payroll", B["inflation_note"]),
+    ("Contingency", "10% on operating subtotals", "Standard pre-seed practice for a first operating year"),
+]
+r = hdr + 1
+for label, val, src in basis_rows:
+    wsB.cell(row=r, column=2, value=label).font = font_body()
+    wsB.cell(row=r, column=3, value=val).font = font_body()
+    wsB.cell(row=r, column=4, value=src).font = font_caption()
+    style_data_row(wsB, row_num=r, col_start=2, col_end=4, row_index=r - hdr - 1)
+    r += 1
+
+r += 1
+wsB.cell(row=r, column=2, value="Pricing benchmarks — list prices vs current global comparables").font = font_subheader()
+r += 1
+for c, t in zip(range(2, 6), ["Offer", "List price (ETB)", "Benchmark (current market data)"]):
+    wsB.cell(row=r, column=c, value=t).font = font_header()
+style_header_row(wsB, row_num=r, col_start=2, col_end=4)
+pb_start = r + 1
+r += 1
+for offer, price, bench in B["pricing_benchmarks"]:
+    wsB.cell(row=r, column=2, value=offer).font = font_body()
+    c = wsB.cell(row=r, column=3, value=price); c.number_format = ETB; c.font = font_body()
+    wsB.cell(row=r, column=4, value=bench).font = font_caption()
+    style_data_row(wsB, row_num=r, col_start=2, col_end=4, row_index=r - pb_start)
+    r += 1
+
+r += 1
+wsB.cell(row=r, column=2, value="Feasibility — computed, not asserted").font = font_subheader()
+r += 1
+feas = B["feasibility"]
+feas_rows = [
+    ("Projected market (USD M, IMARC 8.16% CAGR)", f"{feas['market_2027_2029_usd'][0]} / {feas['market_2027_2029_usd'][1]} / {feas['market_2027_2029_usd'][2]}", "2027 / 2028 / 2029 — USD 361.1M in 2025 compounded forward"),
+    ("Plan revenue as % of market", f"{feas['our_share_pct'][0]}% / {feas['our_share_pct'][1]}% / {feas['our_share_pct'][2]}%", "Even the 2029 target is under 0.06% of the projected market"),
+    ("Annual subscription TAM (ETB)", f"{feas['subscription_tam_etb']:,.0f}", "31 banks x ETB 1.8M + 59 MFIs x ETB 540K at list prices"),
+    ("2029 subscription share of TAM", f"{feas['y3_subs_share_of_tam_pct']}%", "ETB 22.14M of ETB 87.66M"),
+    ("2029 institution shares", f"banks {feas['y3_bank_share_pct']}% · MFIs {feas['y3_mfi_share_pct']}%", "12 of 31 banks; 16 of 59 MFIs — under NBE LOT4 sector-wide procurement pressure"),
+    ("Cumulative 2027-2028 net burn (ETB)", f"{feas['cum_net_2027_2028']:,.0f}", "ETB -5.33M (2027) + ETB -0.32M (2028)"),
+    ("Ask coverage of that burn", f"{feas['ask_coverage_of_2yr_burn']}x", "ETB 10M ask — margin for the pre-revenue H1 2027, working-capital timing and birr movement"),
+]
+for label, val, note in feas_rows:
+    wsB.cell(row=r, column=2, value=label).font = font_body()
+    wsB.cell(row=r, column=3, value=val).font = font_body()
+    wsB.cell(row=r, column=4, value=note).font = font_caption()
+    style_data_row(wsB, row_num=r, col_start=2, col_end=4, row_index=0)
+    r += 1
+
+r += 1
+wsB.cell(row=r, column=2, value="Sources").font = font_subheader()
+r += 1
+for src in B["sources"]:
+    wsB.cell(row=r, column=2, value="· " + src).font = font_caption()
+    r += 1
+wsB.column_dimensions["B"].width = 38
+wsB.column_dimensions["C"].width = 26
+wsB.column_dimensions["D"].width = 70
+
+# ═══ Sheet 6: Charts ═════════════════════════════════════════════════════════
 ws5 = wb.create_sheet("Charts")
 setup_sheet(ws5, title="Model summary and charts", last_col=6)
 ws5["B3"] = "Snapshot values mirroring the model sheets (formulas kept in the model; charts need cached values)."
@@ -414,14 +491,17 @@ bar.series[1].graphicalProperties.solidFill = NEUTRAL_600
 bar.series[2].graphicalProperties.solidFill = ACCENT_POSITIVE if N["summary"]["net"][0] >= 0 else ACCENT_NEGATIVE
 ws5.add_chart(bar, "B10")
 
-# cumulative cash line (from Y1 monthly + Y2/Y3 nets)
+# cumulative cash line (from Y1 monthly model + Y2/Y3 nets)
 line_r = 26
 ws5.cell(row=line_r - 1, column=2, value="Cumulative cash position (ETB, incl. ask)").font = font_subheader()
 cum_labels = ["Jan 2027"] + [f"{m} 2027" for m in months[1:]] + ["2028", "2029"]
 vals = []
 cash = N["ask_etb"]
+# exact monthly cost mirroring the Y1 Monthly sheet: payroll + hosting + allocations, plus 10% contingency
+alloc_month = round(2_250_000 / 12) + round(900_000 / 12) + round(450_000 / 12) + round(600_000 / 12)
 for m in months:
-    cash += N["y1"]["revenue_monthly"][m] - (round((N["y1"]["salaries_monthly"][m] + 75000 + round(2_250_000 / 12) + round(900_000 / 12) + round(450_000 / 12) + round(600_000 / 12)) * 1.1))
+    monthly_cost = (N["y1"]["salaries_monthly"][m] + 75_000 + alloc_month) * 1.10
+    cash += N["y1"]["revenue_monthly"][m] - round(monthly_cost)
     vals.append(round(cash))
 vals.append(round(cash + N["summary"]["net"][1]))
 vals.append(round(cash + N["summary"]["net"][1] + N["summary"]["net"][2]))

@@ -1,5 +1,5 @@
 {
-  "fx_etb_per_usd": 150.0,
+  "fx_etb_per_usd": 160.93,
   "ask_etb": 10000000,
   "runway_months": 18,
   "use_of_funds": {
@@ -34,19 +34,19 @@
     "revenue_total": 4020000,
     "salaries_monthly": {
       "Jan": 0,
-      "Feb": 225000,
-      "Mar": 225000,
-      "Apr": 225000,
-      "May": 225000,
-      "Jun": 225000,
-      "Jul": 405000,
-      "Aug": 405000,
-      "Sep": 495000,
-      "Oct": 495000,
-      "Nov": 495000,
-      "Dec": 495000
+      "Feb": 205000,
+      "Mar": 205000,
+      "Apr": 205000,
+      "May": 205000,
+      "Jun": 205000,
+      "Jul": 345000,
+      "Aug": 345000,
+      "Sep": 420000,
+      "Oct": 420000,
+      "Nov": 420000,
+      "Dec": 420000
     },
-    "salaries_total": 3915000,
+    "salaries_total": 3395000,
     "other_costs": {
       "Hosting & tooling": 900000,
       "ISO 27001 certification": 2250000,
@@ -54,9 +54,9 @@
       "Pilot operations": 450000,
       "Marketing & BD": 600000
     },
-    "contingency": 901500,
-    "costs_total": 9916500,
-    "net": -5896500,
+    "contingency": 850000.0,
+    "costs_total": 9345000.0,
+    "net": -5325000.0,
     "fte_eoy": 5,
     "subs_eoy": {
       "banks": 1,
@@ -76,15 +76,15 @@
     },
     "revenue_total": 19260000,
     "salaries": {
-      "Founder / CEO": 900000,
-      "Senior Security Engineer": 1800000,
-      "Full-stack Engineer": 1440000,
-      "Full-stack Engineer #2": 1440000,
-      "SOC Manager": 2160000,
-      "SOC Analysts (2)": 2160000,
-      "SOC Analyst #3 (from Jul)": 540000,
-      "Partnerships & Sales Lead": 1440000,
-      "Operations & Admin": 1080000
+      "Founder / CEO \u2014 Solomon Asalif": 990000.0,
+      "Co-founder / CTO \u2014 Zelalem Tsegaaye": 1716000.0,
+      "Full-stack Engineer": 1188000.0,
+      "Full-stack Engineer #2": 1188000.0,
+      "SOC Manager": 1848000.0,
+      "SOC Analysts (2)": 1980000.0,
+      "SOC Analyst #3 (from Jul)": 495000.0,
+      "Partnerships & Sales Lead": 1320000.0,
+      "Operations & Admin": 924000.0
     },
     "other_costs": {
       "Hosting & tooling": 1800000,
@@ -93,10 +93,10 @@
       "Marketing & BD": 1800000,
       "Office & misc": 1200000
     },
-    "contingency": 1911000,
-    "costs_total": 21021000,
-    "net": -1761000,
-    "fte_eoy": 11,
+    "contingency": 1780000.0,
+    "costs_total": 19579000.0,
+    "net": -319000.0,
+    "fte_eoy": 10,
     "subs_eoy": {
       "banks": 6,
       "mfis": 6
@@ -115,13 +115,13 @@
     },
     "revenue_total": 44640000,
     "salaries": {
-      "Founder / CEO": 900000,
-      "Senior Security Engineer / CTO": 2160000,
-      "Full-stack Engineers (3)": 4320000,
-      "SOC Manager": 2160000,
-      "SOC Analysts (6)": 6480000,
-      "Partnerships & Sales (2)": 2880000,
-      "Operations & Admin (2)": 2160000
+      "Founder / CEO \u2014 Solomon Asalif": 1089000.0,
+      "Co-founder / CTO \u2014 Zelalem Tsegaaye": 1888000.0,
+      "Full-stack Engineers (3)": 3920000.0,
+      "SOC Manager": 2033000.0,
+      "SOC Analysts (6)": 6534000.0,
+      "Partnerships & Sales (2)": 2904000.0,
+      "Operations & Admin (2)": 2033000.0
     },
     "other_costs": {
       "Hosting & tooling": 3600000,
@@ -130,10 +130,10 @@
       "Marketing & BD": 3600000,
       "Office & misc": 2400000
     },
-    "contingency": 3291000,
-    "costs_total": 36201000,
-    "net": 8439000,
-    "fte_eoy": 20,
+    "contingency": 3225000.0,
+    "costs_total": 35476000.0,
+    "net": 9164000.0,
+    "fte_eoy": 16,
     "subs_eoy": {
       "banks": 12,
       "mfis": 16
@@ -149,20 +149,85 @@
       44640000
     ],
     "costs": [
-      9916500,
-      21021000,
-      36201000
+      9345000.0,
+      19579000.0,
+      35476000.0
     ],
     "net": [
-      -5896500,
-      -1761000,
-      8439000
+      -5325000.0,
+      -319000.0,
+      9164000.0
     ],
     "revenue_usd": [
-      26800,
-      128400,
-      297600
+      24980,
+      119679,
+      277388
     ],
-    "ask_usd": 66667
+    "ask_usd": 62139
+  },
+  "basis": {
+    "prepared": "November 2026",
+    "fx_note": "NBE Indicative Daily Exchange Rate, 12 Nov 2026 (nbe.gov.et/exchange)",
+    "inflation_note": "ESS headline inflation 14.6% (Oct 2026); salaries escalated 10%/yr in the plan",
+    "salary_anchor": "levels.fyi median software-engineer pay, Addis Ababa: ETB 55,738/month (Nov 2026); roles set at 1.25-2.5x median",
+    "escalation": 0.1,
+    "market": "IMARC Group: USD 361.1M (2025) to USD 746.6M (2034), CAGR 8.16%",
+    "institutions": "NBE Annual Report 2024/25: 31 commercial banks (+DBE) and 59 MFIs licensed at June 2025",
+    "sources": [
+      "National Bank of Ethiopia \u2014 Indicative Daily Exchange Rate, 12 Nov 2026 (nbe.gov.et/exchange)",
+      "IMARC Group \u2014 Ethiopia Cybersecurity Market, 2025-2034 (imarcgroup.com)",
+      "NBE Annual Report 2024/25 & Financial Stability Report \u2014 bank and MFI counts, June 2025",
+      "levels.fyi \u2014 Software Engineer salary, Addis Ababa, median ETB 55,738/month, Nov 2026",
+      "Ethiopian Statistical Service (via Trading Economics) \u2014 headline inflation 14.6%, Oct 2026",
+      "Vendr \u2014 independent SaaS procurement data, median annual Vanta spend approx. USD 20,000",
+      "Blaze InfoSec / Stingrai / Synack 2026 pricing guides \u2014 web application penetration testing USD 5,000-30,000",
+      "Managed SOC pricing guides 2026 \u2014 USD 1,000/month minimum, USD 5-25 per endpoint/month",
+      "Vanta / StrongDM ISO 27001 cost guides \u2014 USD 6,000-40,000 total for a small organisation"
+    ],
+    "pricing_benchmarks": [
+      [
+        "Bank platform subscription",
+        1800000,
+        "USD 11,185/yr \u2014 56% of the USD 20K median for GRC compliance platforms (Vendr)"
+      ],
+      [
+        "MFI platform subscription",
+        540000,
+        "USD 3,354/yr \u2014 small-institution tier"
+      ],
+      [
+        "VAPT engagement",
+        450000,
+        "USD 2,799 \u2014 56% of the USD 5,000 global floor for web-app penetration tests (2026 guides)"
+      ],
+      [
+        "SOC/CERT retainer",
+        150000,
+        "USD 932/month \u2014 below the USD 1,000/month managed-SOC entry price (2026 guides)"
+      ],
+      [
+        "Awareness training engagement",
+        300000,
+        "USD 1,865 \u2014 Amharic-first delivery no international vendor offers"
+      ]
+    ],
+    "feasibility": {
+      "market_2027_2029_usd": [
+        422.4,
+        456.9,
+        494.2
+      ],
+      "our_share_pct": [
+        0.0059,
+        0.0262,
+        0.0561
+      ],
+      "subscription_tam_etb": 87660000,
+      "y3_subs_share_of_tam_pct": 25.3,
+      "y3_bank_share_pct": 38.7,
+      "y3_mfi_share_pct": 27.1,
+      "cum_net_2027_2028": -5644000.0,
+      "ask_coverage_of_2yr_burn": 1.77
+    }
   }
 }
