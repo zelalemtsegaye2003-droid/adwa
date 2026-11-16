@@ -8,7 +8,7 @@ const cover = C.buildCoverR1({
   englishLabel: "PROBLEM AND SOLUTION",
   metaLines: [
     "Venture: Adwa Sec",
-    "Authors: Solomon Asalif & Zelalem Tsegaaye, Founders",
+    "Authors: Solomon Asalif & Zelalem Tsegaye, Founders",
     "Date: November 2026",
     "Audience: Startup incubation programme reviewers",
   ],

@@ -3,7 +3,7 @@
  * ---------------------------------------------------------------------
  * Verifies the live binding of the synchronisation layer to the national
  * exchange API (development mock on :3020 — mini-services/mock-ethiocert,
- * started by .devscripts/dev.sh):
+ * started separately, see its package.json):
  *
  *   1. Exchange mock contract: bearer auth on /feed, feed content
  *   2. GET /api/threats/sync — binding status (live, endpoint, key)

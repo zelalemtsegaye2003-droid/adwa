@@ -137,8 +137,8 @@ Verified by `scripts/test-owasp.ts` (67 checks). Hardening added during the pass
 | **A09** Logging & Monitoring | All auth events audited with IP + user agent (LOGIN_*, MFA_*, ACCOUNT_LOCKED, TOKEN_REUSE_DETECTED, ACCESS_DENIED, GOOGLE_LOGIN, USER_*); probes confirmed credentials never appear in the audit trail |
 | **A10** SSRF | No server-side fetch of user-controlled URLs (statically verified — all fetch targets are constants/env); OAuth endpoints fixed via environment |
 
-`frame-ancestors` allows `https://*.preview.invalid` in addition to `'self'`
-because the sandbox preview renders the app in a frame.
+`frame-ancestors` is `'self'` only — arbitrary framers are denied
+(clickjacking protection, WS-8).
 
 ## Key source files
 

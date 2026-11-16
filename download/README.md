@@ -4,7 +4,7 @@ Ten deliverables answering the incubation programme's requirement checklist,
 produced from the venture's real platform work (VAPT Center, AD Attack Paths,
 bid matrix, compliance engine) and a benchmarked financial model.
 
-Founders: **Solomon Asalif** (Founder & CEO) and **Zelalem Tsegaaye**
+Founders: **Solomon Asalif** (Founder & CEO) and **Zelalem Tsegaye**
 (Co-founder & CTO) — named consistently across every document in this package.
 
 ## The package (requirement → file)

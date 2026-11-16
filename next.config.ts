@@ -7,10 +7,8 @@ const isDev = process.env.NODE_ENV !== "production";
  *  - script/style: Next.js injects inline bootstrap + Tailwind styles →
  *    'unsafe-inline' is required for both; 'unsafe-eval' only in dev (HMR).
  *  - img: data: URIs carry the built-in captcha SVG; blob: for avatars.
- *  - frame-ancestors: deny arbitrary framers (clickjacking) but allow the
- *    platform's own preview host (the sandbox renders the app in a frame).
- *    NOTE: remove `https://*.preview.invalid` for non-sandbox deployments — it is
- *    preview-environment specific (decision D4 / WS-8).
+ *  - frame-ancestors: 'self' only — deny arbitrary framers (clickjacking
+ *    protection, decision D4 / WS-8; no environment-specific exceptions).
  */
 const csp = [
   "default-src 'self'",
@@ -19,7 +17,7 @@ const csp = [
   "img-src 'self' data: blob:",
   "font-src 'self' data:",
   "connect-src 'self'",
-  "frame-ancestors 'self' https://*.preview.invalid",
+  "frame-ancestors 'self'",
   "base-uri 'self'",
   "form-action 'self'",
   "object-src 'none'",
