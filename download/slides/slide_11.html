@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Adwa Sec — Team &amp; Close</title>
+<link rel="stylesheet" href="global.css">
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+<style>
+  html, body { margin:0; padding:0; width:1280px; height:720px; overflow:hidden; background:var(--bg); }
+  .slide { width:1280px; height:720px; min-height:0; display:flex; flex-direction:column; }
+  .chip { width:34px; height:34px; border-radius:9px; background:rgba(34,211,238,.08); border:1px solid rgba(34,211,238,.3); display:flex; align-items:center; justify-content:center; flex:none; }
+  .chip .material-icons { font-size:18px; color:var(--accent); }
+  .fline { display:flex; align-items:flex-start; gap:13px; }
+  .fline-text { font-size:14.5px; line-height:20px; color:var(--primary); min-width:0; }
+  .milestone { position:relative; padding-left:28px; }
+  .dot { position:absolute; left:1px; top:7px; width:11px; height:11px; border-radius:50%; background:var(--bg-3); border:2px solid var(--accent); }
+</style>
+</head>
+<body>
+<main class="slide">
+
+  <header style="flex:none;">
+    <div class="kicker">TEAM &amp; ASK</div>
+    <h1 style="font-family:var(--font-heading); font-weight:700; font-size:38px; line-height:44px; letter-spacing:-0.01em; margin:10px 0 0;">
+      A founder who ships — <span class="accent-text">and the plan to prove it at scale.</span>
+    </h1>
+  </header>
+
+  <section style="flex:1; min-height:0; display:grid; grid-template-columns:470px 1fr; gap:24px; margin-top:22px;">
+
+    <!-- Founder card -->
+    <article class="card" style="padding:20px 24px; display:flex; flex-direction:column; min-height:0;">
+      <div style="display:flex; align-items:center; gap:16px; flex:none;">
+        <div style="width:54px; height:54px; border-radius:50%; background:rgba(34,211,238,.1); border:1px solid rgba(34,211,238,.4); display:flex; align-items:center; justify-content:center; flex:none;">
+          <i class="material-icons" style="font-size:26px; color:var(--accent);">person</i>
+        </div>
+        <div>
+          <div style="font-family:var(--font-heading); font-size:24px; font-weight:700; line-height:28px; color:var(--primary);">Solomon Asalif</div>
+          <div class="num" style="font-size:11px; letter-spacing:.26em; color:var(--muted); margin-top:5px;">FOUNDER · CEO</div>
+        </div>
+      </div>
+      <div class="rule" style="margin:16px 0 0; flex:none;"></div>
+      <div style="flex:1; display:flex; flex-direction:column; justify-content:space-evenly; min-height:0;">
+        <div class="fline">
+          <div class="chip"><i class="material-icons">terminal</i></div>
+          <div class="fline-text">built the platform end-to-end <span class="muted-text">(Next.js 16, TypeScript, 766 checks green)</span></div>
+        </div>
+        <div class="fline">
+          <div class="chip"><i class="material-icons">description</i></div>
+          <div class="fline-text">authored the NBE LOT4 tender response — <span class="accent-text num" style="font-weight:600;">all 66 lines</span></div>
+        </div>
+        <div class="fline">
+          <div class="chip"><i class="material-icons">school</i></div>
+          <div class="fline-text">Adwa Cyber Research Lab, Bahir Dar University</div>
+        </div>
+        <div class="fline">
+          <div class="chip"><i class="material-icons">person_add</i></div>
+          <div class="fline-text">hiring from Q1 2027: senior security engineer first; 5 FTE by year-end</div>
+        </div>
+      </div>
+    </article>
+
+    <!-- Roadmap strip -->
+    <article class="card-deep" style="padding:20px 24px; display:flex; flex-direction:column; min-height:0;">
+      <div style="display:flex; align-items:center; justify-content:space-between; flex:none;">
+        <span class="kicker" style="letter-spacing:.3em;">ROADMAP</span>
+        <span class="num" style="font-size:13px; color:var(--muted);">2027 <span class="accent-text">→</span> 2028 <span class="accent-text">→</span> 2029</span>
+      </div>
+      <div class="rule" style="margin-top:12px; flex:none;"></div>
+      <div style="flex:1; position:relative; min-height:0;">
+        <div data-decor aria-hidden="true" style="position:absolute; left:6px; top:24px; bottom:24px; width:1px; background:rgba(140,160,180,.25);"></div>
+        <div style="position:absolute; inset:0; display:flex; flex-direction:column; justify-content:space-evenly;">
+          <div class="milestone">
+            <div class="dot" data-decor aria-hidden="true"></div>
+            <div style="display:flex; align-items:baseline; gap:10px; flex-wrap:wrap;">
+              <span class="num" style="font-size:22px; font-weight:600; color:var(--accent);">2027</span>
+              <span style="color:var(--muted); font-size:14px;">—</span>
+              <span style="font-family:var(--font-heading); font-size:15.5px; font-weight:500; color:var(--primary);">register PLC · paid pilots · SOC 24/5 · ISO 27001</span>
+            </div>
+          </div>
+          <div class="milestone">
+            <div class="dot" data-decor aria-hidden="true"></div>
+            <div style="display:flex; align-items:baseline; gap:10px; flex-wrap:wrap;">
+              <span class="num" style="font-size:22px; font-weight:600; color:var(--accent);">2028</span>
+              <span style="color:var(--muted); font-size:14px;">—</span>
+              <span style="font-family:var(--font-heading); font-size:15.5px; font-weight:500; color:var(--primary);">productise · 12 subscribers · run-rate break-even</span>
+            </div>
+          </div>
+          <div class="milestone">
+            <div class="dot" data-decor aria-hidden="true"></div>
+            <div style="display:flex; align-items:baseline; gap:10px; flex-wrap:wrap;">
+              <span class="num" style="font-size:22px; font-weight:600; color:var(--accent);">2029</span>
+              <span style="color:var(--muted); font-size:14px;">—</span>
+              <span style="font-family:var(--font-heading); font-size:15.5px; font-weight:500; color:var(--primary);">28 subscribers · first profitable year · regional option</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </article>
+  </section>
+
+  <!-- Big closing line -->
+  <div style="flex:none; margin-top:20px; display:flex; gap:18px; align-items:stretch;">
+    <div data-decor aria-hidden="true" style="width:4px; border-radius:2px; background:var(--accent); flex:none;"></div>
+    <div style="min-width:0;">
+      <div style="font-family:var(--font-heading); font-size:32px; font-weight:700; line-height:38px; color:var(--primary);"><span class="accent-text">Adwa Sec</span> — <span style="color:var(--primary);">ETB 10M · 18 months</span></div>
+      <div style="font-family:var(--font-heading); font-size:18px; font-weight:500; line-height:24px; color:var(--muted); margin-top:6px;">the working platform, the mapped regulation, the local team.</div>
+    </div>
+  </div>
+
+  <!-- Contact placeholders -->
+  <footer style="flex:none; margin-top:16px; display:flex; align-items:center; gap:9px;">
+    <i class="material-icons" style="font-size:15px; color:var(--muted);">call</i>
+    <span class="num" style="font-size:13px; color:var(--muted);">[+251-9XX-XXX-XXX]</span>
+    <span style="color:var(--muted);">·</span>
+    <i class="material-icons" style="font-size:15px; color:var(--muted);">mail</i>
+    <span class="num" style="font-size:13px; color:var(--muted);">[email@example.com]</span>
+  </footer>
+
+</main>
+
+<aside data-notes class="hidden" style="display:none;">
+  <ul>
+    <li>Founder Solomon Asalif built the platform end-to-end (Next.js 16, TypeScript, 766 checks green) and authored all 66 lines of the NBE LOT4 tender response himself.</li>
+    <li>Institutional backing: Adwa Cyber Research Lab, Bahir Dar University; hiring starts Q1 2027 — senior security engineer first, 5 FTE by year-end.</li>
+    <li>Roadmap: 2027 register PLC, paid pilots, SOC 24/5, ISO 27001 → 2028 productise, 12 subscribers, run-rate break-even → 2029 28 subscribers, first profitable year, regional option.</li>
+    <li>Close on the ask: ETB 10M over 18 months — the working platform, the mapped regulation, the local team.</li>
+    <li>Contact details on screen are placeholders; invite questions and follow-up conversations.</li>
+  </ul>
+</aside>
+</body>
+</html>

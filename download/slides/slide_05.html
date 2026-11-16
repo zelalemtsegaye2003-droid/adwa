@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Adwa Sec — Why now</title>
+<link rel="stylesheet" href="global.css">
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+<style>
+  html,body{margin:0;padding:0;background:var(--bg);}
+  [data-notes]{display:none !important;}
+  .slide{height:720px;padding:0;}
+  .kicker-row{display:flex;align-items:center;gap:14px;}
+  .kicker-bar{width:34px;height:2px;background:var(--accent);}
+  .headline{font-family:var(--font-heading);font-size:44px;font-weight:600;line-height:1.13;letter-spacing:-0.012em;color:var(--primary);margin-top:16px;max-width:620px;}
+  .timeline{margin-top:38px;position:relative;max-width:640px;}
+  .timeline::before{content:'';position:absolute;left:5px;top:12px;bottom:16px;width:2px;background:linear-gradient(180deg,rgba(34,211,238,.6),rgba(34,211,238,.10));}
+  .tl-item{position:relative;padding-left:36px;padding-bottom:30px;}
+  .tl-item:last-child{padding-bottom:0;}
+  .tl-node{position:absolute;left:0;top:6px;width:12px;height:12px;background:var(--bg);border:2px solid var(--accent);transform:rotate(45deg);}
+  .tl-year{font-family:var(--font-num);font-size:17px;font-weight:600;letter-spacing:.16em;color:var(--accent);}
+  .tl-text{font-family:var(--font-body);font-size:16px;line-height:1.55;color:var(--muted);margin-top:7px;max-width:585px;}
+  .em{font-family:var(--font-num);color:var(--primary);font-weight:600;font-size:15px;letter-spacing:-0.01em;}
+  .arrow{color:var(--accent);}
+  .market-card{background:var(--bg-2);border:1px solid var(--line);border-radius:12px;padding:16px 20px;}
+  .market-card .tl-text{font-size:17px;max-width:560px;}
+</style>
+</head>
+<body>
+<div class="slide">
+  <!-- Right 40%: hero image with subtle dark overlay -->
+  <div class="absolute top-0 right-0 h-full" style="width:512px;">
+    <img src="https://z-cdn.chatglm.cn/image-search-mcp/images-ppt/a591676650a0.jpg" alt="Contactless mobile payment over a card terminal" style="width:100%;height:100%;object-fit:cover;filter:brightness(.95);">
+    <div data-decor aria-hidden="true" style="position:absolute;inset:0;background:linear-gradient(90deg,#0B1220 0%,rgba(11,18,32,.72) 18%,rgba(11,18,32,.26) 60%,rgba(11,18,32,.40) 100%);"></div>
+    <div data-decor aria-hidden="true" style="position:absolute;left:0;right:0;bottom:0;height:150px;background:linear-gradient(0deg,rgba(11,18,32,.60),rgba(11,18,32,0));"></div>
+  </div>
+
+  <!-- Left 60%: content -->
+  <div class="relative" style="width:768px;height:720px;padding:56px 40px 56px 64px;box-sizing:border-box;">
+    <div class="kicker-row"><span class="kicker-bar" aria-hidden="true"></span><span class="kicker">WHY NOW</span></div>
+    <h1 class="headline">Regulation, losses and a growing market have converged.</h1>
+
+    <div class="timeline">
+      <div class="tl-item">
+        <span class="tl-node" aria-hidden="true"></span>
+        <div class="tl-year">2024</div>
+        <div class="tl-text">Proclamation 1321/2024 in force: <span class="em">47 obligations</span>, penalties up to <span class="em">4%</span> of global turnover + executive imprisonment</div>
+      </div>
+      <div class="tl-item">
+        <span class="tl-node" aria-hidden="true"></span>
+        <div class="tl-year">2025</div>
+        <div class="tl-text">reported digital-fraud losses reach <span class="em">ETB 1.3B</span>; CBE service disruption</div>
+      </div>
+      <div class="tl-item">
+        <span class="tl-node" aria-hidden="true"></span>
+        <div class="tl-year">2026</div>
+        <div class="tl-text">NBE directives bite: <span class="em">SBB/83/2022</span> obligations + the <span class="em">NBE/NCB/S/02/2026/27</span> LOT4 security tender is live now</div>
+      </div>
+      <div class="tl-item">
+        <span class="tl-node" aria-hidden="true"></span>
+        <div class="market-card">
+          <div class="tl-year">Market</div>
+          <div class="tl-text"><span class="em">USD 361.1M</span> (2025) <span class="arrow">→</span> <span class="em">USD 746.6M</span> (2034), <span class="em">8.16%</span> CAGR (IMARC)</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<aside data-notes class="hidden">
+  <ul>
+    <li>Walk the convergence: 2024 regulation → 2025 losses → 2026 directives and a live tender → market growth.</li>
+    <li>2024: Proclamation 1321/2024 in force — 47 obligations; penalties up to 4% of global turnover plus executive imprisonment.</li>
+    <li>2025: reported digital-fraud losses reach ETB 1.3B; CBE service disruption.</li>
+    <li>2026: SBB/83/2022 obligations plus the NBE/NCB/S/02/2026/27 LOT4 security tender is live now — buyers have budget and deadline today.</li>
+    <li>Market: USD 361.1M (2025) → USD 746.6M (2034), 8.16% CAGR (IMARC).</li>
+  </ul>
+</aside>
+</body>
+</html>

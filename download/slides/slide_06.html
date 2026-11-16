@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Adwa Sec — Business model</title>
+<link rel="stylesheet" href="global.css">
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+<style>
+  html,body{margin:0;padding:0;background:var(--bg);}
+  [data-notes]{display:none !important;}
+  .slide{height:720px;padding:52px 64px 54px;display:flex;flex-direction:column;box-sizing:border-box;}
+  .kicker-row{display:flex;align-items:center;gap:14px;}
+  .kicker-bar{width:34px;height:2px;background:var(--accent);}
+  .headline{font-family:var(--font-heading);font-size:42px;font-weight:600;line-height:1.12;letter-spacing:-.012em;color:var(--primary);margin-top:12px;}
+  .grp{display:flex;align-items:center;gap:12px;}
+  .grp-tick{width:22px;height:2px;background:var(--accent);flex:none;}
+  .grp-label{font-family:var(--font-num);font-size:12px;letter-spacing:.24em;color:var(--muted);text-transform:uppercase;white-space:nowrap;}
+  .grp-rule{flex:1;height:1px;background:rgba(140,160,180,.18);}
+  .row3{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-top:10px;}
+  .row2{display:grid;grid-template-columns:repeat(2,1fr);gap:18px;margin-top:10px;}
+  .pcard{background:var(--bg-2);border:1px solid var(--line);border-radius:14px;padding:20px 22px 18px;display:flex;flex-direction:column;}
+  .pc-icon{font-size:25px;color:var(--muted);}
+  .pc-price{margin-top:auto;display:flex;align-items:baseline;gap:9px;}
+  .cur{font-family:var(--font-num);font-size:15px;color:var(--muted);}
+  .val{font-family:var(--font-num);font-size:45px;font-weight:600;color:var(--accent);letter-spacing:-.02em;line-height:1;}
+  .per{font-family:var(--font-num);font-size:14px;color:var(--muted);}
+  .pc-label{font-size:15px;color:rgba(245,247,250,.88);line-height:1.45;margin-top:12px;border-top:1px solid rgba(140,160,180,.18);padding-top:11px;}
+  .strip{margin-top:auto;background:var(--bg-3);border:1px solid rgba(140,160,180,.18);border-radius:14px;padding:15px 24px;display:flex;align-items:center;gap:16px;}
+  .strip-icon{color:var(--accent);font-size:25px;flex:none;}
+  .strip-text{font-size:15px;line-height:1.5;color:var(--muted);}
+  .strip-text .p{color:var(--primary);}
+  .strip-text .b{color:var(--primary);font-weight:600;}
+</style>
+</head>
+<body>
+<div class="slide">
+  <div class="kicker-row"><span class="kicker-bar" aria-hidden="true"></span><span class="kicker">BUSINESS MODEL</span></div>
+  <h1 class="headline">Hybrid: recurring subscriptions + project services.</h1>
+
+  <div class="grp" style="margin-top:30px;">
+    <span class="grp-tick" aria-hidden="true"></span>
+    <span class="grp-label">Recurring subscriptions</span>
+    <span class="grp-rule" aria-hidden="true"></span>
+  </div>
+  <div class="row3">
+    <div class="pcard">
+      <i class="material-icons pc-icon">account_balance</i>
+      <div class="pc-price"><span class="cur">ETB</span><span class="val">1.8M</span><span class="per">/ year</span></div>
+      <div class="pc-label">Bank platform subscription</div>
+    </div>
+    <div class="pcard">
+      <i class="material-icons pc-icon">savings</i>
+      <div class="pc-price"><span class="cur">ETB</span><span class="val">540K</span><span class="per">/ year</span></div>
+      <div class="pc-label">MFI subscription</div>
+    </div>
+    <div class="pcard">
+      <i class="material-icons pc-icon">track_changes</i>
+      <div class="pc-price"><span class="cur">ETB</span><span class="val">150K</span><span class="per">/ month</span></div>
+      <div class="pc-label">SOC/CERT retainer</div>
+    </div>
+  </div>
+
+  <div class="grp" style="margin-top:22px;">
+    <span class="grp-tick" aria-hidden="true"></span>
+    <span class="grp-label">Project services</span>
+    <span class="grp-rule" aria-hidden="true"></span>
+  </div>
+  <div class="row2">
+    <div class="pcard">
+      <i class="material-icons pc-icon">bug_report</i>
+      <div class="pc-price"><span class="cur">ETB</span><span class="val">450K</span></div>
+      <div class="pc-label">VAPT engagement (2–3 weeks, evidence pack)</div>
+    </div>
+    <div class="pcard">
+      <i class="material-icons pc-icon">school</i>
+      <div class="pc-price"><span class="cur">ETB</span><span class="val">300K</span></div>
+      <div class="pc-label">Awareness training engagement</div>
+    </div>
+  </div>
+
+  <div class="strip">
+    <i class="material-icons strip-icon">anchor</i>
+    <div class="strip-text">Anchored to what it replaces: a 40–80-hour manual audit, foreign day-rates, and penalty exposure. <span class="p">USD-indexed pricing with annual birr-adjustment clause; <span class="b">pilots discounted, never free.</span></span></div>
+  </div>
+</div>
+<aside data-notes class="hidden">
+  <ul>
+    <li>Hybrid model: recurring subscriptions plus project services on top.</li>
+    <li>Recurring: banks ETB 1.8M/year, MFIs ETB 540K/year, SOC/CERT retainer ETB 150K/month.</li>
+    <li>Project: VAPT engagement ETB 450K (2–3 weeks, evidence pack); awareness training ETB 300K.</li>
+    <li>Anchoring: replaces a 40–80-hour manual audit, foreign day-rates, and penalty exposure.</li>
+    <li>USD-indexed with annual birr-adjustment clause; pilots discounted — never free.</li>
+  </ul>
+</aside>
+</body>
+</html>

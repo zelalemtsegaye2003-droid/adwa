@@ -1,0 +1,1584 @@
++-----------------------------------------------------------------------+
+|   I M P L E M E N T A T I O N R O A D M A P                           |
+|                                                                       |
+|   Adwa Cyber                                                          |
+|                                                                       |
+|   Implementation Roadmap & Strategic Recommendations (2026–2029)      |
+|                                                                       |
+|   Prepared by: Solomon Asalif, Adwa Cyber Research Lab                |
+|                                                                       |
+|   Prepared for: Bahir Dar University and Pilot Partners               |
+|                                                                       |
+|   Companion to: Adwa Cyber Startup Proposal, v1.0 (May 2026)          |
+|                                                                       |
+|   Date: November 2026                                                 |
+|                                                                       |
+|   ADWA CYBER RESEARCH LAB BAHIR DAR, ETHIOPIA                         |
++-----------------------------------------------------------------------+
+
+Table of Contents
+
+1. Executive Summary 1
+
+2. Strategic Assessment of the Proposal 2
+
+2.1 What the Proposal Gets Right 2
+
+2.2 Credibility Gaps to Close Before External Use 2
+
+2.3 Assessment Conclusion 3
+
+3. Implementation Sequencing Strategy 4
+
+3.1 Why the Linear Sequence Should Change 4
+
+3.2 The Three Tracks 4
+
+3.3 What the Tracks Preserve 5
+
+4. Twelve-Month Execution Roadmap (Year 1) 5
+
+4.1 The Phase 1 Build Plan (Months 1–6) 6
+
+4.2 Quarter 1 (Months 1–3): Foundation and Build Kick-off 7
+
+4.3 Quarter 2 (Months 4–6): Build to MVP and First Paid Pilots 7
+
+4.4 Quarter 3 (Months 7–9): Pilot Execution and SOC Stand-up 7
+
+4.5 Quarter 4 (Months 10–12): Evaluation, Visibility, and Capital 8
+
+5. Years 2–3 Scale-Up Plan (2028–2029) 9
+
+5.1 Year 2 (2028): Productise and Sell 9
+
+5.2 Year 3 (2029): National Footprint and Regional Option 10
+
+5.3 Scale-Up Guardrails 10
+
+6. Legal, Governance and Institutional Setup 10
+
+6.1 Company Formation 10
+
+6.2 The Bahir Dar University Relationship 11
+
+6.3 Regulatory Engagement: INSA and Ethio-CERT 11
+
+6.4 Governance Structure 12
+
+7. Team and Organization Plan 12
+
+7.1 Retention and Key-Person De-Risking 13
+
+8. Budget and Financial Model 13
+
+8.1 Year 1 Budget 13
+
+8.2 Revenue Model 14
+
+8.3 Three-Year Illustrative Scenarios 15
+
+9. Funding Strategy 16
+
+9.1 The Hybrid Principle 16
+
+9.2 Stage 1 (Months 1–6): Non-Dilutive Foundation 16
+
+9.3 Stage 2 (Months 6–12): Revenue and Grant Stacking 17
+
+9.4 Stage 3 (Year 2): Seed Capital on Proven Metrics 17
+
+10. Go-to-Market and Partnership Strategy 18
+
+10.1 Beachhead: The Financial Sector 18
+
+10.2 The Sales Motion 18
+
+10.3 Partnership Architecture 18
+
+10.4 Competitive Positioning 19
+
+11. Risk Register and Mitigation 19
+
+11.1 The Four Risks That Matter Most 21
+
+11.2 Early-Warning Indicators 21
+
+12. KPI and Monitoring Framework 22
+
+13. First 90 Days: The 30-60-90 Action Plan 23
+
+14. Consolidated Strategic Recommendations 25
+
+Note: This Table of Contents is generated via field codes. To ensure
+page number accuracy after editing, please right-click the TOC and
+select “Update Field.”
+
+1. Executive Summary
+
+This roadmap converts the Adwa Cyber startup proposal (v1.0, May 2026)
+into an executable, fundable programme — and it deliberately
+re-baselines the plan: the platform descriptions in the proposal are
+treated as design specifications rather than existing assets, and Phase
+1, the compliance-automation platform, is scheduled to be built from
+scratch in Months 1–6. The verdict on the proposal is positive: it is
+technically credible, methodologically rigorous, and unusually well
+aligned with Ethiopia's policy architecture — the National Cybersecurity
+Policy (NCSP) 2024, Digital Ethiopia 2030, and Proclamation No.
+1321/2024. What the venture now needs is both working software and
+execution scaffolding: a legal entity, a production-grade platform,
+signed pilot commitments, a team, a budget, and a funding strategy. This
+document supplies the plan for all of it.
+
+The central strategic recommendation is to re-sequence the five phases
+into three delivery tracks. Track A (Months 1–12) builds Phase 1
+(compliance automation) from scratch in Months 1–6, productises it as
+subscription software, and stands up Phase 2 (CERT-as-a-Service) on the
+same open-source infrastructure in the second half of the year — because
+together they address acute, penalised pain: manual audits of 40–80
+hours against 47 legal obligations, with penalties of up to 4 percent of
+global turnover and executive imprisonment, and therefore can be sold,
+not just piloted. Track B runs Phase 3 (multilingual awareness) in
+parallel as a grant-funded mission programme, developing its Amharic
+curriculum and training corpus during the first half of the year. Track
+C defers Phases 4 and 5 until partnership, authorisation, and
+human-rights gates are passed, protecting the venture's credibility and
+donor eligibility.
+
+The 12-month roadmap follows the proposal's own Design Science Research
+calendar: legal setup, rule formalisation, architecture, and signed
+letters of intent in Quarter 1; the Phase 1 build to MVP and production
+deployment on Ethiopian hosting in Quarter 2; paid pilots with the
+Commercial Bank of Ethiopia, Dashen Bank, and three microfinance
+institutions from Month 6; pilot execution, SOC stand-up, and the
+five-school awareness pilot in Quarter 3; and evaluation, GCI 2026
+questionnaire data, open-sourcing of the Compliance API, and a seed
+round in Quarter 4. The Year 1 budget is estimated at USD
+104,000–193,000 (indicative planning range), funded by a deliberate
+hybrid: development-partner grants, university in-kind support, and paid
+pilot revenue — with equity investment deferred until pilot metrics
+justify a fair valuation.
+
+The five highest-priority actions, developed in Sections 2–14, are: (1)
+start the Phase 1 from-scratch build immediately — rule catalogue in
+Month 1, MVP and production deployment by Month 6; (2) convert every
+“Planned” pilot into a signed letter of intent before making any
+external claim; (3) establish the legal entity and a technology-transfer
+agreement with Bahir Dar University; (4) re-sequence delivery into the
+three tracks described above; and (5) charge for pilots from day one.
+Executed together, these steps turn a strong research artefact into an
+investable company while preserving the proposal's national mission —
+accelerating Ethiopia's trajectory from GCI Tier 3 toward Tier 2 by
+2028.
+
+2. Strategic Assessment of the Proposal
+
+2.1 What the Proposal Gets Right
+
+Four strengths distinguish this proposal from typical startup documents
+and should be preserved in every future version. First, policy alignment
+is concrete, not rhetorical: every phase maps to a specific NCSP
+section, and Appendix A of the proposal traces each NCSP tactic to a
+product component. This makes the venture legible to INSA, the Ministry
+of Innovation and Technology (MInT), and international assessors.
+Second, the evidence base is current and specific — INTERPOL's Africa
+Cyberthreat Assessment 2025 (which places Ethiopia first globally for
+malware detections in 2024), the ITU Global Cybersecurity Index 2024
+(Tier 3), and INSA's report of 27,773 sophisticated attacks in a single
+six-month period in 2025–2026. Third, the Design Science Research
+methodology with six defined research questions and quantitative success
+thresholds (for example, greater than 70 percent audit-time reduction;
+detection-to-notification latency under 15 minutes) gives funders a
+built-in evaluation framework. Fourth, the technical design is
+build-ready: the 47 obligations of Proclamation 1321/2024 are
+inventoried with enough precision to be formalised as machine-readable
+rules, and the specified open-source stack (Wazuh, MISP, BERT variants)
+is mature, licence-clean, and well matched to a small team building from
+scratch — which is exactly how this roadmap schedules the build.
+
+2.2 Credibility Gaps to Close Before External Use
+
+The same document, submitted to a bank procurement committee or a
+development-partner review panel today, would face avoidable objections.
+The gaps below are all fixable within 90 days, and the roadmap in
+Section 4 schedules them accordingly.
+
+Table 1: Proposal strengths versus execution gaps
+
+  --------------------------------------------------------------------------
+  Dimension      Strength in the proposal      Gap to close for professional
+                                               execution
+  -------------- ----------------------------- -----------------------------
+  Technology     Complete technical design:    No independently verifiable
+                 all 47 obligations of         production system exists —
+                 Proclamation 1321/2024        this roadmap therefore treats
+                 inventoried for automation;   the proposal's platform
+                 open-source stack specified   descriptions as design
+                 (Wazuh, MISP, BERT variants); documentation and
+                 dashboard and API concepts    re-baselines Phase 1 as a
+                 documented                    six-month from-scratch build
+                                               (Section 4.1)
+
+  Customers      Pilot design covers banks,    Every pilot is marked
+                 MFIs, Ethio Telecom, SMEs,    “Planned”; no signed letters
+                 schools, media, and four CII  of intent, no paid
+                 operators                     engagements, no reference
+                                               customers
+
+  Evidence       GCI 2024, INTERPOL 2025, INSA Internal inconsistency: the
+                 2026 cited with page          abstract cites a GCI score of
+                 references                    76.34 while Section 2.1 and
+                                               its pillar table total 47.32
+                                               — reconcile against the ITU
+                                               source before any external
+                                               submission
+
+  Organisation   Named lab affiliation (Adwa   No legal entity, no team
+                 Cyber Research Lab) and       plan, no budget, no revenue
+                 university sponsor            model, no governance
+                                               structure; single-founder
+                                               key-person risk is
+                                               unaddressed
+
+  Risk & ethics  Strong ethical safeguards;    Phase 4 (content filtering)
+                 ACFS includes an appeal       is politically sensitive and
+                 process, judicial oversight,  adjacent to censorship
+                 and EHRC audits               concerns; no human-rights
+                                               due-diligence plan or phased
+                                               public positioning is
+                                               described
+  --------------------------------------------------------------------------
+
+Sources: Adwa Cyber Startup Proposal v1.0 (May 2026), Tables 2, 19, 22,
+25 and Section 15; ITU GCI 2024 as cited therein.
+
+2.3 Assessment Conclusion
+
+The proposal is a strong research and vision document that now needs a
+commercial and institutional wrapper. The technical design needs no
+rethinking; what must be added is its construction and everything around
+it: a company that can sign contracts, a platform built from scratch and
+deployed to production, paying customers who validate the value
+proposition, and a governance layer that protects both the founder and
+the university. The remainder of this roadmap is organised around
+exactly that addition. It is also worth stating plainly: the sequencing,
+budget, and revenue figures in this document are planning instruments
+based on the proposal's own data and clearly labelled market estimates —
+they are decision aids, not forecasts, and should be re-validated as
+pilot data arrives.
+
+3. Implementation Sequencing Strategy
+
+3.1 Why the Linear Sequence Should Change
+
+The proposal presents the five phases as a single integrated programme,
+with Phases 4 and 5 (content filtering and critical-infrastructure
+protection) scheduled alongside the rest. That framing is appropriate
+for a national-policy audience but hazardous for a startup. Phases 4 and
+5 depend on partnerships that do not yet exist (the Ethiopian Media
+Authority, four CII operators), on authorisation pathways that must be
+confirmed with INSA and legal counsel, and — in the case of Phase 4 — on
+navigating Ethiopia's most politically sensitive terrain, where a
+mis-step could damage the credibility of the entire platform and its
+university affiliation. Pursuing all five phases simultaneously would
+also dilute a small team across five codebases and five sales motions
+before a single customer has paid or a single line of production code
+has been written.
+
+The recommended structure is therefore three tracks with explicit gates.
+The tracks differ in funding source, management rhythm, and risk
+profile, which is precisely what makes the programme manageable: the
+commercial track is judged by delivery milestones and revenue, the
+mission track by reach and learning outcomes, and the deferred track by
+gate criteria rather than dates.
+
+3.2 The Three Tracks
+
+-   Track A — Commercial core (Phases 1 and 2). Build Phase 1 from
+    scratch in Months 1–6 (Section 4.1): the rule catalogue, the
+    compliance engine, the scan engine, and the web, executive, and
+    Amharic dashboards on the open-source stack. Productise it as
+    subscription software, then stand up the CERT capability (Phase 2)
+    as a managed service on the same infrastructure, with 24/7 coverage
+    phased in from late Year 1 into Year 2. These phases solve acute,
+    quantified pain: a manual compliance audit takes 40–80 hours of
+    specialist work against obligations that carry penalties of up to 4
+    percent of global turnover and imprisonment, and private-sector
+    incident response currently does not exist. Pain that is penalised
+    and quantified is pain that budgets can be found for. Track A is the
+    only track expected to generate revenue in Year 1.
+
+-   Track B — Mission programme (Phase 3). The multilingual awareness
+    platform serves school children and the public interest, not paying
+    customers, and should be funded accordingly: by education and
+    digital-inclusion grants, in partnership with Bahir Dar University
+    and the Ministry of Education. Its Amharic curriculum and training
+    corpus are developed within the track during the first half of Year
+    1 by a grant-funded education specialist rather than engineers, so
+    the five-school pilot can run in Months 7–9 in parallel, without
+    competing with Track A for engineering attention.
+
+-   Track C — Gated expansion (Phases 4 and 5). Content filtering and
+    CII protection are strategically important but institutionally
+    demanding. They should advance only through the gates in Table 2 —
+    partnership commitments, legal authorisation, human-rights due
+    diligence, and dedicated funding — so that the core business is
+    never hostage to their slower institutional clocks.
+
+Table 2: Track structure, funding logic, and gate criteria
+
+  --------------------------------------------------------------------------
+  Track        Phases      Funding source      Advance gate criteria
+  ------------ ----------- ------------------- -----------------------------
+  A —          1 and 2     Paid pilots and     None — the Phase 1 build
+  Commercial               subscriptions;      starts immediately in Month 1
+  core                     working-capital     (Section 4.1)
+                           grant or seed round 
+                           in Quarter 4        
+
+  B — Mission  3           Education and       None — curriculum development
+  programme                digital-inclusion   starts in Month 1; grant
+                           grants; university  calendar in Section 9
+                           and ministry        
+                           in-kind support     
+
+  C — Gated    4 and 5     Dedicated           Phase 4: signed EMA
+  expansion                institutional       partnership; human-rights
+                           funding; not funded due-diligence report with
+                           from Track A        EHRC engagement; published
+                           revenue until       transparency framework. Phase
+                           profitable          5: signed MOUs with at least
+                                               two CII operators; confirmed
+                                               INSA authorisation pathway;
+                                               IEC 62443-aligned design
+                                               review; liability insurance
+  --------------------------------------------------------------------------
+
+3.3 What the Tracks Preserve
+
+This sequencing does not retreat from the proposal's ambition — it
+protects it. Every phase remains on the roadmap, the DSR research
+questions remain the evaluation spine, and the national-mission
+narrative (indigenous AI, digital sovereignty, the Adwa name) remains
+the brand. What changes is order and ownership: the venture earns the
+right to build Phases 4 and 5 by first building and proving Phases 1 and
+2 with paying customers, which is exactly the evidence INSA, the EMA,
+and CII operators will ask for anyway. In negotiations with state
+institutions, a startup that says “we protect banks today, and here is
+our certified, audited platform” is far stronger than one that asks for
+sensitive mandates on the strength of a proposal alone.
+
+4. Twelve-Month Execution Roadmap (Year 1)
+
+The Year 1 calendar below is deliberately aligned with the Design
+Science Research timeline committed to in the proposal — demonstration
+in Months 5–9 and evaluation in Months 10–12 — so that the commercial
+programme and the research programme reinforce rather than compete with
+each other. Because Phase 1 is built from scratch, the first half of the
+year belongs to the build: the MVP is complete and in production by the
+end of Month 6, pilots onboard from Month 6, and the demonstration
+window is satisfied by pilot onboarding and early execution. Each
+quarter has one dominant objective; everything else is subordinate to
+it.
+
+4.1 The Phase 1 Build Plan (Months 1–6)
+
+Building the compliance-automation platform from scratch in six months
+is the critical path of the entire roadmap, and it is planned as five
+workstreams with hard exit criteria. “From scratch” means exactly that:
+no existing codebase is assumed, and every component — rule catalogue,
+engines, dashboards, deployment — is specified, built, tested, and
+hardened within the window. The proposal's design (the 47-obligation
+inventory, the open-source stack, the dashboard concepts) is the
+blueprint; the build turns it into a running system.
+
+Table 3: Phase 1 build workstreams, activities, and exit criteria
+
+  -------------------------------------------------------------------------------
+  Workstream       Months   Key activities                  Exit criterion
+  ---------------- -------- ------------------------------- ---------------------
+  Rule             M1–M3    Convert the 47 obligations of   Rule catalogue v1.0
+  formalisation             Proclamation 1321/2024 into a   approved,
+                            machine-readable rule           version-controlled,
+                            catalogue: article reference,   and counsel-signed
+                            control statement, evidence     
+                            source, check logic, severity;  
+                            counsel validation of every     
+                            legal interpretation            
+
+  Architecture &   M2–M3    Confirm the open-source stack   Blueprint signed off;
+  infrastructure            (Wazuh as the SIEM foundation,  development and
+                            MISP for threat intelligence,   staging environments
+                            PostgreSQL, BERT-based Amharic  live
+                            components); design the         
+                            deployment topology for         
+                            Ethiopian hosting under Article 
+                            22 data-residency rules; stand  
+                            up repositories, CI/CD, and the 
+                            security baseline               
+
+  Core build       M3–M6    Two-week sprints in dependency  MVP passes acceptance
+  sprints                   order: rule engine, scan        tests by the end of
+                            engine, evidence collection,    Month 6
+                            web dashboard, executive        
+                            report, Amharic interface;      
+                            working demo at every sprint    
+                            review                          
+
+  Security &       M5–M6    Hardening, TLS, uptime          Public URL live and
+  production                monitoring, backups, incident   monitored; no
+  deployment                runbooks; production cutover to local-only references
+                            Ethiopian hosting with a public in any material
+                            domain                          
+
+  QA & pilot       M6       False-positive tuning on sample Pilot-ready sign-off
+  readiness                 data; user documentation;       by the advisory board
+                            pilot-onboarding runbook;       
+                            training for the first pilot    
+                            customers                       
+  -------------------------------------------------------------------------------
+
+Two disciplines protect the schedule. Scope: the MVP is defined tightly
+— rule engine, scan engine, and the three dashboards — while API
+integrations (including Ethio-CERT synchronisation) and advanced
+analytics are post-MVP enhancements scheduled only after pilot feedback.
+Team: the build is staffed by the CTO (hired Month 1–2), a full-stack
+engineer (Month 3–4), and the founder, using mature open-source
+components instead of custom foundations; if two consecutive sprint
+milestones slip, the response is to descope, not to extend. The build
+window deliberately overlaps the pilot-contracting window: customers
+sign in Months 4–5 against the MVP scope, so onboarding starts the
+moment acceptance tests pass.
+
+4.2 Quarter 1 (Months 1–3): Foundation and Build Kick-off
+
+The first quarter removes every credibility gap identified in Section 2
+and starts the build. The company is registered as a private limited
+company and a technology-transfer agreement is negotiated with Bahir Dar
+University (Section 6). The Phase 1 build kicks off with the
+rule-formalisation workstream — the 47 obligations converted into
+machine-readable rules with counsel validation — and the architecture
+blueprint is finalised (Section 4.1). The CTO is hired in Month 1–2, and
+the development environment, repositories, and CI pipeline go live. In
+parallel, the founder converts pilot interest into signed letters of
+intent, starting with the organisations the proposal names: CBE, Dashen
+Bank, the Wasasa, Oromia, and Amhara MFIs, and the five e-commerce,
+logistics, and fintech SMEs. Track B begins curriculum development with
+a grant-funded education specialist, and the first grant applications
+are drafted.
+
+4.3 Quarter 2 (Months 4–6): Build to MVP and First Paid Pilots
+
+Quarter 2 is dominated by the core build sprints and opens the
+demonstration phase of the DSR cycle. The full-stack engineer joins; the
+rule engine, scan engine, and dashboards come together sprint by sprint;
+and the platform is hardened and deployed to production on Ethiopian
+hosting with a public domain, TLS encryption, and monitoring — a
+precondition for any bank evaluation. Pilot contracts are signed in
+Months 4–5 against the MVP scope, each structured as a six-month
+engagement with defined success metrics drawn from the proposal's
+research questions (audit-time reduction above 70 percent;
+detection-to-notification latency below 15 minutes; platform uptime
+above 99.5 percent), with onboarding beginning the moment MVP acceptance
+passes in Month 6. An ISO 27001 certification timetable is agreed with a
+shortlisted assessor, and the first grant applications for Track B and
+for working capital are submitted (Section 9).
+
+4.4 Quarter 3 (Months 7–9): Pilot Execution and SOC Stand-up
+
+Pilot execution dominates the quarter: metrics are collected
+continuously against the RQ thresholds, and monthly steering-committee
+reviews with each pilot customer build the reference relationships that
+Quarter 4 will convert into case studies. The SOC stands up on the same
+open-source infrastructure: the SOC manager and analysts hired this
+quarter deploy Wazuh-based monitoring and the MISP threat-intelligence
+feed for pilot customers, beginning with business-hours coverage and
+on-call escalation, while full 24/7 coverage is a Year 2 objective. In
+parallel, the Phase 3 school pilot with five Addis Ababa public schools
+runs on grant funding, using the curriculum completed in the first half
+of the year. Track C groundwork proceeds quietly: a human-rights
+due-diligence scoping paper for Phase 4 is drafted with EHRC engagement,
+and technical MOU conversations continue with CII operators without any
+public claims.
+
+4.5 Quarter 4 (Months 10–12): Evaluation, Visibility, and Capital
+
+The evaluation phase closes the DSR cycle. Pilot results are analysed
+(paired t-tests for audit-time reduction, latency distribution analysis
+for SOC performance, as specified in the proposal's evaluation table)
+and written into two bank-grade case studies and at least one
+peer-reviewed submission. The Adwa Cyber data feed is prepared for the
+GCI 2026 national questionnaire, in coordination with MInT, as the
+proposal's next-steps table plans. The Compliance API is open-sourced on
+GitHub — a deliberate credibility and talent-attraction move committed
+to in the proposal. The 24/7 SOC transition plan for Year 2 is finalised
+with the SOC manager. Finally, a seed funding round opens, supported by
+pilot metrics, LOIs converted to annual contracts, and the ISO 27001
+programme underway.
+
+Table 4: Year 1 milestone plan
+
+  -------------------------------------------------------------------------
+  Milestone                  Target    Owner       Success criterion
+                             month                 
+  -------------------------- --------- ----------- ------------------------
+  PLC registered; BDU        M1–M2     Founder /   Certificate of
+  technology-transfer                  counsel     incorporation; signed IP
+  agreement signed                                 agreement defining
+                                                   ownership and licence
+                                                   terms
+
+  Rule catalogue v1.0: all   M1–M3     CTO /       Version-controlled rule
+  47 obligations formalised            counsel     specification; legal
+  as machine-readable rules                        interpretation validated
+
+  Architecture blueprint     M2–M3     CTO         Stack confirmed (Wazuh,
+  finalised; development and                       MISP, BERT components);
+  staging environments live                        repositories and CI/CD
+                                                   operational
+
+  First 3+ signed letters of M2–M3     Founder     Signed LOIs with scope,
+  intent (banks, MFIs, SMEs)                       duration, and pricing
+                                                   intent
+
+  CTO hired (M1–M2);         M1–M4     Founder     Offers accepted;
+  full-stack engineer hired                        onboarding complete
+  (M3–M4)                                          
+
+  Phase 1 MVP complete: rule M5–M6     CTO         Acceptance tests pass;
+  engine, scan engine, web /                       sprint demo presented to
+  executive / Amharic                              the advisory board
+  dashboards                                       
+
+  Production deployment live M5–M6     CTO         Public domain resolves;
+  on Ethiopian hosting with                        uptime monitoring
+  HTTPS                                            active; deployment
+                                                   reachable from the
+                                                   public internet
+
+  First paid pilot contracts M4–M6     Founder /   Signed 6-month contracts
+  signed and onboarding                CTO         scoped to the MVP; first
+  begins (1 bank + 1 MFI                           invoices issued
+  minimum)                                         
+
+  SOC manager and analysts   M6–M8     Founder /   Wazuh monitoring and
+  hired; business-hours                SOC manager MISP feed operational;
+  monitoring live for pilot                        escalation runbook
+  customers                                        tested
+
+  ISO 27001 gap assessment   M6–M8     CTO         Gap report delivered;
+  complete; remediation plan                       Statement of
+  underway                                         Applicability drafted
+
+  First 2+ grant             M4–M8     Founder     Applications to
+  applications submitted                           development-partner
+                                                   programmes (Section 9)
+
+  Phase 3 school pilot       M7–M9     Education   Pre/post knowledge
+  running in 5 Addis Ababa             lead (Track assessments administered
+  schools                              B)          per RQ2 design
+
+  Pilot evaluation and case  M10–M12   Founder /   RQ1 and RQ3 thresholds
+  studies published                    CTO         measured; 2 case studies
+                                                   released
+
+  GCI 2026 questionnaire     M11–M12   Founder     Adwa Cyber metrics
+  data submitted via MInT                          included in national
+                                                   submission
+
+  Compliance API             M12       Founder     Public repository with
+  open-sourced; seed round                         documentation; investor
+  opened                                           data room complete
+  -------------------------------------------------------------------------
+
+Owner titles refer to the Year 1 team plan in Section 7. Months follow
+the proposal's DSR calendar (demonstration M5–9, evaluation M10–12); the
+Phase 1 build (Section 4.1) completes in Month 6, when pilot onboarding
+begins.
+
+5. Years 2–3 Scale-Up Plan (2028–2029)
+
+Years 2 and 3 shift the company from proving to scaling. The organising
+logic is simple: Year 1 builds the product from scratch and proves it
+with paid pilots; Year 2 productises and repeatably sells it; Year 3
+embeds it nationally and opens the regional option. The targets below
+extend the proposal's own KPI table (500 organisations using compliance
+tools by 2027; five operational sectoral CERTs; 20 percent school
+coverage) to the company level.
+
+5.1 Year 2 (2028): Productise and Sell
+
+The pilot relationships convert into annual subscriptions, and the sales
+motion becomes repeatable: a standardised compliance scan as the
+lead-generation offer, a fixed-price onboarding package, and annual
+contracts with defined service levels for the CERT service. The 24/7
+SOC, whose staff and runbooks were built in the second half of Year 1,
+becomes fully operational in the first half of Year 2, converting
+pilot-period business-hours monitoring into a round-the-clock managed
+service. ISO 27001 certification is completed — the audit cycle that
+began in Year 1 concludes here — unlocking larger bank and government
+contracts that require certified suppliers. The Phase 3 platform,
+validated in the school pilot, scales toward the proposal's target of 20
+percent of target schools, funded by the education grants secured in
+Year 1. Team size roughly doubles to 18–22. Track C gates are formally
+reviewed at mid-year: if the EMA partnership and human-rights due
+diligence for Phase 4 are complete, a limited Phase 4 deployment with
+the three media organisations named in the proposal (Fanaka, Ethio
+Forum, Sheger FM) may proceed; if not, it slips without any impact on
+the core business.
+
+5.2 Year 3 (2029): National Footprint and Regional Option
+
+Year 3 pursues three objectives. First, national coverage of the
+commercial core: the compliance subscriber base grows toward the
+proposal's 2030 trajectory (2,000+ organisations), and CERT-as-a-Service
+expands from banking into telecom and energy, in direct support of the
+sectoral-CERT count the proposal targets (20+ by 2030). Second, if the
+Phase 5 gates are passed — at least two CII operator MOUs, confirmed
+authorisation, IEC 62443-aligned design — the CII pilot with the four
+operators named in the proposal (Ethiopian Electric Power, Ethiopian
+Airlines, Ethio Telecom, CBE) begins under dedicated institutional
+funding with liability insurance in place. Third, the regional
+replication study recommended in the proposal's own limitations section
+(Kenya, Tanzania, Uganda) is commissioned with a regional development
+partner, since the architecture was deliberately designed for
+replication.
+
+5.3 Scale-Up Guardrails
+
+Three disciplines should govern the scale-up. Revenue concentration must
+be managed: no single client should exceed roughly 30 percent of revenue
+by the end of Year 2, which argues for prioritising breadth in the SME
+segment alongside the anchor banks. Hiring must lag validated demand
+rather than lead projections — the Year 2 plan above assumes conversion
+rates, not pipeline hope. And every expansion (new sector, new phase,
+new country) must pass a mini-gate modelled on Section 3.2: a named
+partner, a funding source, and a defined kill criterion. Companies die
+more often from unfocused expansion than from slow growth, and a venture
+carrying a national-security mission has an additional obligation to
+scale only where it can deliver.
+
+6. Legal, Governance and Institutional Setup
+
+6.1 Company Formation
+
+Adwa Cyber currently exists as a research lab affiliation, not a
+contracting entity. No bank can sign a paid pilot with, and no grant can
+be disbursed to, an unregistered activity. The first executive action of
+the roadmap is therefore to register a private limited company (PLC) at
+the Ethiopian Commercial Register, with the founder as initial
+shareholder. Registration should be executed with a commercial lawyer
+familiar with technology ventures; as an indicative planning range,
+incorporation and initial counsel typically cost USD 1,500–4,000 and
+complete within two to six weeks, though both figures must be validated
+locally. The company should from the outset maintain a clean IP ledger:
+everything developed before incorporation is assigned to the company in
+writing, and everything after is developed under contracts that so
+provide.
+
+6.2 The Bahir Dar University Relationship
+
+The proposal invites the university to be the academic home of the
+initiative — providing research oversight, pilot facilitation, and
+institutional credibility. That relationship is an asset worth
+formalising precisely because it is valuable to both sides. The
+recommended instrument is a technology-transfer and affiliation
+agreement covering four subjects: ownership and licensing of
+intellectual property developed in the lab (a clean default is
+university ownership of pre-existing academic work, company ownership of
+new product code, with a cross-licence and, if the university prefers, a
+small royalty or equity position); the terms under which students and
+faculty may work on company projects, including the internship pipeline
+in Section 7; the use of the university's name and facilities; and the
+ethical-review pathway for research involving organisations and minors,
+which the proposal already commits to. Universities increasingly
+standardise such agreements; approaching BDU's research and
+technology-transfer office early, with a draft rather than a request,
+will shorten the negotiation.
+
+6.3 Regulatory Engagement: INSA and Ethio-CERT
+
+Cybersecurity services, threat-intelligence sharing, and especially any
+monitoring of networks touch regulated territory. The proposal assumes
+deep technical integration with Ethio-CERT (API synchronisation is a
+planned post-MVP enhancement in the Phase 2 build) and an observation
+role for INSA in the pilot design — both are the right instincts. The
+roadmap adds a formal step: before selling monitoring services beyond
+the pilot scope, the company should obtain written confirmation from
+INSA of the authorisation or licensing pathway applicable to private
+cybersecurity service providers, and structure its data-handling
+(metadata-only audits, privacy-preserving sharing protocols,
+Ethiopian-soil storage under Article 22 of Proclamation 1321/2024) to
+match. The specific permits, if any, required for a private SOC
+operating in Ethiopia should be confirmed with counsel rather than
+assumed; this item is flagged as requiring verification in the risk
+register.
+
+6.4 Governance Structure
+
+A startup selling security services to banks will be judged on its
+governance as much as its code. Three lightweight structures are
+recommended for Year 1. First, an advisory board of five to seven
+members meeting quarterly: a senior BDU faculty member (academic
+oversight), a former bank or telecom CISO (credibility with buyers), an
+INSA or Ethio-CERT liaison as permitted (regulatory alignment), a lawyer
+with technology and data-protection practice, and one international
+cyber-capacity expert (useful for grant applications). Second, a pilot
+steering committee per pilot customer, meeting monthly — this doubles as
+the customer-success motion. Third, a founder-level discipline of
+written board minutes and decisions, which costs little now and is
+indispensable at the first investment round. Together these structures
+also begin to address the key-person risk flagged in Section 2.2.
+
+7. Team and Organization Plan
+
+The Year 1 plan requires roughly nine full-time staff, hired in three
+waves that track the roadmap: engineering and leadership first, delivery
+capacity second, sales third. Compensation figures below are indicative
+market estimates for cybersecurity talent in Ethiopia, stated in USD for
+planning stability against birr depreciation; they must be validated
+against actual offers. The university relationship subsidises this plan
+substantially: student interns from BDU can support SOC rotations,
+content translation, and test data under supervision, at a fraction of
+market cost, while creating the talent pipeline the proposal's national
+mission requires.
+
+Table 5: Year 1 hiring plan (indicative monthly cost ranges in USD)
+
+  -----------------------------------------------------------------------------------
+  Role             FTE   Start   Monthly range Year 1 cost     Core responsibility
+                                 (USD)         (USD)           
+  ---------------- ----- ------- ------------- --------------- ----------------------
+  Founder / CEO    1     Q1*     500–1,000     4,500–9,000     Strategy, fundraising,
+  (Solomon Asalif)                                             anchor sales,
+                                                               university and INSA
+                                                               relationships
+
+  CTO / Senior     1     Q1      1,500–2,500   18,000–30,000   Phase 1 build
+  Security                                                     leadership:
+  Engineer                                                     architecture, rule
+                                                               engine, security
+                                                               hardening, production
+                                                               deployment; ISO 27001
+                                                               programme
+
+  Full-stack       1     Q2      800–1,500     7,200–13,500    Phase 1 development:
+  Engineer                                                     scan engine, web /
+                                                               executive / Amharic
+                                                               dashboards,
+                                                               rule-catalogue
+                                                               implementation
+
+  SOC Manager      1     Q3      1,200–2,000   7,200–12,000    SOC stand-up on the
+                                                               platform
+                                                               infrastructure, pilot
+                                                               monitoring, incident
+                                                               response, escalation
+
+  Partnerships &   1     Q3      600–1,200     3,600–7,200     Pipeline beyond
+  Sales Lead                                                   anchors, SME segment,
+                                                               partner channel
+
+  SOC Analysts     3     Q3      400–800 each  7,200–14,400    Pilot-customer
+  (three shifts)                                               monitoring, triage,
+                                                               threat-intelligence
+                                                               operations; roster
+                                                               builds toward 24/7
+                                                               coverage in Year 2
+
+  Operations &     1     Q2      300–500       2,700–4,500     Finance, HR,
+  Administration                                               procurement, grant
+                                                               reporting
+
+  Total            9     —       —             50,400–90,600   Plus supervised BDU
+                                                               student interns
+  -----------------------------------------------------------------------------------
+
+* Founder draw begins Q2, after first revenue or grant receipt; Year 1
+costs reflect in-year months only. Ranges are indicative Ethiopian
+market estimates for validation against actual offers.
+
+7.1 Retention and Key-Person De-Risking
+
+Cybersecurity talent is scarce and mobile everywhere, and Ethiopia is no
+exception. Three retention levers are recommended: certification
+sponsorship (ISO 27001 lead auditor, and a structured path toward
+CISSP-equivalent seniority) which costs little and signals investment in
+the individual; compensation positioned at or slightly above the 60th
+percentile of the local market with annual review; and an employee share
+option pool of 10–15 percent established at incorporation, vesting over
+four years — inexpensive now, and standard diligence hygiene for the
+seed round. Key-person risk around the founder is addressed structurally
+in Year 1: the CTO owns the architecture, all systems and decisions are
+documented, the advisory board meets quarterly, and the BDU agreement
+guarantees continuity of the academic relationship independently of any
+individual.
+
+8. Budget and Financial Model
+
+8.1 Year 1 Budget
+
+The Year 1 budget is deliberately lean: it funds the from-scratch Phase
+1 build and its production deployment, the delivery team, certification,
+legal setup, and the pilots — nothing else. Figures are planning
+estimates in USD; birr conversions should use the prevailing National
+Bank of Ethiopia rate at the time of each expenditure, and the budget
+should be re-based quarterly as actuals arrive.
+
+Table 6: Year 1 operating budget (indicative, USD)
+
+  --------------------------------------------------------------------------
+  Cost category       Low       High      Notes
+  ------------------- --------- --------- ----------------------------------
+  Personnel (9 FTE,   50,400    90,600    In-year cost of three hiring
+  Section 7)                              waves; founder draw from Q2; build
+                                          team front-loaded
+
+  Hosting &           10,000    18,000    Ethiopian cloud hosting per Art.
+  infrastructure                          22 data-sovereignty rules;
+                                          development and staging
+                                          environments; SOC tooling (Wazuh,
+                                          MISP); monitoring
+
+  ISO 27001           15,000    30,000    Gap assessment, remediation, Stage
+  certification                           1 and 2 audits (indicative range
+                                          for a small firm)
+
+  Legal &             6,000     12,000    PLC registration, BDU agreement,
+  professional                            pilot contracts, rule-catalogue
+  services                                legal validation, ongoing counsel
+
+  Pilot operations    8,000     15,000    Travel, participant coordination,
+                                          evaluation data collection
+
+  Marketing &         5,000     10,000    Case-study production, events,
+  business                                sales materials
+  development                             
+
+  Subtotal            94,400    175,600   Sum of the rows above
+
+  Contingency (10%)   9,440     17,560    FX movement, hiring delays, build
+                                          re-work, audit re-work
+
+  Total Year 1        103,840   193,160   ≈ USD 104k–193k; midpoint ≈ USD
+                                          148,500
+  --------------------------------------------------------------------------
+
+All figures are planning estimates to be validated; the totals are
+arithmetic sums of the ranges above.
+
+8.2 Revenue Model
+
+Three revenue lines match the three tracks. The compliance platform
+(Phase 1) sells as an annual subscription tiered by organisation size,
+anchored against the alternative: a manual audit costing 40–80
+specialist hours and exposure to penalties of up to 4 percent of global
+turnover. The CERT service (Phase 2) sells as a monthly managed-service
+retainer sized by estate and required response times. The awareness
+platform (Phase 3) is primarily grant-funded, with paid corporate
+training as a modest third line. Two pricing principles are recommended
+from the outset: price in USD or with an annual birr adjustment clause
+(multi-year contracts signed in a depreciating currency otherwise
+destroy margin), and offer pilot pricing that converts — a discount
+against the annual list price, not free pilots, which erode both revenue
+and the perception of value.
+
+Table 7: Illustrative pricing architecture (to be validated with pilot
+customers)
+
+  -----------------------------------------------------------------------------
+  Revenue line        Segment        Illustrative      Anchor value logic
+                                     price point       
+  ------------------- -------------- ----------------- ------------------------
+  Compliance SaaS     SMEs           USD 1,000–2,000 / Fraction of the
+  (Phase 1)                          year              40–80-hour manual audit
+                                                       cost; penalty avoidance
+
+  Compliance SaaS     MFIs /         USD 3,000–6,000 / Multi-entity reporting;
+  (Phase 1)           mid-market     year              regulator-ready audit
+                                                       trail
+
+  Compliance SaaS     Banks /        USD 10,000–20,000 Executive dashboards;
+  (Phase 1)           enterprise     / year            Amharic interfaces; API
+                                                       integration
+
+  CERT-as-a-Service   SMEs / MFIs    USD 800–2,000 /   24/7 monitoring
+  (Phase 2)                          month             otherwise unaffordable
+                                                       in-house
+
+  CERT-as-a-Service   Banks /        USD 3,000–8,000 / Sub-15-minute
+  (Phase 2)           telecom        month             notification SLA;
+                                                       Ethio-CERT integration
+
+  Training &          Corporates /   USD 1,000–3,000   Amharic-first delivery
+  awareness (Phase 3) NGOs           per engagement    no international vendor
+                                                       offers
+  -----------------------------------------------------------------------------
+
+8.3 Three-Year Illustrative Scenarios
+
+The scenarios below are illustrative planning instruments, not
+forecasts; each assumes the roadmap executes and uses the conversion
+behaviour of typical B2B security services (a majority of successful
+pilots renewing into annual contracts). Their purpose is to show the
+shape of the business and the timing of break-even, and to be replaced
+by actuals as soon as pilot data exists.
+
+Table 8: Illustrative three-year scenarios (USD, planning assumptions
+only)
+
+  ---------------------------------------------------------------------------
+  Metric                   Year 1 (2027)      Year 2 (2028)   Year 3 (2029)
+  ------------------------ ------------------ --------------- ---------------
+  Compliance subscribers   3–6                12–30           50–110
+  (cumulative)                                                
+
+  CERT / MDR retainer      1–2                4–8             12–20
+  clients (cumulative)                                        
+
+  Commercial revenue       15k–45k            100k–280k       380k–820k
+
+  Grant & institutional    50k–150k           100k–250k       150k–400k
+  funding (Tracks B/C)                                        
+
+  Operating cost           104k–193k          220k–400k       450k–800k
+
+  Headcount (FTE)          9                  18–22           28–35
+
+  Position                 Grant-subsidised   Near break-even Break-even to
+                           loss                               modest profit
+                                                              on commercial
+                                                              revenue alone
+  ---------------------------------------------------------------------------
+
+Scenarios assume a Month-6 pilot start, pilot-to-annual conversion of
+50–70%, USD-indexed pricing, and hiring that lags validated demand. They
+are planning aids to be re-based quarterly.
+
+Two features of this model deserve emphasis. First, the business reaches
+viability on commercial revenue alone by Year 3 in the base scenario,
+with grants accelerating rather than substituting — the posture
+development partners themselves prefer to fund. Second, the revenue is
+concentrated in exactly the segments the proposal's pilot table already
+names, which means the Year 1 sales plan requires no speculative
+customer acquisition: it requires converting interest that already
+exists into signed, priced engagements.
+
+9. Funding Strategy
+
+9.1 The Hybrid Principle
+
+Adwa Cyber sits at the intersection of three funding worlds: development
+assistance (cyber-capacity building is an established development
+priority), university and government programmes (the proposal's own
+recommendations ask for policy support, funding channels, and university
+involvement), and commercial security markets. The strategy is to draw
+on all three in a deliberate sequence — non-dilutive money first,
+revenue second, equity last — so that by the time the founder sells
+shares, the company's pilot metrics, not its promise, set the valuation.
+
+9.2 Stage 1 (Months 1–6): Non-Dilutive Foundation
+
+The first stage funds the Year 1 budget gap with grants and in-kind
+support. The table below lists the funder categories with the strongest
+programme fit; amounts are deliberately omitted because they vary by
+call and cycle, and the correct approach is to identify open calls and
+match them to the roadmap's needs. Bahir Dar University's contribution —
+office and lab space, internship supervision, and the credibility of
+institutional affiliation — should be counted and communicated as a
+co-investment, which materially strengthens every grant application.
+Grant-writing is a founder-level priority in Quarter 1 and 2: the
+proposal itself, the LOIs, and the policy mapping in its appendices are
+most of what a strong application needs.
+
+Table 9: Development-partner fit assessment (programmes to approach; no
+amounts implied)
+
+  -----------------------------------------------------------------------------
+  Funder / programme    Focus relevant to Adwa   Best-fit   Approach route
+  family                Cyber                    track      
+  --------------------- ------------------------ ---------- -------------------
+  World Bank            Digital economy, cyber   A / C      Via MInT and the
+  digital-development   resilience,                         relevant project
+  operations in         public-sector                       coordination units
+  Ethiopia              digitisation                        
+
+  GIZ digital and       Cybersecurity capacity   A / C      Country office;
+  cyber-capacity        building, CIIP, digital             cyber-capacity
+  programmes            transformation                      calls
+
+  EU Global Gateway /   Trusted connectivity,    B / C      D4D Hub calls;
+  Digital for           cyber resilience,                   delegation in Addis
+  Development (D4D)     digital rights                      Ababa
+
+  UNDP digital          Public-sector capacity,  B          Country office
+  programmes            inclusive digitalisation            digital team
+
+  Global Forum on Cyber Cyber-capacity           A / C      National
+  Expertise (GFCE)      coordination, donor                 coordination; GFCE
+  network               visibility                          community calls
+
+  Internet-health and   Amharic NLP, online      B / C      Open calls;
+  online-safety funders safety, trustworthy AI              research
+  (e.g., Mozilla                                            partnerships
+  foundation                                                
+  programmes)                                               
+
+  GSMA innovation funds Mobile-centred digital   B          Innovation fund
+                        services and safety                 calls
+
+  Bahir Dar University  In-kind: lab space,      All        Direct
+  / MInT / INSA         interns, endorsement,               institutional
+                        pilot facilitation                  agreements
+                                                            (Sections 6.2, 6.3)
+  -----------------------------------------------------------------------------
+
+Programme families are named for fit, not as commitments; each requires
+identification of the currently open call and its criteria.
+
+9.3 Stage 2 (Months 6–12): Revenue and Grant Stacking
+
+From mid-year the funding mix shifts toward earned revenue as pilots
+invoice, with grants stacked on top for Track B and the certification
+programme. The operating target for Month 12 is that paid pilots plus
+committed grants cover 60 percent or more of the Year 2 budget — a
+threshold that simultaneously proves commercial traction to investors
+and programme delivery to grantors, and that becomes the headline of the
+seed-round data room.
+
+9.4 Stage 3 (Year 2): Seed Capital on Proven Metrics
+
+The seed round, opened at the end of Year 1 or early Year 2, should
+target investors with both the mandate and the patience for East African
+deep tech: impact investors with digital-inclusion mandates,
+development-finance-connected vehicles, and venture funds with security
+or Africa-focused theses. The pitch rests on assets this roadmap creates
+deliberately: recurring revenue from converted pilots, ISO 27001
+certification, signed university and regulator relationships, and a
+research-grade evaluation dataset no competitor can quickly replicate. A
+modest round (sized to the Year 2 gap after grants, rather than to a
+maximal valuation) preserves founder ownership while funding the
+scale-up plan of Section 5.
+
+10. Go-to-Market and Partnership Strategy
+
+10.1 Beachhead: The Financial Sector
+
+The beachhead is the segment where pain, budget, and regulatory
+attention intersect: banks and microfinance institutions. The wedge
+message writes itself from the proposal's own evidence — the Personal
+Data Protection Proclamation's 47 obligations, penalties of up to 4
+percent of global turnover and imprisonment, the 72-hour
+breach-notification clock, and manual audits that take 40–80 hours. For
+a bank CISO, the pitch is concrete: an Ethiopian-law-native compliance
+engine and a 24/7 monitoring service at a fraction of the cost of
+building either in-house or importing a foreign tool that does not map
+to Proclamation 1321/2024. The Commercial Bank of Ethiopia and Dashen
+Bank are already named pilot candidates; the microfinance institutions
+(Wasasa, Oromia, Amhara) extend the beachhead into a segment with less
+in-house capability and more price sensitivity, ideal for the
+standardised offering.
+
+10.2 The Sales Motion
+
+The motion from first contact to contract has five steps, each with an
+exit criterion. One: an anchored introduction through INSA, Ethio-CERT,
+BDU, or a peer CISO — warm channels already implicit in the proposal's
+design. Two: a free, scoped compliance scan against a subset of the 47
+rules, producing a findings report the prospect keeps — the single most
+persuasive artifact the platform can generate, and a natural
+productisation of the Phase 1 engine once the MVP is live. Three: a
+six-month paid pilot with metrics agreed up front (the proposal's pilot
+design already specifies participants, phases, and durations). Four: a
+steering-committee rhythm during the pilot that builds the internal
+champions who will defend renewal. Five: conversion to an annual
+contract at pilot pricing plus a defined step. Free pilots are
+explicitly rejected: they signal low value, attract non-committed
+participants, and consume the same delivery capacity as paid ones.
+
+10.3 Partnership Architecture
+
+Four partnership tiers carry the go-to-market. Bahir Dar University
+provides the academic legitimacy and the student pipeline; its name
+opens ministry and school-system doors that a startup alone cannot. INSA
+and Ethio-CERT provide the regulatory integration and, over time, the
+endorsement without which security sales to state-adjacent buyers stall
+— the planned Ethio-CERT API synchronisation (a Phase 2 build
+deliverable) is the intended technical foundation of this tier. The
+anchor banks are design partners whose case studies become the reference
+assets for the wider financial sector. Hosting and telecom partners
+(Ethio Telecom, Ethiopian cloud providers) supply the sovereign
+infrastructure the data-residency rules require, and can become channel
+partners reselling compliance scanning to their enterprise customers.
+Phase 4 and 5 partnerships — the EMA, the CII operators — belong to
+Track C and follow its gates; they are cultivated quietly through Year 1
+but carry no revenue expectations.
+
+10.4 Competitive Positioning
+
+Against international vendors, Adwa Cyber's position is not cheaper
+security but native security: law-native (47 obligations of the actual
+proclamation encoded as rules, not GDPR mappings), language-native
+(Amharic dashboards and curriculum), and sovereignty-native
+(Ethiopian-soil hosting, indigenous IP — the exact argument the
+proposal's discussion section makes). Against local consultancies, the
+position is product over person-days: repeatable software and a 24/7
+service rather than audit reports that age. This positioning should be
+stated consistently in every artifact — website, case studies, grant
+applications — and is the brand answer to the question every buyer and
+funder will ask: why not buy foreign? The proposal has already written
+the answer; the go-to-market's job is to prove it with paying customers.
+
+11. Risk Register and Mitigation
+
+The register below scores the thirteen risks most likely to affect the
+roadmap on likelihood (H/M/L) and impact (H/M/L), and assigns each a
+mitigation and an owner. With Phase 1 now built from scratch, delivery
+risk takes first position in the register. It should be reviewed monthly
+by the management team and quarterly by the advisory board, with scores
+re-judged against the early-warning indicators in Section 11.2.
+
+Table 10: Risk register (Year 1)
+
+  -------------------------------------------------------------------------
+  #     Risk              L   I   Mitigation                    Owner
+  ----- ----------------- --- --- ----------------------------- -----------
+  R1    The Phase 1       M   H   Tight MVP scope with API      CTO
+        from-scratch              integrations and advanced     
+        build (rule               analytics parked post-MVP;    
+        formalisation,            two-week sprints with demo    
+        engine,                   gates; mature open-source     
+        dashboards)               components (Wazuh, MISP, BERT 
+        overruns its              variants) instead of custom   
+        six-month window          foundations; descope rather   
+                                  than extend when sprints      
+                                  slip; pilot contracts signed  
+                                  against MVP scope only        
+
+  R2    Bank and MFI      H   H   Start LOI conversion in Month Founder
+        sales cycles              1; parallel pipeline across   
+        stretch beyond            banks, MFIs, SMEs; paid pilot 
+        the roadmap               scope kept small enough for   
+        (procurement,             single-executive approval;    
+        sign-off layers)          steering-committee rhythm     
+                                  maintains momentum            
+
+  R3    INSA              M   H   Seek written confirmation     Founder /
+        authorisation             early (Section 6.3); frame    counsel
+        pathway for a             pilots as research            
+        private SOC is            collaboration under BDU where 
+        unclear or slower         appropriate; design data      
+        than assumed              handling conservatively       
+                                  (metadata-only)               
+
+  R4    Proclamation      M   M   Rule engine designed for      CTO
+        1321/2024                 update; maintain counsel      
+        interpretations           relationship for regulatory   
+        shift,                    watch; versioned rule         
+        invalidating rule         releases communicated to      
+        mappings                  customers as a service        
+                                  feature                       
+
+  R5    Birr depreciation H   M   USD-indexed or annually       Finance /
+        erodes revenue            adjusted pricing;             Ops
+        value while costs         USD-denominated cost          
+        are USD-linked            commitments minimised; grants 
+                                  held in hard currency where   
+                                  permitted                     
+
+  R6    Key-person        H   H   CTO owns architecture;        Founder /
+        dependency on the         documented systems and        Board
+        founder                   decisions; advisory board;    
+                                  BDU agreement                 
+                                  institutionalises continuity; 
+                                  key-person insurance at seed  
+                                  round                         
+
+  R7    SOC staffing and  M   M   Three-shift roster with       SOC Manager
+        fatigue with a            cross-training as 24/7        
+        small analyst             coverage phases in; BDU       
+        team ramping from         intern support for level-1    
+        scratch                   triage; automation of alert   
+                                  prioritisation as a post-MVP  
+                                  enhancement; hire fourth      
+                                  analyst early if attrition    
+                                  appears                       
+
+  R8    Cybersecurity     M   M   Certification sponsorship;    Founder /
+        talent attrition          60th-percentile compensation; Ops
+        to Gulf and               option pool; mission brand —  
+        remote-first              retention levers of Section   
+        employers                 7.1                           
+
+  R9    A serious         L   H   Professional indemnity / E&O  CTO / SOC
+        security incident         insurance before pilot        
+        at a customer             signature; conservative SLAs; 
+        creates liability         the proposal's 90-day         
+        and reputational          responsible-disclosure        
+        damage                    policy; documented IR         
+                                  runbooks; ISO 27001           
+                                  discipline                    
+
+  R10   Compliance engine M   M   RQ1-style validation during   CTO
+        false positives           pilots; human-in-the-loop     
+        undermine                 review tier; transparent rule 
+        customer trust            documentation (open-source    
+                                  API supports scrutiny)        
+
+  R11   Phase 4 political M   H   Track C deferral; EHRC        Founder /
+        sensitivity               engagement and published      Board
+        contaminates the          human-rights due diligence    
+        brand (censorship         before any deployment; the    
+        perception)               proposal's appeal process and 
+                                  judicial-oversight design     
+                                  adopted verbatim; no public   
+                                  claims before gates pass      
+
+  R12   Grant funding     M   M   Never schedule cash outlays   Finance /
+        timing gaps               against unawarded grants; 10% Ops
+        create cash-flow          contingency; pilot revenue as 
+        stress                    first charge on fixed costs;  
+                                  monthly rolling 12-month cash 
+                                  forecast                      
+
+  R13   Hosting           M   M   Multi-provider redundancy     CTO
+        reliability on            where sovereignty rules       
+        Ethiopian                 permit; transparent uptime    
+        infrastructure            reporting; RQ4 target         
+        falls short of            (>99.5%) tracked publicly     
+        enterprise SLAs           with customers                
+  -------------------------------------------------------------------------
+
+11.1 The Four Risks That Matter Most
+
+Phase 1 delivery (R1) is the risk the whole roadmap hangs on. Encoding
+47 legal obligations into a working engine — with three dashboards and a
+production deployment — inside six months is achievable with the
+open-source stack and a focused team, but only with ruthless scope
+discipline. The roadmap absorbs slippage three ways: the MVP is defined
+tightly and everything else is post-MVP; pilot contracts are signed
+against the MVP scope, so a slipped enhancement never delays a pilot;
+and the sprint cadence surfaces trouble every two weeks, early enough to
+descope rather than extend. The build is also timed so that MVP
+acceptance at the end of Month 6 lands inside the DSR demonstration
+window (Months 5–9), which pilot onboarding and early execution satisfy.
+
+Sales-cycle length (R2) is the risk most likely to bend the roadmap even
+when the build goes well. Ethiopian financial institutions buy
+deliberately, and a six-month pilot can sit behind three months of
+procurement. The roadmap absorbs this by starting LOI conversion in
+Month 1, by keeping the initial paid engagement small enough to be
+approved by a single executive, and by never letting the pipeline rest
+on one institution — the MFI and SME segments exist in the plan
+precisely to provide faster-moving counterparties.
+
+Key-person risk (R6) is the risk investors will price hardest. A single
+founder holding all relationships, all architecture knowledge, and all
+fundraising context is a discount on any term sheet. Every structural
+mitigation in this roadmap — the CTO hire in Quarter 1, the
+documentation discipline, the advisory board, the university agreement —
+is also, deliberately, an investor-readiness measure.
+
+Phase 4 reputational adjacency (R11) is the risk with the longest
+shadow. Content filtering in any country sits next to censorship, and
+for a venture whose credibility rests on a university partnership and
+development funding, being framed as a surveillance vendor would be
+disproportionately damaging. The Track C gates exist to make the
+venture's position unambiguous: no deployment without the EMA
+partnership, the EHRC-engaged due-diligence report, and the transparency
+framework the proposal itself designed — appeal tiers, judicial
+oversight, quarterly independent audit, and 90-day data retention
+limits, all adopted verbatim.
+
+11.2 Early-Warning Indicators
+
+Five indicators should be watched monthly and trigger action when
+crossed: no signed LOI by the end of Month 3 (sales-cycle risk
+materialising — escalate partnership channels through BDU and INSA); two
+consecutive sprint milestones missed (build-delivery risk — descope to
+the MVP core or bring in contractor capacity within two weeks); any
+pilot customer disengaging from the steering-committee rhythm
+(conversion risk — founder-level intervention); analyst utilisation
+above 85 percent for a full month (SOC staffing risk — begin hiring);
+and any grant rejection citing institutional capacity (governance signal
+— accelerate advisory-board formation). Indicators are cheap to watch
+and expensive to ignore; the monthly review should take one hour and
+follow the register's order.
+
+12. KPI and Monitoring Framework
+
+Measurement runs on two clocks. Company KPIs are reviewed monthly by
+management and answer the question “is the business working?”; during
+the build they track delivery discipline, and during the pilots they
+borrow their thresholds directly from the proposal's research questions
+so that commercial and scientific evaluation are the same exercise.
+National-impact KPIs are reviewed quarterly with the advisory board and
+university, and answer the question the mission asks: is Ethiopia's
+cybersecurity posture measurably improving? Both tiers feed the funder
+and investor reporting cadence established in Sections 9 and 6.
+
+Table 11: Company KPIs (monthly, with thresholds drawn from the
+proposal's research questions)
+
+  --------------------------------------------------------------------------------
+  KPI                         Definition                 Target       Source
+  --------------------------- -------------------------- ------------ ------------
+  Build milestone adherence   Sprint commitments         ≥ 80%        Project
+                              delivered per two-week                  tooling
+                              sprint during the Phase 1               
+                              build (Months 1–6)                      
+
+  Monthly recurring revenue   Contracted subscription +  Growth each  Invoicing
+                              retainer revenue           quarter      
+                              annualised                              
+
+  Pipeline coverage           Weighted pipeline versus   ≥ 3×         CRM
+                              next-quarter revenue                    
+                              target                                  
+
+  Pilot conversion            Pilots converting to       50–70%       Sales
+                              annual contracts                        records
+
+  Audit-time reduction        Automated audit time       > 70%        Platform
+                              versus the 40–80-hour                   telemetry
+                              manual baseline (RQ1)                   
+
+  Detection-to-notification   SOC median across          < 15 minutes SOC logs
+  latency                     incidents (RQ3)                         
+
+  Platform uptime             Production availability    > 99.5%      Monitoring
+                              (RQ4)                                   
+
+  Alert precision             Actionable alerts versus   Trend        SOC logs
+                              total (false-positive      upward;      
+                              control)                   review if <  
+                                                         70%          
+
+  Retention / NPS             Contract renewals;         NPS ≥ 40 by  Quarterly
+                              customer satisfaction      Month 12     survey
+  --------------------------------------------------------------------------------
+
+Table 12: National-impact KPIs (quarterly, aligned to the proposal's
+outcome tables)
+
+  --------------------------------------------------------------------------
+  Indicator             Baseline          2027           Company
+                        (proposal)        trajectory     contribution
+  --------------------- ----------------- -------------- -------------------
+  Organisations using   Near zero         500 (proposal  Subscriber growth;
+  compliance tools                        target)        open-source API
+                                                         adoption
+
+  Compliance audit      40–80 hours       < 4 hours      RQ1 telemetry
+  duration              manual                           across customer
+                                                         base
+
+  Incident detection    Hours to days     < 30 minutes   RQ3 results; CERT
+  latency (private                                       client count
+  sector)                                                
+
+  Sectoral CERT         0 (Ethio-CERT     5 operational  CERT-as-a-Service
+  capability            only)                            clients by sector
+
+  Schools with Amharic  0%                20% of target  Track B pilot and
+  cyber curriculum                        schools        scale-up
+
+  GCI trajectory        Tier 3 (2024)     Tier 2 path by Metrics fed to GCI
+                                          2028           2026+
+                                                         questionnaires via
+                                                         MInT
+  --------------------------------------------------------------------------
+
+Baselines and targets are taken from the proposal's expected-results and
+next-steps tables; company contribution is the measurable share this
+venture can evidence.
+
+Evaluation integrity is protected by the DSR design in the proposal:
+paired t-tests for audit-time comparison, ANOVA for the school pilot's
+control-group design, and latency distribution analysis for SOC
+performance. Two additions are recommended for the commercial context.
+First, a data-quality gate: every KPI reported to funders or investors
+must be traceable to a system of record (invoicing, platform telemetry,
+or SOC logs), never to manual recollection. Second, the ethical
+safeguards the proposal commits to — metadata-only audits, parental
+consent in schools, the 90-day disclosure policy — should be reported on
+the same cadence as the KPIs, so that governance is measured with the
+same seriousness as growth.
+
+13. First 90 Days: The 30-60-90 Action Plan
+
+Everything in this roadmap reduces, in the end, to a small number of
+concrete acts in the next ninety days. The plan below is written to be
+executed as written: each action has a due day, an owner, and a
+deliverable that either exists or does not. Its logic follows Section
+4's first quarter — foundation, then build momentum, then traction.
+
+Table 13: 30-60-90 day action plan
+
+  ------------------------------------------------------------------------
+  Window   Action                        Owner       Deliverable /
+                                                     evidence
+  -------- ----------------------------- ----------- ---------------------
+  Days     Engage commercial lawyer;     Founder     Engagement letter;
+  1–30     begin PLC registration                    registration filed
+
+  Days     Draft and present BDU         Founder     Term sheet delivered
+  1–30     technology-transfer term                  to the
+           sheet                                     technology-transfer
+                                                     office
+
+  Days     Kick off the Phase 1 rule     Founder     Rule-spec format
+  1–30     catalogue: agree the                      agreed; first 10 of
+           rule-specification format and             the 47 obligations
+           draft the first tranche of                drafted
+           obligations                               
+
+  Days     Finalise the architecture     Founder     Blueprint document
+  1–30     blueprint: stack (Wazuh,                  reviewed with
+           MISP, BERT components),                   technical advisers
+           hosting topology, security                
+           baseline                                  
+
+  Days     Assemble LOI package:         Founder     Package complete;
+  1–30     one-page product briefs per               target list of 12
+           segment, pilot design,                    organisations
+           pricing intent                            
+
+  Days     Open company bank account;    Founder     Account operational;
+  1–30     set up basic bookkeeping and              model reviewed
+           a 12-month cash model                     
+
+  Days     Contract Ethiopian hosting    Founder     Hosting contract
+  1–30     provider and register the                 signed; domain
+           public domain                             secured
+
+  Days     Hire CTO / senior engineer;   Founder     Offer signed;
+  31–60    begin full-stack engineer and             candidate pipelines
+           SOC manager searches                      
+
+  Days     Complete rule catalogue v1.0: CTO /       Version-controlled
+  31–60    all 47 obligations specified  counsel     rule catalogue; legal
+           and counsel-validated                     sign-off
+
+  Days     Stand up the development      CTO         Environments live;
+  31–60    environment: repositories,                first commit pipeline
+           CI/CD, security baseline,                 green
+           staging                                   
+
+  Days     Secure at least two signed    Founder     Signed LOIs
+  31–60    letters of intent (banks /                
+           MFIs)                                     
+
+  Days     Submit first two grant        Founder     Submissions confirmed
+  31–60    applications (Track B and                 
+           working capital)                          
+
+  Days     Shortlist ISO 27001 assessors Founder /   Shortlist; indicative
+  31–60    and agree a certification     CTO         timetable and cost
+           timetable                                 
+
+  Days     Run build sprints 1–2:        CTO         Sprint demos
+  61–90    rule-engine core and scan                 delivered; acceptance
+           pipeline                                  tests for the rule
+                                                     engine written
+
+  Days     Hire full-stack engineer      Founder     Offer signed;
+  61–90                                              onboarding planned
+
+  Days     Advance pilot negotiations to Founder     Term sheets in
+  61–90    term-sheet stage with at                  negotiation;
+           least two anchor institutions             MVP-scoped draft
+           for a Month 5–6 start                     pilot contract
+
+  Days     Finalise pilot evaluation     Founder /   Ethics submission;
+  61–90    plan with BDU ethical review; BDU         instruments ready
+           define data-collection                    
+           instruments                               
+
+  Days     Hold first advisory board     Founder     Minutes; baseline
+  61–90    meeting; adopt the risk                   recorded
+           register and KPI baseline                 
+
+  Days     Submit next grant wave;       Founder     Applications in;
+  61–90    review the 90-day metrics                 variance note written
+           against this plan and adjust              
+           the roadmap                               
+  ------------------------------------------------------------------------
+
+Day counts run from the adoption of this roadmap. “Founder” actions
+before the CTO hire are executed by the founder with contractor support
+where needed.
+
+14. Consolidated Strategic Recommendations
+
+The ten recommendations below synthesise the roadmap. Each is stated
+with its rationale and horizon: immediate (within 30 days), near-term
+(within 6 months), or structural (within 12 months). They are ordered by
+priority, not by effort.
+
+1.  Start the Phase 1 build now (immediate). Begin the six-month
+    from-scratch build immediately: rule catalogue in Month 1, MVP and
+    production deployment by Month 6. The build is the critical path
+    everything else hangs from, and it is planned — five workstreams,
+    hard exit criteria, tight MVP scope — so it can start the day this
+    roadmap is adopted.
+
+2.  Convert claims to commitments (immediate). Replace every “Planned”
+    pilot with a signed letter of intent before the proposal is shown
+    externally again. One signed bank LOI changes the document's status
+    from promising to credible.
+
+3.  Establish the legal entity and the BDU agreement (immediate).
+    Register the PLC and execute a technology-transfer agreement
+    covering IP, students, facilities, and ethics. This unlocks
+    contracts, grants, and investment — none of which can flow to an
+    informal lab.
+
+4.  Re-sequence into three tracks (immediate). Run Phases 1–2 as the
+    commercial core, Phase 3 as the grant-funded mission track, and
+    Phases 4–5 behind explicit partnership, authorisation, and
+    human-rights gates. Focus is the scarcest resource a nine-person
+    company has.
+
+5.  Charge for pilots (near-term). Six-month paid pilots at a defined
+    discount, never free engagements, contracted against the MVP scope
+    for a Month 6 start. Paid pilots select committed customers, fund
+    delivery, and produce the reference stories that sell the next ten.
+
+6.  Adopt USD-indexed or annually adjusted pricing (near-term).
+    Multi-year contracts priced only in birr transfer depreciation risk
+    entirely onto the venture. Pricing discipline set at the first
+    contract is nearly impossible to retrofit.
+
+7.  Pursue ISO 27001 certification as a sales instrument (near-term).
+    Certification is the standard answer to the bank-procurement
+    question “who audits the auditor?” and, at indicative cost of USD
+    15,000–30,000, is among the cheapest credibility assets available.
+
+8.  Fund the first year with the hybrid stack (structural).
+    Development-partner grants and university in-kind support first,
+    pilot revenue second, equity last. Approach the funder families in
+    Section 9 with the policy mapping already in the proposal's
+    appendices.
+
+9.  Gate Phases 4 and 5 behind human-rights and institutional criteria
+    (structural). No ACFS deployment without the EMA partnership,
+    EHRC-engaged due diligence, and the proposal's own transparency
+    framework verbatim; no CII monitoring without operator MOUs,
+    confirmed authorisation, and insurance. The gates protect everything
+    else the venture is building.
+
+10. De-risk the founder (structural). Hire the CTO early, document
+    systems and decisions, stand up the advisory board, and let the
+    university agreement carry institutional continuity. Investors price
+    key-person risk; this roadmap systematically removes it.
+
+Bahir Dar University's invitation to anchor Ethiopia's digital
+sovereignty is well founded: the research design is rigorous, the policy
+alignment is direct, and the plan in this roadmap turns that design into
+a working platform within six months of adoption. This roadmap adds the
+discipline of sequence — build first, prove each ambition before
+claiming the next, and rest every claim on a signed commitment or a
+measured result. Ethiopia's climb from Tier 3 toward Tier 2 by 2028 can
+be built on Ethiopian intelligence, Ethiopian systems, and Ethiopian
+people.

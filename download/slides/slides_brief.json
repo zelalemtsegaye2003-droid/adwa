@@ -1,0 +1,81 @@
+{
+  "design": {
+    "title": "Adwa Sec — Startup Pitch Deck",
+    "style_name": "Midnight SOC",
+    "palette": { "background": "#0B1220", "primary": "#F5F7FA", "accent": "#22D3EE" },
+    "typography": { "heading": "Space Grotesk", "body": "Inter", "numeric": "JetBrains Mono" },
+    "reference": "cyber-operations console aesthetic; restrained, data-forward; no decorative clutter"
+  },
+  "global_css_path": "/adwa/download/slides/global.css",
+  "slides_dir": "/adwa/download/slides",
+  "language": "en",
+  "speaker_notes": "short",
+  "slides": [
+    {
+      "title": "Cover — Adwa Sec",
+      "layout": "cover",
+      "output_path": "/adwa/download/slides/slide_01.html",
+      "task_brief": "Cover slide. Kicker: 'STARTUP PITCH — NOVEMBER 2026'. Huge title: 'Adwa Sec'. Tagline below: 'Cybersecurity for Ethiopia's regulated financial sector — built in Ethiopia, in Amharic and English.' Meta line at bottom: 'Solomon Asalif · Founder  |  Addis Ababa  |  MVP live · 766 automated checks green'. Right half (or right 45%): hero image https://z-cdn.chatglm.cn/image-search-mcp/images-ppt/18988fa5d5b4.jpeg (Addis Ababa skyline at sunset with the illuminated Commercial Bank of Ethiopia headquarters tower) — full-bleed to the right edge with a dark gradient overlay so text remains WCAG-readable. Small footer: 'Pre-seed ask: ETB 10M · 18-month runway'. Speaker notes: cues."
+    },
+    {
+      "title": "The problem",
+      "layout": "stats grid",
+      "output_path": "/adwa/download/slides/slide_02.html",
+      "task_brief": "Problem slide, dark stats grid. Kicker: 'THE PROBLEM'. Headline: 'Ethiopia's financial sector is digitising faster than it is defending itself.' Four stat cards (number in accent, label under): '41%' — 'of reported incidents hit financial services — the largest share of any sector (INSA-derived reporting)'; 'ETB 1.3B' — 'reported digital-fraud losses in 2024'; '#1' — 'Ethiopia ranks first globally for malware detections (INTERPOL Africa Cyberthreat Assessment 2025)'; 'Tier 3' — 'ITU Global Cybersecurity Index 2024: least-developed cyber capacity tier'. Bottom strip: '8 billion digital transactions worth ETB 34 trillion in FY 2025/26 — the attack surface keeps expanding, while a 60% deficit in fraud countermeasures was reported in 2026.' Speaker notes: cues citing INSA, INTERPOL, ITU, The Reporter."
+    },
+    {
+      "title": "The solution",
+      "layout": "bento grid",
+      "output_path": "/adwa/download/slides/slide_03.html",
+      "task_brief": "Solution slide. Kicker: 'THE SOLUTION'. Headline: 'One bilingual platform. Five modules. Obligation to fix, in one queue.' Bento grid of 5 module cards + 1 highlight card: (1) 'Compliance engine' — '47 obligations of Proclamation 1321/2024 + 30 of NBE SBB/83/2022 as machine-readable rules; SLA-tracked findings; SHA-256 evidence vault; bilingual PDF reports'; (2) 'VAPT Center' — 'built to the NBE LOT4 tender: live OWASP-aligned web/API scanning, CVSS+EPSS+KEV prioritisation (P1–P4)'; (3) 'AD Attack Paths' — 'BloodHound-style multi-hop domain analysis: chokepoints, tier-0 exposure'; (4) 'SOC / CERT' — 'NIST SP 800-61 lifecycle; Ethio-CERT sync with cryptographic receipts; <15-min notification target'; (5) 'Awareness' — 'Amharic-first curriculum: 8 bilingual units, 32 quizzes, school pilots'; highlight card: 'English · አማርኛ — every module, every report, every annotation'. Speaker notes: cues."
+    },
+    {
+      "title": "The product — live demo",
+      "layout": "split text+image",
+      "output_path": "/adwa/download/slides/slide_04.html",
+      "task_brief": "Product slide. Kicker: 'THE PRODUCT — LIVE TODAY'. Headline: 'AD Attack Paths: lateral movement, made visible.' Left 55%: screenshot image (local, relative path) '../screenshots/embed/shot-04-ad-attack-paths.png' — the interactive SVG graph from the running platform; caption under image: 'Captured from the running MVP — interactive tiered graph, technique-coloured edges.' Right 45%: bullets: '12 attack paths computed from two phished users in the reference topology'; 'Shortest path to Domain Admin: 4 hops (MemberOf → AsRepRoast → CanRDP → AdminCreds)'; 'Chokepoint detection: svc-webapp sits on 10 of 12 paths — fix one node, break ten paths'; 'Answers NBE LOT4 tender §G (identity & lateral movement) — bilingual remediation guidance per edge'. Speaker notes: cues."
+    },
+    {
+      "title": "Why now",
+      "layout": "split timeline + image",
+      "output_path": "/adwa/download/slides/slide_05.html",
+      "task_brief": "Why-now slide. Kicker: 'WHY NOW'. Headline: 'Regulation, losses and a growing market have converged.' Left 60%: vertical timeline list: '2024 — Proclamation 1321/2024 in force: 47 obligations, penalties up to 4% of global turnover + executive imprisonment'; '2025 — reported digital-fraud losses reach ETB 1.3B; CBE service disruption'; '2026 — NBE directives bite: SBB/83/2022 obligations + the NBE/NCB/S/02/2026/27 LOT4 security tender is live now'; 'Market — USD 361.1M (2025) → USD 746.6M (2034), 8.16% CAGR (IMARC)'. Right 40%: image https://z-cdn.chatglm.cn/image-search-mcp/images-ppt/a591676650a0.jpg (contactless mobile payment over card terminal, clean, no text) with subtle dark overlay. Speaker notes: cues."
+    },
+    {
+      "title": "Business model",
+      "layout": "pricing cards",
+      "output_path": "/adwa/download/slides/slide_06.html",
+      "task_brief": "Business-model slide. Kicker: 'BUSINESS MODEL'. Headline: 'Hybrid: recurring subscriptions + project services.' Five pricing cards (price big in accent, numeric font, label under): 'ETB 1.8M / year' — 'Bank platform subscription'; 'ETB 540K / year' — 'MFI subscription'; 'ETB 450K' — 'VAPT engagement (2–3 weeks, evidence pack)'; 'ETB 150K / month' — 'SOC/CERT retainer'; 'ETB 300K' — 'Awareness training engagement'. Bottom line: 'Anchored to what it replaces: a 40–80-hour manual audit, foreign day-rates, and penalty exposure. USD-indexed pricing with annual birr-adjustment clause; pilots discounted, never free.' Speaker notes: cues."
+    },
+    {
+      "title": "Go-to-market",
+      "layout": "three-column strategy",
+      "output_path": "/adwa/download/slides/slide_07.html",
+      "task_brief": "Go-to-market slide. Kicker: 'GO-TO-MARKET'. Headline: 'Beachhead: NBE-regulated banks and MFIs.' Three columns: (1) 'Prove' — 'Paid pilots with anchor institutions — Commercial Bank of Ethiopia, Dashen Bank and three MFIs are the named candidates; pilot steering committees double as customer success'; (2) 'Tender' — 'The public-procurement channel: the founder already answered the live NBE LOT4 tender — all 66 mandatory lines with evidence pointers and SBD-shaped CSV export'; (3) 'Partner' — 'Local integrators and audit practices resell the compliance module; Bahir Dar University supplies the supervised talent pipeline'. Bottom strip: 'Credibility assets: anchor reference → ISO 27001 (2027) → regulator relationship — banks buy credibility first.' Speaker notes: cues."
+    },
+    {
+      "title": "Traction & credibility",
+      "layout": "proof grid",
+      "output_path": "/adwa/download/slides/slide_08.html",
+      "task_brief": "Traction slide. Kicker: 'WHERE WE STAND'. Headline: 'The engineering risk is already retired.' Proof grid (big accent numbers + labels): '766' — 'automated checks green across the CI-enforced test battery (auth, OWASP, SOC, VAPT, evidence, gates)'; '66 / 66' — 'NBE LOT4 tender lines answered: 27 full · 21 partial · 18 roadmap — honest, evidence-linked, SBD-format CSV'; '5' — 'platform modules live today, bilingual EN/Amharic'; '1' — 'founder who wrote the code, the tender response and the plan'. Bottom line: 'Track C governance, Ethio-CERT synchronisation, and the Amharic school-pilot design are built and tested — not slides.' Speaker notes: cues."
+    },
+    {
+      "title": "Competition & moat",
+      "layout": "comparison",
+      "output_path": "/adwa/download/slides/slide_09.html",
+      "task_brief": "Competition slide. Kicker: 'COMPETITION'. Headline: 'Alternatives exist. None of them is built for Ethiopia.' Comparison table (3 rows vs Adwa column): row 'Foreign consultancies' — 'international day rates · English-only · episodic visits'; row 'International SaaS' — 'USD pricing · no Amharic · no 1321/2024 rule content · data abroad'; row 'Manual programmes' — '40–80 specialist hours per audit · no SLA proof · collapses with turnover'; final column/row 'Adwa Sec' (accent-highlighted) — 'local · bilingual · Proclamation & NBE rule content inside · evidence-integrity regulators can audit · priced for this market'. Moat strip: 'Rule content no entrant has · evidence-integrity architecture · bilingual delivery · first-mover local references'. Speaker notes: cues."
+    },
+    {
+      "title": "Financials",
+      "layout": "chart + ask",
+      "output_path": "/adwa/download/slides/slide_10.html",
+      "task_brief": "Financials slide. Kicker: 'FINANCIAL PLAN (ETB)'. Headline: 'Break-even late 2028. First profitable year 2029.' Left 60%: CSS bar chart (build with plain divs, numeric font values, no images): grouped bars per year 2027/2028/2029: revenue 4.02 / 19.26 / 44.64 (ETB M, accent #22D3EE), operating costs 9.92 / 21.02 / 36.20 (muted #8CA0B4), net -5.90 / -1.76 / +8.44 (green #34D399 for positive, red #F87171 for negative); axis labels and legend; note 'planning estimates, re-based quarterly'. Right 40%: 'The ask: ETB 10M pre-seed (~USD 67K) · 18-month runway' with use-of-funds mini list: 40% product & engineering; 25% SOC stand-up + ISO 27001; 20% sales & pilot delivery; 10% legal & registration; 5% buffer. Bottom strip: 'Year-end subscribers: 3 → 12 → 28 institutions · FTE: 5 → 11 → 20.' Speaker notes: cues."
+    },
+    {
+      "title": "Team & close",
+      "layout": "closing",
+      "output_path": "/adwa/download/slides/slide_11.html",
+      "task_brief": "Closing slide. Kicker: 'TEAM & ASK'. Headline: 'A founder who ships — and the plan to prove it at scale.' Left: founder card: 'Solomon Asalif — Founder · CEO' with lines: 'built the platform end-to-end (Next.js 16, TypeScript, 766 checks green)'; 'authored the NBE LOT4 tender response — all 66 lines'; 'Adwa Cyber Research Lab, Bahir Dar University'; 'hiring from Q1 2027: senior security engineer first; 5 FTE by year-end'. Right: roadmap strip 2027 → 2028 → 2029: '2027 — register PLC · paid pilots · SOC 24/5 · ISO 27001'; '2028 — productise · 12 subscribers · run-rate break-even'; '2029 — 28 subscribers · first profitable year · regional option'. Big closing line: 'Adwa Sec — ETB 10M · 18 months · the working platform, the mapped regulation, the local team.' Footer contact placeholders: '[+251-9XX-XXX-XXX] · [email@example.com]'. Speaker notes: cues."
+    }
+  ]
+}

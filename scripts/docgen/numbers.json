@@ -1,0 +1,168 @@
+{
+  "fx_etb_per_usd": 150.0,
+  "ask_etb": 10000000,
+  "runway_months": 18,
+  "use_of_funds": {
+    "Product & engineering": 0.4,
+    "SOC stand-up & certification": 0.25,
+    "Sales & pilot delivery": 0.2,
+    "Legal & registration": 0.1,
+    "Working-capital buffer": 0.05
+  },
+  "price": {
+    "bank_sub_annual": 1800000,
+    "mfi_sub_annual": 540000,
+    "vapt_engagement": 450000,
+    "soc_retainer_monthly": 150000,
+    "training_engagement": 300000
+  },
+  "y1": {
+    "revenue_monthly": {
+      "Jan": 0,
+      "Feb": 0,
+      "Mar": 0,
+      "Apr": 0,
+      "May": 0,
+      "Jun": 0,
+      "Jul": 150000,
+      "Aug": 600000,
+      "Sep": 900000,
+      "Oct": 390000,
+      "Nov": 1140000,
+      "Dec": 840000
+    },
+    "revenue_total": 4020000,
+    "salaries_monthly": {
+      "Jan": 0,
+      "Feb": 225000,
+      "Mar": 225000,
+      "Apr": 225000,
+      "May": 225000,
+      "Jun": 225000,
+      "Jul": 405000,
+      "Aug": 405000,
+      "Sep": 495000,
+      "Oct": 495000,
+      "Nov": 495000,
+      "Dec": 495000
+    },
+    "salaries_total": 3915000,
+    "other_costs": {
+      "Hosting & tooling": 900000,
+      "ISO 27001 certification": 2250000,
+      "Legal & registration": 900000,
+      "Pilot operations": 450000,
+      "Marketing & BD": 600000
+    },
+    "contingency": 901500,
+    "costs_total": 9916500,
+    "net": -5896500,
+    "fte_eoy": 5,
+    "subs_eoy": {
+      "banks": 1,
+      "mfis": 2
+    },
+    "vapt": 4,
+    "soc_clients": 1,
+    "training": 2
+  },
+  "y2": {
+    "revenue_lines": {
+      "Bank subscriptions": 6300000,
+      "MFI subscriptions": 2160000,
+      "VAPT engagements": 4500000,
+      "SOC retainers": 4500000,
+      "Awareness training": 1800000
+    },
+    "revenue_total": 19260000,
+    "salaries": {
+      "Founder / CEO": 900000,
+      "Senior Security Engineer": 1800000,
+      "Full-stack Engineer": 1440000,
+      "Full-stack Engineer #2": 1440000,
+      "SOC Manager": 2160000,
+      "SOC Analysts (2)": 2160000,
+      "SOC Analyst #3 (from Jul)": 540000,
+      "Partnerships & Sales Lead": 1440000,
+      "Operations & Admin": 1080000
+    },
+    "other_costs": {
+      "Hosting & tooling": 1800000,
+      "ISO 27001 surveillance": 450000,
+      "Legal & professional": 900000,
+      "Marketing & BD": 1800000,
+      "Office & misc": 1200000
+    },
+    "contingency": 1911000,
+    "costs_total": 21021000,
+    "net": -1761000,
+    "fte_eoy": 11,
+    "subs_eoy": {
+      "banks": 6,
+      "mfis": 6
+    },
+    "vapt": 10,
+    "soc_clients": 4,
+    "training": 6
+  },
+  "y3": {
+    "revenue_lines": {
+      "Bank subscriptions": 16200000,
+      "MFI subscriptions": 5940000,
+      "VAPT engagements": 8100000,
+      "SOC retainers": 10800000,
+      "Awareness training": 3600000
+    },
+    "revenue_total": 44640000,
+    "salaries": {
+      "Founder / CEO": 900000,
+      "Senior Security Engineer / CTO": 2160000,
+      "Full-stack Engineers (3)": 4320000,
+      "SOC Manager": 2160000,
+      "SOC Analysts (6)": 6480000,
+      "Partnerships & Sales (2)": 2880000,
+      "Operations & Admin (2)": 2160000
+    },
+    "other_costs": {
+      "Hosting & tooling": 3600000,
+      "Certifications & audits": 900000,
+      "Legal & professional": 1350000,
+      "Marketing & BD": 3600000,
+      "Office & misc": 2400000
+    },
+    "contingency": 3291000,
+    "costs_total": 36201000,
+    "net": 8439000,
+    "fte_eoy": 20,
+    "subs_eoy": {
+      "banks": 12,
+      "mfis": 16
+    },
+    "vapt": 18,
+    "soc_clients": 8,
+    "training": 12
+  },
+  "summary": {
+    "revenue": [
+      4020000,
+      19260000,
+      44640000
+    ],
+    "costs": [
+      9916500,
+      21021000,
+      36201000
+    ],
+    "net": [
+      -5896500,
+      -1761000,
+      8439000
+    ],
+    "revenue_usd": [
+      26800,
+      128400,
+      297600
+    ],
+    "ask_usd": 66667
+  }
+}
