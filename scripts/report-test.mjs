@@ -56,8 +56,10 @@ function pdfText(buf, name) {
 try {
   const cbe = await db.organization.findFirst({ where: { name: { contains: "Commercial" } } });
   const wasasa = await db.organization.findFirst({ where: { name: { contains: "Wasasa" } } });
+  // VAPT mirror scans (mode:"vapt") are findings containers, not compliance
+  // reports — exclude them like every compliance-surface query does.
   const cbeScan = await db.scan.findFirst({
-    where: { status: "complete", organizationId: cbe.id },
+    where: { status: "complete", organizationId: cbe.id, mode: { not: "vapt" } },
     orderBy: { completedAt: "desc" },
   });
   
