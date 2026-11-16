@@ -1,11 +1,11 @@
 # Adwa Cyber — Testing Guide
 
-683 checks across 15 suites, all green (2026-11-12). Three runner scripts,
+743 checks across 16 suites, all green. Three runner scripts,
 each self-contained (they start/stop their own dev stack because background
 processes do not survive between shell calls in some environments):
 
 ```bash
-bash scripts/run-api-tests.sh       # 10 API suites — 465 checks
+bash scripts/run-api-tests.sh       # 11 API suites — 525 checks
 bash scripts/ci-run-auth-suites.sh  # 4 auth suites — 180 checks
 bash scripts/run-recovery-tests.sh  # recovery suite — 38 checks
 ```
@@ -32,6 +32,7 @@ Suites are deterministic; several depend on seeded fixtures. The runner
 | `trackc-test` | 36 | `seed-trackc.cjs` (4 operators, mixed gate states, ACFS 13 preconditions) |
 | `awareness-test` | 82 | `seed-awareness.cjs` (5 schools, 15 modules, RCT dataset) |
 | `awareness-tools-api-test` | 32 | base seed only |
+| `vapt-test` | 60 | `seed-vapt.ts` (44 assets, ~120 CVEs, 4 promoted criticals) — also runs a REAL live DAST scan against the dev server itself (http://localhost:3000) |
 | `test-auth` / `test-owasp` / `test-compliance` / `test-google` | 54 / 67 / 44 / 15 | base seed + demo users; mock Google on :3010 |
 | `test-password-reset` | 38 | demo users; dev-server console mail log at `/tmp/adwa-dev.log` |
 

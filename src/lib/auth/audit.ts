@@ -86,7 +86,14 @@ export type AuthEventType =
   | "GATE_EVIDENCE_ATTACHED"
   | "GATE_EVIDENCE_DOWNLOADED"
   | "GATE_EVIDENCE_INTEGRITY_FAIL"
-  | "GATE_DOSSIER_EXPORTED";
+  | "GATE_DOSSIER_EXPORTED"
+  // VAPT Center (NBE/NCB/S/02/2026/27 LOT4 — vulnerability management)
+  | "VAPT_SCAN_COMPLETED"
+  | "VAPT_ASSET_CREATED"
+  | "VAPT_ASSET_UPDATED"
+  | "VAPT_ASSET_DELETED"
+  | "VAPT_VULN_STATUS_CHANGED"
+  | "VAPT_VULN_PROMOTED";
 
 export interface AuditInput {
   type: AuthEventType;

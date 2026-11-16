@@ -12,7 +12,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { useTheme } from "next-themes";
 import {
   Moon, Sun, ShieldCheck, LayoutDashboard, ScrollText, Building2, ScanLine, Flag,
-  FileText, Languages, Users, LogOut, KeyRound, ChevronUp, FolderLock, Radar, GraduationCap, ShieldAlert,
+  FileText, Languages, Users, LogOut, KeyRound, ChevronUp, FolderLock, Radar, GraduationCap, ShieldAlert, Crosshair,
 } from "lucide-react";
 import { I18nProvider, useI18n } from "@/lib/i18n";
 import { DashboardView } from "@/components/adwa/dashboard";
@@ -25,13 +25,14 @@ import { EvidenceView } from "@/components/adwa/evidence-view";
 import { SocView } from "@/components/adwa/soc";
 import { AwarenessView } from "@/components/adwa/awareness";
 import { TrackCView } from "@/components/adwa/track-c";
+import { VaptView } from "@/components/adwa/vapt";
 import { AuthGate, useAuth } from "@/components/auth/auth-gate";
 import { MfaSetupDialog, MfaBadge } from "@/components/auth/mfa-setup";
 import { UsersView } from "@/components/auth/users-view";
 import { AuditView } from "@/components/auth/audit-view";
 import { ROLE_COLORS, ROLE_SHORT } from "@/lib/auth-client";
 
-type View = "dashboard" | "catalogue" | "organizations" | "scan" | "findings" | "evidence" | "report" | "soc" | "awareness" | "trackc" | "team" | "audit";
+type View = "dashboard" | "catalogue" | "organizations" | "scan" | "findings" | "evidence" | "report" | "soc" | "vapt" | "awareness" | "trackc" | "team" | "audit";
 
 function Shell() {
   const { t, lang, setLang } = useI18n();
@@ -57,6 +58,7 @@ function Shell() {
     { id: "findings", label: t("navFindings"), icon: Flag, show: perms.has("findings:view-org") || perms.has("findings:view-all") },
     { id: "evidence", label: t("navEvidence"), icon: FolderLock, show: perms.has("evidence:view-org") || perms.has("evidence:view-all") },
     { id: "soc", label: t("navSoc"), icon: Radar, show: perms.has("soc:view-org") || perms.has("soc:view-all") },
+    { id: "vapt", label: t("navVapt"), icon: Crosshair, show: perms.has("vapt:view-org") || perms.has("vapt:view-all") },
     { id: "awareness", label: t("navAwareness"), icon: GraduationCap, show: perms.has("awareness:manage") },
     { id: "trackc", label: t("navTrackC"), icon: ShieldAlert, show: perms.has("governance:view") },
     { id: "report", label: t("navReport"), icon: FileText, show: perms.has("scans:view-org") || perms.has("scans:view-all") },
@@ -224,6 +226,12 @@ function Shell() {
               <SocView
                 canManage={perms.has("soc:manage-org") || perms.has("soc:manage-all")}
                 canSync={perms.has("threats:sync")}
+                isSuperAdmin={isSuper}
+              />
+            )}
+            {view === "vapt" && (
+              <VaptView
+                canManage={perms.has("vapt:manage-org") || perms.has("vapt:manage-all")}
                 isSuperAdmin={isSuper}
               />
             )}

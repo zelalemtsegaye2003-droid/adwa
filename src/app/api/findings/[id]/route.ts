@@ -65,6 +65,21 @@ export async function PATCH(req: NextRequest, ctx: { params: Promise<{ id: strin
     include: { rule: true, scan: { include: { organization: true } } },
   });
 
+  // VAPT Center reverse sync: when this row mirrors a promoted VAPT
+  // vulnerability, the vulnerability record follows the supervisor's status
+  // change here (waived ↔ risk-accepted) so both queues always agree.
+  if (existing.vaptVulnerabilityId) {
+    await db.vaptVulnerability
+      .update({
+        where: { id: existing.vaptVulnerabilityId },
+        data: {
+          status: body.status === "waived" ? "accepted" : body.status,
+          ...(patch.remediatedAt !== undefined ? { remediatedAt: patch.remediatedAt } : {}),
+        },
+      })
+      .catch(() => { /* the VAPT record may have been deleted with its asset */ });
+  }
+
   if (existing.status !== body.status) {
     const sla = slaInfo({
       status: body.status,

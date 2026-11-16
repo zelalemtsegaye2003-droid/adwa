@@ -21,6 +21,7 @@ Bilingual (English / አማርኛ) · Proclamation 1321/2024 · NCSP 2024 · Dig
 | **Findings workflow** | open → in_progress → remediated / waived, tenant-isolated |
 | **Remediation SLA** | Severity-based corrective-action deadlines (critical 30d / high 60d / medium 90d, Procl. 1426/2026 practice), on-time vs late closure proof, overdue tracking, dashboard banner |
 | **Rules engine** | NBE-IT SBB/83/2022 30-obligation catalogue, evidence coverage (SATISFIED/STALE/GAP), freshness policies, evidence↔obligation links with AUTO_TAG |
+| **VAPT Center (NBE LOT4)** | Vulnerability assessment & pen-test platform tab per the NBE/NCB/S/02/2026/27 LOT4 tender: attack-surface registry (managed + shadow-IT EASM), hybrid engine — REAL non-destructive DAST web checks (OWASP A02/A05/A07, throttled, proof bundles) + honestly-labelled reference CVE catalogue — CVSS+EPSS+CISA-KEV+business-context dynamic prioritisation (P1–P4), remediation SLA (30/60/90/180d), and promotion of criticals into the Findings module as NBE-anchored corrective actions with the same SLA clock (bidirectional status sync; mirror scans excluded from compliance aggregates) |
 | **Executive PDF** | Server-side bilingual (EN/አማርኛ) pdfkit reports with pillar charts, SLA table, per-page footers + payload hash |
 | **SOC / CERT-as-a-Service** | Phase 2 pilot: threat-intelligence hub with hybrid sharing (anonymised hub broadcasts + peer-to-peer for sensitive indicators, AAU framework), NIST SP 800-61 incident lifecycle (detect → triage → contain → eradicate → recover → close), alert prioritisation, predictive threat forecast, automated containment, Ethio-CERT synchronisation (national-feed ingest + anonymised upward reports with sha256-proof payloads), RQ3 detection→notification latency tracking (<15 min median target) |
 | **Awareness platform** | Phase 3 (Track B): Amharic-first cyber-safety curriculum (8 bilingual units, 32 quiz items) for the five-school Addis Ababa pilot, pseudonymised minor participants, parental-consent register, RQ2 treatment/control evaluation, public learner portal + safe-browsing tools |
@@ -66,13 +67,13 @@ bun install
 # .env needs DATABASE_URL and AUTH_SECRET (64+ chars) — see .env.example
 bunx prisma db push             # create schema
 bun run seed:demo               # catalogue + demo accounts + evidence + SOC +
-                                 #   awareness RCT + SLA + gates + Track C
+                                 #   VAPT + awareness RCT + SLA + gates + Track C
 bun run dev                     # http://localhost:3000
 ```
 
 `seed:demo` chains: `db:seed` (77 rules + pilot orgs + demo scans) →
 `seed:users` → `seed:evidence` → `seed:evidence-links` → `seed:soc` →
-`seed:awareness` → `seed:sla` → `seed:gates` → `seed:trackc` →
+`seed:vapt` → `seed:awareness` → `seed:sla` → `seed:gates` → `seed:trackc` →
 `seed:gate-evidence`. Every step is idempotent, and all of them refuse to run
 against `NODE_ENV=production` unless `SEED_ON_BOOT=1` (bootstrap) or
 `ALLOW_DEMO_SEED=1` (full demo) is set — decision D6, `docs/DECISIONS.md`.
@@ -188,18 +189,19 @@ privilege-escalation path.
 
 ```bash
 bun run test:integration     # alias: bash scripts/run-api-tests.sh
-bash scripts/run-api-tests.sh       # 10 API suites — 465 checks (Ethio-CERT
+bash scripts/run-api-tests.sh       # 11 API suites — 525 checks (Ethio-CERT
                                     #   binding, SOC, SLA, report, rules engine,
                                     #   scan lifecycle incl. WS-2 submit hardening,
                                     #   evidence security, Track C gate board,
-                                    #   CII/ACFS, awareness, awareness tools)
+                                    #   CII/ACFS, awareness, awareness tools, VAPT)
 bash scripts/ci-run-auth-suites.sh  # auth + OWASP + compliance + Google
                                     #   — 180 checks
 bash scripts/run-recovery-tests.sh  # password reset + email verification +
                                     #   logged-in change — 38 checks
 ```
 
-**683 checks total, all green.** The same battery runs in CI
+**683 checks total, all green** (472 compliance/SOC battery + 38 recovery +
+180 auth/OWASP; the VAPT suite contributes 60). The same battery runs in CI
 (`.github/workflows/ci.yml`: lint → zero-error typecheck → production build →
 full test battery → Docker compose boot/health smoke) on every push and pull
 request. Suites are order-independent and self-healing (429-aware retries,
@@ -215,6 +217,8 @@ prisma/schema.prisma        Organization, Rule, Scan, ScanResult, User,
                               CiiOperator/Mou/Authorization/System, AcfsGateItem/Decision
 prisma/schema.postgres.prisma  PostgreSQL variant (kept in sync — used by Docker)
 src/lib/rules-data.ts       the 47 obligations (bilingual, mapped to articles)
+src/lib/vapt-data.ts         VAPT reference CVE catalogue (NBE LOT4 tender)
+src/lib/vapt-engine.ts       VAPT prioritisation (CVSS+EPSS+KEV), SLA, live DAST
 src/lib/engine.ts           scoring / risk-ranking / remediation engine
 src/lib/env.ts              boot-time env validation (fail fast in production)
 src/lib/api-error.ts        canonical { error: { code, message, fieldErrors } }
@@ -222,14 +226,16 @@ src/lib/auth/               jwt, totp, crypto, session, guard, rbac, captcha,
                             google, rate-limit, audit, passwords, mail, tokens
 src/app/api/                auth/* · rules · organizations · scans · findings ·
                             evidence (+upload) · gates · cii/* · acfs/* ·
-                            incidents · threats · awareness · learn · soc · health
+                            incidents · threats · awareness · learn · soc ·
+                            vapt (overview/assets/scans/vulnerabilities) · health
 src/components/adwa/        dashboard, catalogue, scan wizard, findings, report,
-                            SOC, awareness, Track C (gate board + CII + ACFS)
+                            SOC, VAPT Center, awareness, Track C (gate board +
+                            CII + ACFS)
 src/components/auth/        login screen (with password reset), MFA setup +
                             password change, users, audit
 docs/architecture.png      system architecture diagram (see above)
 mini-services/              mock Google OIDC (:3010), mock Ethio-CERT (:3020)
-docs/                       DECISIONS, AUTH, EVIDENCE, DEPLOY, TESTING, OPS,
+docs/                       DECISIONS, AUTH, VAPT, EVIDENCE, DEPLOY, TESTING, OPS,
                             USER_GUIDE, PILOT_ONBOARDING, INCIDENT_RUNBOOK
 Dockerfile · docker-compose.yml · deploy/Caddyfile   one-command deploy
 .github/workflows/ci.yml    lint + typecheck + build + test battery + compose smoke
