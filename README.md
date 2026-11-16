@@ -21,7 +21,7 @@ Bilingual (English / አማርኛ) · Proclamation 1321/2024 · NCSP 2024 · Dig
 | **Findings workflow** | open → in_progress → remediated / waived, tenant-isolated |
 | **Remediation SLA** | Severity-based corrective-action deadlines (critical 30d / high 60d / medium 90d, Procl. 1426/2026 practice), on-time vs late closure proof, overdue tracking, dashboard banner |
 | **Rules engine** | NBE-IT SBB/83/2022 30-obligation catalogue, evidence coverage (SATISFIED/STALE/GAP), freshness policies, evidence↔obligation links with AUTO_TAG |
-| **VAPT Center (NBE LOT4)** | Vulnerability assessment & pen-test platform tab per the NBE/NCB/S/02/2026/27 LOT4 tender: attack-surface registry (managed + shadow-IT EASM), hybrid engine — REAL non-destructive DAST web checks (OWASP A02/A05/A07, throttled, proof bundles) + honestly-labelled reference CVE catalogue — CVSS+EPSS+CISA-KEV+business-context dynamic prioritisation (P1–P4), remediation SLA (30/60/90/180d), and promotion of criticals into the Findings module as NBE-anchored corrective actions with the same SLA clock (bidirectional status sync; mirror scans excluded from compliance aggregates) |
+| **VAPT Center (NBE LOT4)** | Vulnerability assessment & pen-test platform tab per the NBE/NCB/S/02/2026/27 LOT4 tender: attack-surface registry (managed + shadow-IT EASM), hybrid engine — REAL non-destructive DAST web checks (OWASP A02/A05/A07, throttled, proof bundles) + honestly-labelled reference CVE catalogue — CVSS+EPSS+CISA-KEV+business-context dynamic prioritisation (P1–P4), remediation SLA (30/60/90/180d), and promotion of criticals into the Findings module as NBE-anchored corrective actions with the same SLA clock (bidirectional status sync; mirror scans excluded from compliance aggregates). New: **AD Attack Paths** (BloodHound-style CBE.LOCAL graph — 15 nodes/19 edges, BFS multi-hop breach→Domain-Admin/DC paths with per-hop techniques, roastable/dormant/over-privileged account KPIs, chokepoints, interactive SVG, remediation guidance) and the **Bid Matrix** (all 66 tender requirement lines with honest full/partial/roadmap vendor responses, capability+evidence links, CSV export shaped for the SBD Vendor-Response form) |
 | **Executive PDF** | Server-side bilingual (EN/አማርኛ) pdfkit reports with pillar charts, SLA table, per-page footers + payload hash |
 | **SOC / CERT-as-a-Service** | Phase 2 pilot: threat-intelligence hub with hybrid sharing (anonymised hub broadcasts + peer-to-peer for sensitive indicators, AAU framework), NIST SP 800-61 incident lifecycle (detect → triage → contain → eradicate → recover → close), alert prioritisation, predictive threat forecast, automated containment, Ethio-CERT synchronisation (national-feed ingest + anonymised upward reports with sha256-proof payloads), RQ3 detection→notification latency tracking (<15 min median target) |
 | **Awareness platform** | Phase 3 (Track B): Amharic-first cyber-safety curriculum (8 bilingual units, 32 quiz items) for the five-school Addis Ababa pilot, pseudonymised minor participants, parental-consent register, RQ2 treatment/control evaluation, public learner portal + safe-browsing tools |
@@ -139,7 +139,7 @@ broken.
 ## Who can do what — end-to-end, per user
 
 **Yes — every role has a complete, working end-to-end path.** No role hits a
-dead end, and every journey below is machine-verified: the 683-check battery
+dead end, and every journey below is machine-verified: the 548-check dev battery (+218 auth/OWASP/recovery checks)
 walks each one through the real API (real captcha logins, real HTTP status
 codes, real tenant-isolation probes). The authoritative permission matrix is
 `src/lib/auth/rbac.ts` (reference: `docs/AUTH.md`).
@@ -200,8 +200,11 @@ bash scripts/run-recovery-tests.sh  # password reset + email verification +
                                     #   logged-in change — 38 checks
 ```
 
-**683 checks total, all green** (472 compliance/SOC battery + 38 recovery +
-180 auth/OWASP; the VAPT suite contributes 60). The same battery runs in CI
+**548 checks across the 12 dev-stack suites, all green** (the VAPT suite
+contributes 83 — including the new bid-matrix (66 tender lines) and AD
+attack-path graph suites; the evidence-vault upload matrix also runs). The
+218-check auth/OWASP/recovery battery (test-auth/test-owasp/test-compliance/
+test-google/test-password-reset) is unchanged and green. The same battery runs in CI
 (`.github/workflows/ci.yml`: lint → zero-error typecheck → production build →
 full test battery → Docker compose boot/health smoke) on every push and pull
 request. Suites are order-independent and self-healing (429-aware retries,
@@ -219,6 +222,9 @@ prisma/schema.postgres.prisma  PostgreSQL variant (kept in sync — used by Dock
 src/lib/rules-data.ts       the 47 obligations (bilingual, mapped to articles)
 src/lib/vapt-data.ts         VAPT reference CVE catalogue (NBE LOT4 tender)
 src/lib/vapt-engine.ts       VAPT prioritisation (CVSS+EPSS+KEV), SLA, live DAST
+src/lib/vapt-ad-paths.ts     AD attack-path reference graph (CBE.LOCAL topology)
+src/lib/vapt-ad-engine.ts    AD multi-hop path engine (BFS, chokepoints, risk)
+src/lib/vapt-bid-matrix.ts   NBE LOT4 bid capability response matrix (66 lines)
 src/lib/engine.ts           scoring / risk-ranking / remediation engine
 src/lib/env.ts              boot-time env validation (fail fast in production)
 src/lib/api-error.ts        canonical { error: { code, message, fieldErrors } }
@@ -227,9 +233,11 @@ src/lib/auth/               jwt, totp, crypto, session, guard, rbac, captcha,
 src/app/api/                auth/* · rules · organizations · scans · findings ·
                             evidence (+upload) · gates · cii/* · acfs/* ·
                             incidents · threats · awareness · learn · soc ·
-                            vapt (overview/assets/scans/vulnerabilities) · health
+                            vapt (overview/assets/scans/vulnerabilities/+
+                              ad-paths/bid-matrix) · health
 src/components/adwa/        dashboard, catalogue, scan wizard, findings, report,
-                            SOC, VAPT Center, awareness, Track C (gate board +
+                            SOC, VAPT Center (incl. AD attack paths + bid
+                              matrix), awareness, Track C (gate board +
                             CII + ACFS)
 src/components/auth/        login screen (with password reset), MFA setup +
                             password change, users, audit

@@ -14,9 +14,11 @@ module (NBE-anchored corrective actions).
 | Data models (`VaptAsset`, `VaptScan`, `VaptVulnerability`) | `prisma/schema.prisma` (+ postgres variant) |
 | Reference CVE catalogue (44 entries, NVD/CISA-aligned) | `src/lib/vapt-data.ts` |
 | Engine: prioritisation, SLA, simulation, **live DAST** | `src/lib/vapt-engine.ts` |
-| API routes | `src/app/api/vapt/{overview,assets,scans,vulnerabilities}` |
+| **AD attack-path graph & BFS analysis** | `src/lib/vapt-ad-paths.ts` + `src/lib/vapt-ad-engine.ts` |
+| **Bid capability response matrix (66 tender lines)** | `src/lib/vapt-bid-matrix.ts` |
+| API routes | `src/app/api/vapt/{overview,assets,scans,vulnerabilities,ad-paths,bid-matrix}` |
 | Promotion into Findings | `src/app/api/vapt/vulnerabilities/[id]/promote/route.ts` |
-| UI tab (Overview / Assets / Scans / Vulnerabilities) | `src/components/adwa/vapt.tsx` |
+| UI tabs (Overview / Assets / Scans / Vulnerabilities / **AD Attack Paths** / **Bid Matrix**) | `src/components/adwa/vapt.tsx` + `vapt-adpaths.tsx` + `vapt-bidmatrix.tsx` |
 | RBAC permissions (`vapt:view-*`, `vapt:manage-*`) | `src/lib/auth/rbac.ts` |
 | Demo seed | `scripts/seed-vapt.ts` (`bun run seed:vapt`) |
 | API test suite (60 checks) | `scripts/vapt-test.mjs` (runs via `scripts/run-api-tests.sh`) |
@@ -93,6 +95,55 @@ Promoted findings appear in the existing Findings view (with the CVE
 detail line), the SLA dashboard (`/api/findings/sla`) and the dashboard
 overdue banner.
 
+## AD Attack Paths (LOT4 §G — identity & lateral movement)
+
+BloodHound-style Active Directory relationship analysis over the seeded
+`CBE.LOCAL` reference topology (15 nodes / 19 directed edges; the enterprise
+edition ingests live directory data through the identity connector):
+
+- **Graph model** — nodes carry tier (0/1/2), type, and risk flags
+  (Kerberoastable SPNs, AS-REP-no-preauth, dormant days, password age,
+  over-privileged, unconstrained delegation); edges are directed in the
+  *attack traversal* direction and each records the underlying AD relation
+  plus how an attacker abuses it (EN/አማርኛ).
+- **Analysis engine** (`vapt-ad-engine.ts`) — BFS shortest path per
+  (entry → target) pair, full simple-path enumeration (≤8 hops), risk score
+  (20–100, shorter & roast-assisted = higher), node betweenness →
+  **chokepoints**, tier-0 exposure per entry, and remediation guidance
+  mapped from the abused techniques.
+- **Demo scenario** — two phished tier-2 users (intern + payroll clerk) →
+  **12 computed attack paths**; shortest = 4 hops
+  (`MemberOf → AsRepRoast → CanRDP → AdminCreds` into Domain Admins),
+  5 hops to the DC via three distinct technique families: AS-REP roast →
+  RDP → cached DA credentials; Kerberoast → SQL admin → unconstrained
+  delegation; helpdesk password-reset overreach → service-account takeover.
+  The biggest chokepoint is `svc-webapp` (on 10 of 12 paths).
+- **API** — `GET /api/vapt/ad-paths` (`include=graph|paths|all`, filters,
+  `vapt:view-*` guard). **UI** — interactive SVG graph (tier-coloured
+  columns from breach entries to tier-0 crown jewels, technique-coloured
+  edges with hover tooltips, entry rings, chokepoint markers), path list
+  with risk bars, node detail panel, and a remediation guide per selected
+  path — fully bilingual EN/አማርኛ.
+
+## Bid capability response matrix (tender Vendor-Response form)
+
+`GET /api/vapt/bid-matrix` transcribes **all 66 mandatory requirement lines**
+from the tender's technical tables (13 sections A–M; the tender's own line
+numbering is preserved, including its skipped L3) and maps each to an
+honest, auditable Adwa Cyber response:
+
+- **status**: `full` (27) / `partial` (21) / `roadmap` (18) — never a
+  silent "comply" on an undelivered engine (the tender's
+  honest-labelling principle, applied to ourselves);
+- **response**: the exact text for the tender's *Vendor Response* column;
+- **capability + evidence**: which module answers the line and where to
+  verify it (API route, file, UI tab, doc);
+- **CSV export** (`?format=csv`) shaped to paste into the SBD table
+  (the tender disqualifies non-conforming response formats).
+
+The UI tab adds summary cards, a compliance-split bar, section/status
+filters, search, and the CSV download.
+
 ## RBAC
 
 | Capability | SUPER_ADMIN | ORG_ADMIN | OFFICER | AUDITOR | VIEWER |
@@ -128,11 +179,15 @@ degradation (marked unreachable, never a silent pass).
 | Asset discovery & EASM | Attack-surface registry with managed/shadow-IT flag, tags/smart-groups, kind/environment/surface/criticality |
 | Vulnerability assessment & core engine | Reference CVE catalogue (24h-update cadence = data feed swap), heuristic no-signature findings, non-destructive-only probes |
 | Web application & API security (DAST) | **Live** OWASP-aligned GET-based checks with throttling and proof bundles |
+| Identity, AD & attack-path analysis | AD Attack Paths tab — multi-hop path engine, roastable/dormant/over-privileged detection, tier-0 exposure |
+| Bid response | Bid Matrix tab — 66 line-by-line Vendor-Response rows with evidence links + CSV export |
 | Risk prioritisation & threat intel | CVSS + EPSS + CISA KEV + business-context dynamic score (P1–P4) |
 | Remediation & ITSM workflows | SLA-tracked queue, risk acceptance with justification, promotion into the platform's corrective-action machinery |
 | Compliance, reporting & governance | NBE-anchored promotion (NBE-22/16/18), audit trail on every operation, bilingual EN/አማርኛ UI, RBAC, rate-limited documented REST API |
 
 Not yet in v1 (roadmap, honestly labelled): authenticated/agent-based
-scanning, SAST/SCA repository analysis, AD attack-path visualisation,
+scanning, SAST/SCA repository analysis, live AD directory ingestion,
 cloud CSPM/CIEM connectors, SIEM/ITSM bidirectional integrations. These map
-onto the same registry/queue/promotion substrate.
+onto the same registry/queue/promotion substrate. The line-by-line stance
+for every tender requirement — including these — lives in the Bid Matrix
+tab (`/api/vapt/bid-matrix`, CSV export).

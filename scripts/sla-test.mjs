@@ -57,7 +57,10 @@ try {
   const sumParts = sum.onTrack + sum.dueSoon + sum.overdue + sum.closedOnTime + sum.closedLate + sum.waived + sum.notTracked;
   check("summary adds up to findings total", sumParts === totalFindings, `${sumParts} vs ${totalFindings}`);
   check("all CBE findings belong to CBE", r.body.findings.every((f) => f.organization.id === cbe.id));
-  check("CBE has no overdue (seed posture)", sum.overdue === 0, `overdue=${sum.overdue}`);
+  // VAPT promotions (seeded PAN-OS / Zerologon flagships) legitimately add
+  // overdue corrective actions — the SLA-seed posture itself stays clean.
+  const overdueNonVapt = r.body.findings.filter((f) => f.slaState === "OVERDUE" && !(f.findingEn ?? "").startsWith("VAPT")).length;
+  check("CBE has no overdue outside the VAPT promotions (seed posture)", overdueNonVapt === 0 && sum.overdue === r.body.findings.filter((f) => f.slaState === "OVERDUE").length, `overdue=${sum.overdue} nonVapt=${overdueNonVapt}`);
   check("CBE has tracked deadlines", sum.tracked > 0, `tracked=${sum.tracked}`);
   check("SLA policy echoed", r.body.slaPolicy.critical === 30 && r.body.slaPolicy.medium === 90);
 
@@ -68,9 +71,9 @@ try {
   for (let i = 1; i < seq.length; i++) if (order.indexOf(seq[i]) < order.indexOf(seq[i - 1])) { sortedOk = false; break; }
   check("findings sorted by SLA urgency", sortedOk, seq.slice(0, 4).join(",") + "…");
 
-  // filter: sla=OVERDUE on CBE → empty list
+  // filter: sla=OVERDUE on CBE → only the seeded VAPT promotions may appear
   r = await jfetch("/api/findings/sla?sla=OVERDUE", authed(cbeAdmin));
-  check("sla=OVERDUE filter returns 0 rows for CBE", r.status === 200 && r.body.findings.length === 0 && r.body.summary.overdue === 0);
+  check("sla=OVERDUE filter returns only VAPT promotions for CBE", r.status === 200 && r.body.findings.every((f) => (f.findingEn ?? "").startsWith("VAPT")) && r.body.summary.overdue === r.body.findings.length, `rows=${r.body.findings.length}`);
 
   // org param is ignored for org users (tenant pin)
   r = await jfetch(`/api/findings/sla?org=${wasasa.id}`, authed(cbeAdmin));

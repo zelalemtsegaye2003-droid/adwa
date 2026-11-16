@@ -240,6 +240,49 @@ try {
     check("remediation syncs with closure stamp", r.status === 200 && synced2.status === "remediated" && synced2.remediatedAt !== null);
   }
 
+  // ── 8. Bid capability response matrix (NBE LOT4) ────────────────────────
+  r = await jfetch("/api/vapt/bid-matrix", authed(cbeAdmin));
+  check("GET /api/vapt/bid-matrix 200", r.status === 200);
+  check("bid matrix carries 66 tender lines", r.body.summary?.total === 66, `total=${r.body.summary?.total}`);
+  check("bid matrix statuses add up", (r.body.summary?.full ?? 0) + (r.body.summary?.partial ?? 0) + (r.body.summary?.roadmap ?? 0) === 66);
+  check("bid matrix has 13 sections", r.body.sections?.length === 13, `sections=${r.body.sections?.length}`);
+  check("bid matrix line G3 maps attack-path analysis", r.body.requirements?.some((x) => x.id === "G3" && x.status === "full" && /attack[- ]path/i.test(x.capability)));
+
+  r = await jfetch("/api/vapt/bid-matrix?section=G&status=full", authed(cbeAdmin));
+  check("bid matrix filter section+status works", r.status === 200 && r.body.requirements?.every((x) => x.section === "G" && x.status === "full") && r.body.requirements.length === 3, `n=${r.body.requirements?.length}`);
+
+  const csvRes = await fetch(`${BASE}/api/vapt/bid-matrix?format=csv`, { headers: { Cookie: cbeAdmin.cookie } });
+  const csvText = await csvRes.text();
+  const csvLines = csvText.split("\n");
+  check("bid matrix CSV export (66 rows + header)", csvRes.status === 200 && csvLines.length === 67 && (csvRes.headers.get("content-type") ?? "").includes("text/csv"), `lines=${csvLines.length}`);
+  check("CSV includes tender line M3", csvLines.some((l) => l.includes("M3") && l.includes("Warranty")));
+
+  r = await jfetch("/api/vapt/bid-matrix", authed({ cookie: "" }));
+  check("bid matrix requires auth 401", r.status === 401);
+  r = await jfetch("/api/vapt/bid-matrix", authed(dashenAuditor));
+  check("bid matrix readable by VAPT viewer role", r.status === 200);
+
+  // ── 9. AD attack paths (LOT4 §G) ────────────────────────────────────────
+  r = await jfetch("/api/vapt/ad-paths", authed(cbeAdmin));
+  check("GET /api/vapt/ad-paths 200", r.status === 200);
+  check("ad graph domain is CBE.LOCAL", r.body.domain === "CBE.LOCAL");
+  check("ad graph has 15 nodes / 19 edges", r.body.nodes?.length === 15 && r.body.edges?.length === 19, `n=${r.body.nodes?.length} e=${r.body.edges?.length}`);
+  check("ad paths computed (multi-hop)", r.body.paths?.length >= 6, `paths=${r.body.paths?.length}`);
+  check("ad shortest path is 4 hops", r.body.stats?.shortestHops === 4, `shortest=${r.body.stats?.shortestHops}`);
+  const shortest = (r.body.paths ?? []).find((p) => p.shortest && p.targetId === "g-domain-admins");
+  check("shortest path uses AS-REP roast technique", Boolean(shortest && shortest.techniques.includes("AsRepRoast")), shortest?.techniques?.join("+"));
+  check("ad stats detect roastable accounts", (r.body.stats?.kerberoastable ?? []).includes("svc-sql") && (r.body.stats?.asrepRoastable ?? []).includes("svc-webapp"));
+  check("ad tier-0 exposure covers both entries", r.body.stats?.tier0ExposurePct === 100, `${r.body.stats?.tier0ExposurePct}%`);
+  check("chokepoint analysis present", (r.body.stats?.chokepoints ?? []).length >= 3 && r.body.stats.chokepoints[0].pathCount >= r.body.stats.chokepoints[1].pathCount);
+  check("every path carries remediations", (r.body.paths ?? []).every((p) => p.remediations.length >= 4), `min=${Math.min(...(r.body.paths ?? [{ remediations: [] }]).map((p) => p.remediations.length))}`);
+
+  r = await jfetch("/api/vapt/ad-paths?include=paths", authed(cbeAdmin));
+  check("ad-paths include=paths omits graph payload", r.status === 200 && r.body.nodes === undefined && Array.isArray(r.body.paths));
+  r = await jfetch("/api/vapt/ad-paths", authed(cbeViewer));
+  check("ad-paths accessible to read-only viewer role", r.status === 200, `status=${r.status}`);
+  r = await jfetch("/api/vapt/ad-paths", authed({ cookie: "" }));
+  check("ad-paths requires auth 401", r.status === 401);
+
   // ── Wrap ─────────────────────────────────────────────────────────────────
   const overviewEnd = (await jfetch("/api/vapt/overview", authed(cbeAdmin))).body;
   check("KEV open count still exposes active exploitation risk", overviewEnd.kevOpenCount >= Math.max(1, kevBefore - 3), `kevOpen=${overviewEnd.kevOpenCount}`);

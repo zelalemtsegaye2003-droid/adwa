@@ -25,6 +25,8 @@ import { useI18n } from "@/lib/i18n";
 import { api, ApiCallError } from "@/lib/auth-client";
 import { slaInfo } from "@/lib/sla";
 import { SeverityBadge, SlaBadge, fmtDate } from "./shared";
+import { AdPathsTab } from "./vapt-adpaths";
+import { BidMatrixTab } from "./vapt-bidmatrix";
 
 // ── DTOs (mirror /api/vapt/* responses) ──────────────────────────────────────
 
@@ -202,6 +204,8 @@ export function VaptView({ canManage, isSuperAdmin }: { canManage: boolean; isSu
           <TabsTrigger value="assets">{t("vaptTabAssets")}</TabsTrigger>
           <TabsTrigger value="scans">{t("vaptTabScans")}</TabsTrigger>
           <TabsTrigger value="vulns">{t("vaptTabVulns")}</TabsTrigger>
+          <TabsTrigger value="adpaths">{t("vaptTabAd")}</TabsTrigger>
+          <TabsTrigger value="bidmatrix">{t("vaptTabBid")}</TabsTrigger>
         </TabsList>
 
         <TabsContent value="overview" className="mt-4">
@@ -215,6 +219,12 @@ export function VaptView({ canManage, isSuperAdmin }: { canManage: boolean; isSu
         </TabsContent>
         <TabsContent value="vulns" className="mt-4">
           <VulnsTab vulns={vulns} canManage={canManage} isSuperAdmin={isSuperAdmin} onChanged={refreshAll} />
+        </TabsContent>
+        <TabsContent value="adpaths" className="mt-4">
+          <AdPathsTab />
+        </TabsContent>
+        <TabsContent value="bidmatrix" className="mt-4">
+          <BidMatrixTab />
         </TabsContent>
       </Tabs>
     </div>
