@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Adwa Sec — Financial Plan</title>
+<link rel="stylesheet" href="global.css">
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+<style>
+  html, body { margin:0; padding:0; width:1280px; height:720px; overflow:hidden; background:var(--bg); }
+  .slide { width:1280px; height:720px; min-height:0; display:flex; flex-direction:column; }
+  /* chart internals — plain divs, scale 5px = ETB 1M, zero line at 50px above slot bottom */
+  .gl   { position:absolute; left:0; right:0; height:0; border-top:1px dashed rgba(140,160,180,.16); }
+  .zl   { position:absolute; left:0; right:0; height:1px; background:rgba(140,160,180,.55); }
+  .yl   { position:absolute; left:0; width:32px; text-align:right; font-family:var(--font-num); font-size:11px; line-height:12px; color:var(--muted); }
+  .grp  { display:flex; gap:8px; }
+  .slot { position:relative; width:46px; height:300px; }
+  .bar  { position:absolute; left:0; right:0; }
+  .vlab { position:absolute; left:-7px; right:-7px; text-align:center; font-family:var(--font-num); font-size:13px; font-weight:600; line-height:13px; }
+  .xl   { width:154px; text-align:center; font-family:var(--font-num); font-size:15px; font-weight:600; color:var(--primary); }
+  .lgd  { display:inline-flex; align-items:center; font-size:13px; color:var(--primary); }
+  .lgd .sw { width:12px; height:12px; border-radius:3px; flex:none; margin-right:10px; }
+  .fund-row + .fund-row { margin-top:13px; }
+</style>
+</head>
+<body>
+<main class="slide">
+
+  <header style="flex:none;">
+    <div class="kicker">FINANCIAL PLAN (ETB)</div>
+    <h1 style="font-family:var(--font-heading); font-weight:700; font-size:40px; line-height:46px; letter-spacing:-0.01em; margin:10px 0 0;">
+      Break-even late 2028. <span class="accent-text">First profitable year 2029.</span>
+    </h1>
+  </header>
+
+  <section style="flex:1; min-height:0; display:grid; grid-template-columns:700px 1fr; gap:24px; margin-top:22px;">
+
+    <!-- Left 60%: grouped bar chart (pure HTML/CSS) -->
+    <article class="card" style="padding:14px 20px; display:flex; flex-direction:column; justify-content:space-between; min-height:0;">
+      <div style="position:relative; height:20px; flex:none;">
+        <span class="num" style="position:absolute; left:0; top:4px; font-size:11px; letter-spacing:.12em; color:var(--muted);">P&amp;L — ETB MILLIONS</span>
+        <span style="position:absolute; left:348px; top:4px; font-size:13px; font-weight:600; color:var(--accent);">Revenue</span>
+        <span style="position:absolute; left:462px; top:4px; font-size:13px; font-weight:600; color:var(--muted);">Operating costs</span>
+        <span style="position:absolute; left:598px; top:4px; font-size:13px; font-weight:600; color:var(--primary);">Net (−/+)</span>
+      </div>
+
+      <div style="position:relative; height:352px; flex:none;">
+        <!-- y axis labels (0 → 50, ETB M) -->
+        <span class="yl" style="bottom:96px;">0</span>
+        <span class="yl" style="bottom:146px;">10</span>
+        <span class="yl" style="bottom:196px;">20</span>
+        <span class="yl" style="bottom:246px;">30</span>
+        <span class="yl" style="bottom:296px;">40</span>
+        <span class="yl" style="bottom:339px;">50</span>
+
+        <!-- plot: 300px tall, zero baseline 50px up; 5px per ETB 1M -->
+        <div style="position:absolute; left:40px; right:0; top:0; height:300px;">
+          <div class="gl" style="bottom:100px;"></div>
+          <div class="gl" style="bottom:150px;"></div>
+          <div class="gl" style="bottom:200px;"></div>
+          <div class="gl" style="bottom:250px;"></div>
+          <div class="gl" style="bottom:300px;"></div>
+          <div class="zl" style="bottom:50px;"></div>
+
+          <div style="position:absolute; inset:0; display:flex; justify-content:space-between; padding:0 22px;">
+            <!-- 2027 -->
+            <div class="grp">
+              <div class="slot">
+                <div class="bar" style="bottom:50px; height:20px; background:var(--accent); border-radius:3px 3px 0 0;"></div>
+                <div class="vlab" style="bottom:74px; color:var(--accent);">4.02</div>
+              </div>
+              <div class="slot">
+                <div class="bar" style="bottom:50px; height:50px; background:var(--muted); border-radius:3px 3px 0 0;"></div>
+                <div class="vlab" style="bottom:104px; color:var(--muted);">9.92</div>
+              </div>
+              <div class="slot">
+                <div class="bar" style="bottom:21px; height:29px; background:var(--danger); border-radius:0 0 3px 3px;"></div>
+                <div class="vlab" style="bottom:3px; color:var(--danger);">-5.90</div>
+              </div>
+            </div>
+            <!-- 2028 -->
+            <div class="grp">
+              <div class="slot">
+                <div class="bar" style="bottom:50px; height:96px; background:var(--accent); border-radius:3px 3px 0 0;"></div>
+                <div class="vlab" style="bottom:150px; color:var(--accent);">19.26</div>
+              </div>
+              <div class="slot">
+                <div class="bar" style="bottom:50px; height:105px; background:var(--muted); border-radius:3px 3px 0 0;"></div>
+                <div class="vlab" style="bottom:159px; color:var(--muted);">21.02</div>
+              </div>
+              <div class="slot">
+                <div class="bar" style="bottom:41px; height:9px; background:var(--danger); border-radius:0 0 3px 3px;"></div>
+                <div class="vlab" style="bottom:23px; color:var(--danger);">-1.76</div>
+              </div>
+            </div>
+            <!-- 2029 -->
+            <div class="grp">
+              <div class="slot">
+                <div class="bar" style="bottom:50px; height:223px; background:var(--accent); border-radius:3px 3px 0 0;"></div>
+                <div class="vlab" style="bottom:277px; color:var(--accent);">44.64</div>
+              </div>
+              <div class="slot">
+                <div class="bar" style="bottom:50px; height:181px; background:var(--muted); border-radius:3px 3px 0 0;"></div>
+                <div class="vlab" style="bottom:235px; color:var(--muted);">36.20</div>
+              </div>
+              <div class="slot">
+                <div class="bar" style="bottom:50px; height:42px; background:#34D399; border-radius:3px 3px 0 0;"></div>
+                <div class="vlab" style="bottom:96px; color:#34D399;">+8.44</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- x axis: years -->
+        <div style="position:absolute; left:40px; right:0; top:308px; height:16px; display:flex; justify-content:space-between; padding:0 22px;">
+          <span class="xl">2027</span><span class="xl">2028</span><span class="xl">2029</span>
+        </div>
+      </div>
+
+      <div style="display:flex; align-items:center; gap:7px; flex:none; color:var(--muted); font-size:12.5px;">
+        <i class="material-icons" style="font-size:14px; color:var(--muted);">info</i>
+        planning estimates, re-based quarterly
+      </div>
+    </article>
+
+    <!-- Right 40%: the ask + use of funds -->
+    <article class="card-deep" style="padding:20px 24px; display:flex; flex-direction:column; justify-content:space-between; min-height:0;">
+      <div style="flex:none;">
+        <div class="kicker" style="letter-spacing:.3em;">THE ASK</div>
+        <div class="num" style="font-size:52px; line-height:58px; font-weight:600; color:var(--accent); margin-top:6px;">ETB 10M</div>
+        <div style="font-size:15px; line-height:21px; color:var(--primary); margin-top:2px;">pre-seed <span style="font-size:14px; color:var(--muted);">(~USD 67K)</span> · 18-month runway</div>
+      </div>
+
+      <div class="rule" style="flex:none;"></div>
+
+      <div style="flex:none;">
+        <div class="num" style="font-size:11px; letter-spacing:.24em; color:var(--muted);">USE OF FUNDS</div>
+        <div style="margin-top:12px;">
+          <div class="fund-row">
+            <div style="display:flex; align-items:baseline; gap:10px;">
+              <span class="num" style="width:52px; flex:none; font-size:16px; font-weight:600; color:var(--accent);">40%</span>
+              <span style="font-size:14px; color:var(--primary);">product &amp; engineering</span>
+            </div>
+            <div style="height:5px; background:rgba(140,160,180,.16); border-radius:3px; margin-top:6px;"><div style="height:5px; width:100%; background:var(--accent); border-radius:3px;"></div></div>
+          </div>
+          <div class="fund-row">
+            <div style="display:flex; align-items:baseline; gap:10px;">
+              <span class="num" style="width:52px; flex:none; font-size:16px; font-weight:600; color:var(--accent);">25%</span>
+              <span style="font-size:14px; color:var(--primary);">SOC stand-up + ISO 27001</span>
+            </div>
+            <div style="height:5px; background:rgba(140,160,180,.16); border-radius:3px; margin-top:6px;"><div style="height:5px; width:62.5%; background:var(--accent); border-radius:3px;"></div></div>
+          </div>
+          <div class="fund-row">
+            <div style="display:flex; align-items:baseline; gap:10px;">
+              <span class="num" style="width:52px; flex:none; font-size:16px; font-weight:600; color:var(--accent);">20%</span>
+              <span style="font-size:14px; color:var(--primary);">sales &amp; pilot delivery</span>
+            </div>
+            <div style="height:5px; background:rgba(140,160,180,.16); border-radius:3px; margin-top:6px;"><div style="height:5px; width:50%; background:var(--accent); border-radius:3px;"></div></div>
+          </div>
+          <div class="fund-row">
+            <div style="display:flex; align-items:baseline; gap:10px;">
+              <span class="num" style="width:52px; flex:none; font-size:16px; font-weight:600; color:var(--accent);">10%</span>
+              <span style="font-size:14px; color:var(--primary);">legal &amp; registration</span>
+            </div>
+            <div style="height:5px; background:rgba(140,160,180,.16); border-radius:3px; margin-top:6px;"><div style="height:5px; width:25%; background:var(--accent); border-radius:3px;"></div></div>
+          </div>
+          <div class="fund-row">
+            <div style="display:flex; align-items:baseline; gap:10px;">
+              <span class="num" style="width:52px; flex:none; font-size:16px; font-weight:600; color:var(--accent);">5%</span>
+              <span style="font-size:14px; color:var(--primary);">buffer</span>
+            </div>
+            <div style="height:5px; background:rgba(140,160,180,.16); border-radius:3px; margin-top:6px;"><div style="height:5px; width:12.5%; background:var(--accent); border-radius:3px;"></div></div>
+          </div>
+        </div>
+      </div>
+    </article>
+  </section>
+
+  <!-- Bottom strip -->
+  <footer class="card-deep" style="flex:none; margin-top:16px; display:flex; align-items:center; padding:11px 24px; gap:22px;">
+    <div style="display:flex; align-items:center; gap:12px; flex:1; min-width:0;">
+      <i class="material-icons" style="color:var(--muted); font-size:20px;">domain</i>
+      <div>
+        <div class="num" style="font-size:10.5px; letter-spacing:.22em; color:var(--muted);">YEAR-END SUBSCRIBERS</div>
+        <div style="font-size:19px; font-weight:600; color:var(--primary); margin-top:2px;">3 <span class="accent-text">→</span> 12 <span class="accent-text">→</span> 28 <span style="font-size:13px; font-weight:400; color:var(--muted);">institutions</span></div>
+      </div>
+    </div>
+    <div style="width:1px; height:38px; background:var(--line); flex:none;"></div>
+    <div style="display:flex; align-items:center; gap:12px; flex:none;">
+      <i class="material-icons" style="color:var(--muted); font-size:20px;">engineering</i>
+      <div>
+        <div class="num" style="font-size:10.5px; letter-spacing:.22em; color:var(--muted);">FTE</div>
+        <div style="font-size:19px; font-weight:600; color:var(--primary); margin-top:2px;">5 <span class="accent-text">→</span> 11 <span class="accent-text">→</span> 20</div>
+      </div>
+    </div>
+  </footer>
+
+</main>
+
+<aside data-notes class="hidden" style="display:none;">
+  <ul>
+    <li>Walk the bars in ETB millions: 2027 revenue 4.02 vs costs 9.92 (net −5.90); 2028 19.26 vs 21.02 (net −1.76); 2029 44.64 vs 36.20 (net +8.44).</li>
+    <li>Break-even arrives late 2028; first profitable year is 2029 — and stress these are planning estimates, re-based quarterly.</li>
+    <li>The ask: ETB 10M pre-seed (~USD 67K) for an 18-month runway.</li>
+    <li>Use of funds: 40% product &amp; engineering, 25% SOC stand-up + ISO 27001, 20% sales &amp; pilot delivery, 10% legal &amp; registration, 5% buffer.</li>
+    <li>Operating scale: year-end subscribers 3 → 12 → 28 institutions; headcount 5 → 11 → 20 FTE.</li>
+  </ul>
+</aside>
+</body>
+</html>

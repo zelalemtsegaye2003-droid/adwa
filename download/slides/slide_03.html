@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Adwa Sec — The Solution</title>
+<link rel="stylesheet" href="global.css">
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Ethiopic:wght@500;600&display=swap" rel="stylesheet">
+<style>
+  html, body { margin:0; padding:0; background:var(--bg); overflow:hidden; }
+  .slide { height:720px; }
+  .module-title { font-family:var(--font-heading); font-weight:600; font-size:19px; color:var(--primary); margin:0; }
+  .module-desc { font-size:14.5px; color:var(--muted); line-height:1.55; margin:12px 0 0; }
+  .card-index { position:absolute; top:16px; right:18px; font-family:var(--font-num); font-size:11px; color:rgba(140,160,180,0.75); letter-spacing:0.08em; }
+</style>
+</head>
+<body>
+<div class="slide flex flex-col">
+
+  <!-- Header -->
+  <div class="flex items-center" style="gap:12px;">
+    <span data-decor style="width:9px; height:9px; background:var(--accent); display:inline-block;"></span>
+    <span class="kicker">THE SOLUTION</span>
+  </div>
+  <h1 style="font-family:var(--font-heading); font-weight:600; font-size:36px; line-height:1.18; letter-spacing:-0.01em; margin:14px 0 0; max-width:900px; color:var(--primary);">
+    One bilingual platform. Five modules. Obligation to fix, <span style="color:var(--accent);">in one queue.</span>
+  </h1>
+
+  <!-- Bento grid: 5 module cards + bilingual highlight -->
+  <div style="display:grid; grid-template-columns:repeat(3, 1fr); grid-template-rows:1fr 1fr auto; gap:16px; margin-top:24px; flex:1; min-height:0;">
+
+    <!-- 01 Compliance engine (spans 2) -->
+    <div class="card relative" style="grid-column:span 2; padding:22px 24px;">
+      <span class="card-index">01</span>
+      <div class="flex items-center" style="gap:10px;">
+        <i class="material-icons" style="color:var(--accent); font-size:22px;">fact_check</i>
+        <h3 class="module-title">Compliance engine</h3>
+      </div>
+      <p class="module-desc">47 obligations of Proclamation 1321/2024 + 30 of NBE SBB/83/2022 as machine-readable rules; SLA-tracked findings; SHA-256 evidence vault; bilingual PDF reports</p>
+    </div>
+
+    <!-- 02 VAPT Center -->
+    <div class="card relative" style="padding:22px 24px;">
+      <span class="card-index">02</span>
+      <div class="flex items-center" style="gap:10px;">
+        <i class="material-icons" style="color:var(--accent); font-size:22px;">center_focus_strong</i>
+        <h3 class="module-title">VAPT Center</h3>
+      </div>
+      <p class="module-desc">built to the NBE LOT4 tender: live OWASP-aligned web/API scanning, CVSS+EPSS+KEV prioritisation (P1–P4)</p>
+    </div>
+
+    <!-- 03 AD Attack Paths -->
+    <div class="card relative" style="padding:22px 24px;">
+      <span class="card-index">03</span>
+      <div class="flex items-center" style="gap:10px;">
+        <i class="material-icons" style="color:var(--accent); font-size:22px;">device_hub</i>
+        <h3 class="module-title">AD Attack Paths</h3>
+      </div>
+      <p class="module-desc">BloodHound-style multi-hop domain analysis: chokepoints, tier-0 exposure</p>
+    </div>
+
+    <!-- 04 SOC / CERT -->
+    <div class="card relative" style="padding:22px 24px;">
+      <span class="card-index">04</span>
+      <div class="flex items-center" style="gap:10px;">
+        <i class="material-icons" style="color:var(--accent); font-size:22px;">notifications_active</i>
+        <h3 class="module-title">SOC / CERT</h3>
+      </div>
+      <p class="module-desc">NIST SP 800-61 lifecycle; Ethio-CERT sync with cryptographic receipts; &lt;15-min notification target</p>
+    </div>
+
+    <!-- 05 Awareness -->
+    <div class="card relative" style="padding:22px 24px;">
+      <span class="card-index">05</span>
+      <div class="flex items-center" style="gap:10px;">
+        <i class="material-icons" style="color:var(--accent); font-size:22px;">school</i>
+        <h3 class="module-title">Awareness</h3>
+      </div>
+      <p class="module-desc">Amharic-first curriculum: 8 bilingual units, 32 quizzes, school pilots</p>
+    </div>
+
+    <!-- Bilingual highlight strip -->
+    <div style="grid-column:1 / -1; display:flex; align-items:center; justify-content:center; gap:12px; padding:15px 24px; background:rgba(34,211,238,0.07); border:1px solid var(--line); border-radius:14px;">
+      <i class="material-icons" style="color:var(--accent); font-size:22px;">translate</i>
+      <p style="margin:0; font-family:var(--font-heading); font-weight:500; font-size:19px; color:var(--primary);">
+        English · <span style="color:var(--accent); font-family:'Noto Sans Ethiopic', var(--font-heading); font-weight:600;">አማርኛ</span> — every module, every report, every annotation
+      </p>
+    </div>
+
+  </div>
+
+</div>
+
+<aside data-notes class="hidden">
+  <ul>
+    <li>One bilingual platform, five modules — findings land in a single queue as tracked obligations, not shelfware.</li>
+    <li>Compliance engine encodes 47 obligations of Proclamation 1321/2024 plus 30 of NBE SBB/83/2022 as machine-readable rules, with a SHA-256 evidence vault and bilingual PDF reports.</li>
+    <li>VAPT Center is built to the live NBE LOT4 tender — OWASP-aligned web/API scanning, CVSS+EPSS+KEV prioritisation (P1–P4).</li>
+    <li>AD Attack Paths does BloodHound-style multi-hop analysis; SOC/CERT runs the NIST SP 800-61 lifecycle with Ethio-CERT sync and a &lt;15-min notification target.</li>
+    <li>Awareness is Amharic-first: 8 bilingual units, 32 quizzes, school pilots — everything ships in English · አማርኛ.</li>
+  </ul>
+</aside>
+</body>
+</html>
