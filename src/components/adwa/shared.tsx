@@ -39,6 +39,7 @@ export interface ScanBriefDTO {
   findingsCount: number; criticalFindings: number;
   startedAt: string; completedAt: string | null; durationMinutes: number | null;
   answeredCount?: number; // in_progress drafts: how many obligations are answered
+  mode?: string; // "full" for assessments, "vapt" for VAPT promotion mirrors
   organization?: { id: string; name: string; nameAm: string; sector: string; tier: string };
   organizationId?: string;
   framework?: FrameworkBrief | null;

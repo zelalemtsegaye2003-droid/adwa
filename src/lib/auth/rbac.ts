@@ -75,7 +75,14 @@ export type Permission =
   // Track C Phase 5 (CII): platform staff manage the readiness register;
   // tenant roles may view their OWN operator's readiness, read-only.
   | "cii:manage"
-  | "cii:view-own";
+  | "cii:view-own"
+  // VAPT Center (NBE/NCB/S/02/2026/27 LOT4 — vulnerability assessment &
+  // penetration testing). Tenant roles run scans and work the remediation
+  // queue for their own organization; read-only roles observe.
+  | "vapt:view-org"
+  | "vapt:view-all"
+  | "vapt:manage-org"
+  | "vapt:manage-all";
 
 const MATRIX: Record<AppRole, Permission[]> = {
   SUPER_ADMIN: [
@@ -102,6 +109,8 @@ const MATRIX: Record<AppRole, Permission[]> = {
     "governance:manage",
     "acfs:manage",
     "cii:manage",
+    "vapt:view-all",
+    "vapt:manage-all",
   ],
   ORG_ADMIN: [
     "org:view-own",
@@ -123,6 +132,8 @@ const MATRIX: Record<AppRole, Permission[]> = {
     "threats:contribute",
     "threats:sync",
     "cii:view-own",
+    "vapt:view-org",
+    "vapt:manage-org",
   ],
   COMPLIANCE_OFFICER: [
     "org:view-own",
@@ -139,6 +150,8 @@ const MATRIX: Record<AppRole, Permission[]> = {
     "threats:contribute",
     "threats:sync",
     "cii:view-own",
+    "vapt:view-org",
+    "vapt:manage-org",
   ],
   AUDITOR: [
     "org:view-own",
@@ -149,8 +162,9 @@ const MATRIX: Record<AppRole, Permission[]> = {
     "evidence:view-org",
     "soc:view-org",
     "threats:view",
+    "vapt:view-org",
   ],
-  VIEWER: ["org:view-own", "catalogue:view", "scans:view-org", "findings:view-org", "evidence:view-org", "soc:view-org", "threats:view"],
+  VIEWER: ["org:view-own", "catalogue:view", "scans:view-org", "findings:view-org", "evidence:view-org", "soc:view-org", "threats:view", "vapt:view-org"],
 };
 
 export function can(role: AppRole | string | undefined, permission: Permission): boolean {

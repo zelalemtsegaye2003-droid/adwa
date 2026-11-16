@@ -17,12 +17,13 @@
     "seed:evidence": "bun scripts/seed-evidence.ts",
     "seed:evidence-links": "node scripts/seed-evidence-links.cjs",
     "seed:soc": "bun scripts/seed-soc.cjs",
+    "seed:vapt": "bun scripts/seed-vapt.ts",
     "seed:awareness": "bun scripts/seed-awareness.cjs",
     "seed:sla": "bun scripts/seed-sla.cjs",
     "seed:gates": "bun scripts/seed-gates.ts",
     "seed:trackc": "bun scripts/seed-trackc.cjs",
     "seed:gate-evidence": "bun scripts/seed-gate-evidence.ts",
-    "seed:demo": "bun run db:seed && bun run seed:users && bun run seed:evidence && bun run seed:evidence-links && bun run seed:soc && bun run seed:awareness && bun run seed:sla && bun run seed:gates && bun run seed:trackc && bun run seed:gate-evidence",
+    "seed:demo": "bun run db:seed && bun run seed:users && bun run seed:evidence && bun run seed:evidence-links && bun run seed:soc && bun run seed:vapt && bun run seed:awareness && bun run seed:sla && bun run seed:gates && bun run seed:trackc && bun run seed:gate-evidence",
     "test:integration": "bash scripts/run-api-tests.sh"
   },
   "dependencies": {

@@ -54,6 +54,9 @@ model Organization {
   shareTargets IndicatorShare[]
   incidents    Incident[]
   syncRuns     SyncRun[]
+  vaptAssets      VaptAsset[] // VAPT Center: attack-surface registry
+  vaptScans       VaptScan[]
+  vaptVulnerabilities VaptVulnerability[]
 }
 
 // Machine-readable obligation catalogue, scoped to a framework
@@ -131,6 +134,10 @@ model ScanResult {
   createdAt    DateTime  @default(now())
   updatedAt    DateTime  @updatedAt
 
+  // VAPT Center (NBE LOT4): set when this row mirrors a promoted VAPT
+  // vulnerability — a status change here is synced back to the VAPT record.
+  vaptVulnerabilityId String?
+
   @@unique([scanId, ruleId])
   @@index([dueAt])
   @@index([status])
@@ -175,6 +182,7 @@ model User {
   gateUpdates       ExpansionGate[]
   gateEvidence      GateEvidence[]
   gateEvents        GateEvent[]
+  vaptScansTriggered VaptScan[] // VAPT Center: scans this analyst launched
 }
 
 model RefreshToken {
@@ -762,4 +770,100 @@ model AuthToken {
   createdAt  DateTime  @default(now())
 
   @@index([userId, type])
+}
+
+// ── VAPT Center — NBE/NCB/S/02/2026/27 LOT4 tender ──────────────────────────
+// Vulnerability Assessment & Penetration Testing module (asset registry →
+// scan orchestration → CVSS/EPSS/KEV prioritised findings → remediation SLA →
+// promotion into the Findings module as NBE-anchored corrective actions).
+// Hybrid engine: real non-destructive DAST HTTP checks for web/API targets
+// (OWASP Top 10 alignment: headers, cookies, TLS posture) + a bundled,
+// honestly-labelled simulation catalogue for infrastructure findings.
+
+// One asset in the attack-surface registry (EASM: managed + shadow-IT).
+model VaptAsset {
+  id             String         @id @default(cuid())
+  organizationId String
+  organization   Organization   @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  name           String
+  kind           String // SERVER | NETWORK | FIREWALL | DATABASE | AD_IDENTITY | WEBAPP | API | CLOUD | ENDPOINT | CONTAINER | K8S
+  identifier     String // IP / hostname / URL — the scan target
+  environment    String         @default("PROD") // PROD | UAT | DEV | DMZ | EXTERNAL
+  surface         String         @default("INTERNAL") // INTERNAL | EXTERNAL (internet-facing)
+  criticality    String         @default("medium") // critical | high | medium | low — business context
+  osOrPlatform   String? // e.g. "Windows Server 2019", "Ubuntu 22.04", "Cisco IOS-XE 17.6", "Oracle 19c"
+  tags           String         @default("[]") // JSON array of free-form tags (smart-grouping)
+  managed        Boolean        @default(true) // false = unmanaged / shadow-IT / orphaned asset
+  notes          String?
+  firstSeenAt    DateTime       @default(now())
+  lastSeenAt     DateTime       @default(now())
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+  vulnerabilities VaptVulnerability[]
+
+  @@index([organizationId])
+  @@index([kind])
+}
+
+// One orchestrated scan run (discovery/infra/DAST/full) over asset targets.
+model VaptScan {
+  id                String       @id @default(cuid())
+  organizationId    String
+  organization      Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  name              String
+  scanType          String       @default("FULL") // DISCOVERY | INFRA | DAST | FULL
+  status            String       @default("RUNNING") // RUNNING | COMPLETED | FAILED
+  engineMode       String       @default("hybrid") // hybrid | simulated (honest labelling, decision D3)
+  targetCount       Int          @default(0)
+  newCount          Int          @default(0) // newly detected vulnerabilities
+  knownCount        Int          @default(0) // already-open findings re-observed (dedup)
+  dastReal          Boolean      @default(false) // true when real HTTP checks ran
+  summary           String? // JSON: { critical, high, medium, low, kev, topPriority, avgPriority }
+  detail            String? // engine note / failure reason
+  startedAt         DateTime     @default(now())
+  completedAt       DateTime?
+  durationMs        Int?
+  createdById       String?
+  createdBy         User?        @relation(fields: [createdById], references: [id])
+  vulnerabilities   VaptVulnerability[]
+
+  @@index([organizationId])
+  @@index([status])
+}
+
+// One detected vulnerability — the prioritised, SLA-tracked unit of work.
+model VaptVulnerability {
+  id                String         @id @default(cuid())
+  organizationId    String
+  organization      Organization   @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  assetId           String
+  asset             VaptAsset     @relation(fields: [assetId], references: [id], onDelete: Cascade)
+  scanId            String?
+  scan              VaptScan?     @relation(fields: [scanId], references: [id], onDelete: SetNull)
+  cveId             String? // e.g. "CVE-2021-44228" (null for heuristic/config findings)
+  title             String
+  description       String
+  remediation       String // solution guidance
+  category          String // OS | NETWORK | FIREWALL | DATABASE | SSL_TLS | AD_IDENTITY | WEB | API | CLOUD | CONTAINER | K8S | CONFIG
+  severity          String // critical | high | medium | low
+  cvssScore         Float // CVSS v3.1 base score
+  cvssVector        String?
+  epss              Float          @default(0) // Exploit Prediction Scoring System 0..1
+  kev               Boolean        @default(false) // CISA Known Exploited Vulnerabilities catalog
+  priorityScore     Float          @default(0) // Adwa dynamic risk score 0..100 (CVSS+EPSS+KEV+context)
+  priorityClass     String         @default("P3") // P1 | P2 | P3 | P4
+  evidence          String? // JSON proof bundle: DAST checks / simulated probe results
+  status            String         @default("open") // open | in_progress | remediated | accepted (risk acceptance)
+  dueAt             DateTime? // remediation SLA (30/60/90/180 by severity — mirrors SLA policy)
+  remediatedAt      DateTime?
+  detectedAt        DateTime       @default(now())
+  promotedFindingId String? // ScanResult id once synced into the Findings module
+  createdAt         DateTime       @default(now())
+  updatedAt         DateTime       @updatedAt
+
+  @@index([organizationId])
+  @@index([status])
+  @@index([dueAt])
+  @@index([kev])
+  @@index([assetId])
 }

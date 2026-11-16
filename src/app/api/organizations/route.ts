@@ -16,7 +16,9 @@ export async function GET(req: NextRequest) {
   const orgs = await db.organization.findMany({
     where: isSuper ? {} : { id: user.orgId ?? "__none__" },
     orderBy: { createdAt: "asc" },
-    include: { scans: { orderBy: { startedAt: "desc" }, take: 1 } },
+    // VAPT mirror scans (mode "vapt") are findings containers, not assessments
+    // — never presented as the organization's latest compliance scan.
+    include: { scans: { where: { mode: { not: "vapt" } }, orderBy: { startedAt: "desc" }, take: 1 } },
   });
 
   return NextResponse.json({

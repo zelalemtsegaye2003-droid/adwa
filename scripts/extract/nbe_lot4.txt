@@ -1,0 +1,305 @@
+                        Standard Bidding Document (SBD)
+                              Procurement of Goods
+                       National Competitive Biddings (NCB)
+Procurement Item:-
+  ➢ CUCUM License
+  ➢ Microsoft Office 365 license
+  ➢ Windows Server 2025 Standard
+  ➢ IT vulnerability and Penetration tests tool software
+  ➢ AI assistant software and
+  ➢ ASANA software
+Procurement Reference Number:- NBE/NCB/S/02/2026/27
+Due date for Tendering: - November 18, 2026
+
+
+
+
+                                                                                      Addis Ababa, Ethiopia
+                                                                                              October, 2026
+
+
+
+
+    SBD-Goods and Related Services (NCB) - Prepared by the NBE (Version 1, November 2018)
+    Document: Bidding Document                                                                         Page i
+                                       Bidding Document
+
+
+
+
+SBD-Goods and Related Services (NCB) - Prepared by the NBE (Version 1, November 2018)
+Document: Bidding Document                                                              Page ii
+  I.     Schedule of Requirements & Technical Specifications for NBE
+              Systems IT vulnerability and Penetration tests tool
+
+
+                                               Introduction
+
+The accelerating adoption of digital financial services, core banking modernizations,
+and automated interbank platforms has transformed the operational landscape of the
+banking sector. Financial institutions leverage modern IT systems to deploy
+innovative products, ensure seamless service delivery, and maintain financial
+stability. However, this deep digital integration expands the attack surface, exposing
+critical financial infrastructure to sophisticated cyber threats, extortion, and systemic
+fraud. As the regulatory and supervisory authority of the nation's financial sector, the
+National Bank of Ethiopia (NBE) must maintain an uncompromising cybersecurity
+posture. Proactively identifying, evaluating, and mitigating system vulnerabilities is
+vital to preserving institutional resilience and public confidence. Accordingly, this
+procurement document sets forth the mandatory technical, operational, and
+commercial requirements for an enterprise-grade Vulnerability Assessment and
+Penetration Testing (VAPT) platform to safeguard the Bank's technological
+ecosystem.
+
+                                               Background
+The National Bank of Ethiopia currently operates a complex, multi-tiered IT
+infrastructure comprising enterprise data centers, core banking applications, interbank
+payment systems, hybrid cloud assets, and widespread internal network segments. To
+combat increasingly sophisticated threats and comply with regulatory security
+mandates, the Bank must shift from periodic, manual security assessments to
+continuous, automated vulnerability management and validated penetration testing
+workflows.
+Legacy assessment tools, siloed audit scripts, and uncoordinated scanning engines are
+no longer sufficient to secure modern workloads against emerging attack vectors,
+zero-day vulnerabilities, and credential compromise. To address these operational
+gaps, the Bank requires a unified, modern VAPT solution that streamlines asset
+discovery, provides dynamic risk prioritization based on active threat intelligence,
+and verifies real-world exploitable pathways. This tender solicits competitive bids
+from qualified vendors to supply, deploy, and support a comprehensive VAPT
+platform aligned with international standards (such as ISO/IEC 27001, NIST CSF,
+and CIS Benchmarks).
+
+
+
+SBD-Goods and Related Services (NCB) - Prepared by the NBE              (Version 1, November 2018)
+Document: General Conditions of Contract            Section VII of IX               Issued by: NBE
+                                                    Scope
+This tender encompasses the supply, licensing, architectural design, implementation,
+and ongoing technical support of an enterprise-grade Vulnerability Assessment and
+Penetration Testing (VAPT) software solution. The selected solution must deliver
+automated, centralized, and credential-supported vulnerability evaluation across the
+Bank’s heterogeneous IT environment without causing disruption to live production
+services.
+The scope of work covers:
+    • Comprehensive Surface Coverage: Continuous assessment of all on-premises
+       server estates, core networking equipment, perimeter firewalls, databases
+       (SQL and NoSQL), Active Directory environments, virtualization clusters,
+       endpoints, and external-facing digital interfaces.
+
+     •    Web Application and API Security (DAST): Automated crawling,
+          vulnerability scanning, and OWASP Top 10 auditing for internal and client-
+          facing web applications, microservices, and REST/SOAP APIs.
+
+     •    Exploitation Verification & Penetration Testing Tooling: Advanced
+          capabilities to simulate attack paths, safely execute non-destructive exploit
+          verifications, identify lateral movement vulnerabilities, and reduce false-
+          positive triage time.
+
+     •    Threat Prioritization & Exposure Scoring: Context-aware scoring engines
+          factoring in CVSS metrics, the Exploit Prediction Scoring System (EPSS),
+          CISA Known Exploited Vulnerabilities (KEV), and real-world weaponization
+          data to prioritize urgent remediation workflows.
+
+     •    Licensing, Appliance Deployment & Integration: Delivery of all necessary
+          software licenses, management consoles, distributed virtual scan appliances,
+          and seamless API integrations with the Bank’s existing SIEM systems.
+
+     •    Knowledge Transfer & Warranty Support: Complete installation, vendor
+          documentation, administrator and security analyst certification training,
+          alongside a minimum three-year enterprise software subscription and 24/7
+          technical support SLA.
+
+
+
+
+SBD-Goods and Related Services (NCB) - Prepared by the NBE              (Version 1, November 2018)
+Document: General Conditions of Contract            Section VII of IX               Issued by: NBE
+Detailed technical Requirments
+NBE Systems IT vulnerability and Penetration tests tool technical requirement
+
+    Technical Requirement Specification                                 Requirement Vender   Remark
+                                                                                    Response
+    Architecture, Deployment & Scanner                                  M
+    Management
+1   Fully air-gapped / disconnected on-premises                         M
+    management console option
+2   Unlimited distributed, lightweight internal                         M
+    scanning engines at no extra cost
+3   High availability, clustering, and auto-load                        M
+    balancing across scan engines
+4   Native Docker / Kubernetes scanner                                  M
+    appliance deployment
+5   Centralized scanner lifecycle management                            M
+    (automated engine updates & health
+    monitoring)
+    Asset Discovery & External Attack Surface                           M
+    Management (EASM)
+1   Native External Attack Surface Management                           M
+    (EASM) with domain/DNS discovery
+2   Subsidiary, subsidiary brand, and rogue                             M
+    domain mapping without seeds
+3   Cloud asset auto-discovery via read-only                            M
+    cloud APIs (AWS, Azure, GCP)
+4   Dynamic asset tagging and smart-grouping                            M
+    based on multiple Boolean criteria
+5   Identification of unmanaged, shadow IT, and                         M
+    orphaned assets
+    Vulnerability Assessment & Core Engine                              M
+    Capabilities
+1   CVE/NVD coverage updated within 24                                  M
+    hours of public disclosure
+2   Zero-day vulnerability detection without                            M
+    signature updates (heuristic checks)
+3   Non-destructive scanning modes safe for                             M
+    sensitive/legacy production systems
+4   Network device assessment via SSH, Telnet,                          M
+    and SNMPv1/v2c/v3
+
+SBD-Goods and Related Services (NCB) - Prepared by the NBE                            (Version 1, November 2018)
+Document: General Conditions of Contract            Section VII of IX                             Issued by: NBE
+5 Relational and NoSQL database auditing                                M
+  (Oracle, MSSQL, MySQL, Postgres,
+  MongoDB)
+6 Custom policy/signature creation engine                               M
+  (e.g., custom check development)
+7 SSL/TLS configuration, cipher suite, and                              M
+  certificate expiration auditing
+  Agent-Based & Authenticated Scanning                                  M
+1 Unified lightweight endpoint agent (<2%                               M
+  average CPU utilization)
+2 Agent-based offline scanning with deferred                            M
+  reporting upon reconnection
+3 Automated credential rotation integration                             M
+  (CyberArk, HashiCorp Vault, BeyondTrust)
+4 Linux privilege escalation via sudo, su, and                          M
+  custom escalation paths
+5 Windows credentialed assessment via WMI,                              M
+  WinRM, and SMB without local
+  administrative shares
+6 Detection of ephemeral/remote workforce                               M
+  devices off-corporate VPN
+  Web Application & API Security (DAST)                                 M
+1 Dynamic Application Security Testing                                  M
+  (DAST) included in base platform tender
+2 OWASP Top 10 automated test coverage                                  M
+  (SQLi, XSS, SSRF, IDOR, etc.)
+3 Single-Page Application (SPA) crawling                                M
+  (DOM, Angular, React, Vue.js)
+4 Authenticated web scanning (OAuth2,                                   M
+  SAML, Multi-factor auth recording)
+5 REST, GraphQL, and SOAP API                                           M
+  vulnerability scanning via OpenAPI/Swagger
+  imports
+6 Automated scan throttling to prevent web                              M
+  server resource exhaustion
+  Cloud Security, Container & DevSecOps                                 M
+1 Cloud Security Posture Management                                     M
+  (CSPM) across AWS, Azure, and GCP
+2 Cloud Infrastructure Entitlement                                      M
+  Management (CIEM) for excessive
+
+SBD-Goods and Related Services (NCB) - Prepared by the NBE                  (Version 1, November 2018)
+Document: General Conditions of Contract            Section VII of IX                   Issued by: NBE
+    permissions
+3   Container image scanning in CI/CD                                   M
+    pipelines (Jenkins, GitLab, GitHub Actions)
+4   Container registry scanning (Docker Hub,                            M
+    Harbor, AWS ECR, Azure ACR)
+5   Kubernetes cluster security posture auditing                        M
+    (K8s configuration checks)
+6   Infrastructure-as-Code (IaC) template                               M
+    scanning (Terraform, CloudFormation)
+    Identity, Active Directory & Attack Path                            M
+    Analysis
+1   Continuous Active Directory and Azure AD /                          M
+    Entra ID posture auditing
+2   Detection of AD misconfigurations                                   M
+    (Kerberoasting, AS-REP roasting
+    vulnerabilities)
+3   Multi-hop Attack Path Analysis (visualizing                         M
+    lateral movement from breach to DA)
+4   Identification of dormant, stale, and over-                         M
+    privileged service accounts
+    Penetration Testing Simulation & Exploit                            M
+    Verification
+1   Automated exploit verification / proof-of-                          M
+    exploit generation
+2   Native, bidirectional integration with                              M
+    penetration testing framework
+3   Credential testing / brute-force password                           M
+    guessing verification modules
+4   Vulnerability validation without triggering                         M
+    false-positive alerts
+5   Correlation of scan outputs into penetration                        M
+    testing workbenches
+    Source Code Security & Static Application                           M
+    Security Testing (SAST)
+1   Integrated SAST/source-code security                                M
+    analysis within the same vulnerability
+    management platform
+2   Detection of application vulnerabilities based                      M
+    on OWASP Top 10, CWE, and common
+    secure-coding weaknesses
+
+SBD-Goods and Related Services (NCB) - Prepared by the NBE                  (Version 1, November 2018)
+Document: General Conditions of Contract            Section VII of IX                   Issued by: NBE
+3 Software Composition Analysis (SCA) for                               M
+  identifying vulnerable open-source and third-
+  party components
+4 Integration with source-code repositories and                         M
+  CI/CD pipelines for automated scanning
+5 Centralized correlation, risk prioritization,                         M
+  remediation tracking, and reporting
+  of SAST/SCA findings together with DAST
+  and infrastructure vulnerabilities
+  Risk Prioritization, Threat Intelligence &                            M
+  Scoring
+1 Proprietary dynamic risk scoring factoring in                         M
+  real-world exploit availability
+2 Native integration of Exploit Prediction                              M
+  Scoring System (EPSS)
+3 CISA Known Exploited Vulnerabilities                                  M
+  (KEV) catalog dynamic filtering
+4 Custom business-context risk formulas                                 M
+  (adjusting risk based on criticality)
+5 Threat intelligence feeds indicating dark-web                         M
+  chatter and active malware kits
+  Remediation, Patch Management & ITSM                                  M
+  Workflows
+1 Bidirectional integration with enterprise                             M
+  ITSM (ServiceNow, Jira)
+2 Automated remediation exception handling                              M
+  and risk acceptance workflows
+3 "Remediation Projects" / SLA tracking                                 M
+  against internal remediation timelines
+  Compliance, Reporting & Governance                                    M
+1 Out-of-the-box CIS (Center for Internet                               M
+  Security) certified benchmarks
+2 Standard compliance templates (PCI-DSS,                               M
+  ISO 27001, HIPAA, NIST CSF)
+4 Granular Role-Based Access Control                                    M
+  (RBAC) with custom permission sets
+5 Enterprise SSO (SAML 2.0, OIDC) with                                  M
+  enforced Multi-Factor Authentication (MFA)
+6 Comprehensive audit logging of                                        M
+  administrative and scanner operations
+
+SBD-Goods and Related Services (NCB) - Prepared by the NBE                  (Version 1, November 2018)
+Document: General Conditions of Contract            Section VII of IX                   Issued by: NBE
+7 Fully documented, rate-limited RESTful API                            M
+  for all platform functions
+
+     Other requirements                    Minimum                      requirements   Vender               Remark
+                                           requirement                                 Response
+1 License Type                             Subscription                 M
+2 Subscription Term                        Three years                  M
+3 Warranty                                 Three years                  M
+
+Note: Venders are required to respond in the above format under the vendor
+response Column otherwise they will be automatically disqualified.
+
+
+
+
+SBD-Goods and Related Services (NCB) - Prepared by the NBE                             (Version 1, November 2018)
+Document: General Conditions of Contract            Section VII of IX                              Issued by: NBE
+

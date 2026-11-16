@@ -262,6 +262,12 @@ export function FindingsView() {
                         <p className="text-xs text-muted-foreground mt-0.5">
                           {r.rule.article} · {r.rule.penaltyRef}
                         </p>
+                        {/* VAPT mirror rows carry the underlying vulnerability detail */}
+                        {scans.find((s) => s.id === r.scanId)?.mode === "vapt" && (r.findingEn || r.findingAm) && (
+                          <p className="mt-1 rounded-md bg-muted px-2 py-1 font-mono text-[11px] leading-snug text-muted-foreground">
+                            {lang === "en" ? r.findingEn : r.findingAm}
+                          </p>
+                        )}
                       </TableCell>
                       <TableCell className="hidden md:table-cell">
                         <div className="flex flex-wrap items-center gap-2">

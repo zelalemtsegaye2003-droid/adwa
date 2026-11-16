@@ -15,7 +15,13 @@ export async function GET(req: NextRequest) {
 
   const isSuper = can(user.role, "orgs:view-all");
   const orgFilter = isSuper ? {} : { id: user.orgId ?? "__none__" };
-  const scanFilter = isSuper ? {} : { organizationId: user.orgId ?? "__none__" };
+  // Compliance aggregates exclude the VAPT mirror scans (mode "vapt") — they
+  // are findings containers for promoted vulnerabilities, not assessments.
+  // Their ScanResults still flow into the findings/SLA aggregation below so
+  // promoted VAPT vulnerabilities count toward the overdue banner.
+  const scanFilter = isSuper
+    ? { mode: { not: "vapt" } }
+    : { organizationId: user.orgId ?? "__none__", mode: { not: "vapt" } };
   const resultScanFilter = isSuper
     ? { scan: { status: "complete" as const } }
     : { scan: { status: "complete" as const, organizationId: user.orgId ?? "__none__" } };
