@@ -17,7 +17,7 @@ import { Progress } from "@/components/ui/progress";
 import {
   Activity, AlertTriangle, Radar, ShieldCheck, Timer, Zap, Radio, ArrowRight,
   BellRing, Flame, Gauge, RefreshCw, Send, Eye, Users2, FileJson, PlugZap, Database,
-  Satellite, KeyRound, Globe2,
+  Satellite, KeyRound, Globe2, ShieldAlert,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useI18n } from "@/lib/i18n";
@@ -834,18 +834,21 @@ function ThreatsTab({ canManage, canSync, isSuperAdmin, onChanged }: {
     attribution: string;
     lastSync: { createdAt: string; status: string; source: string; ingested: number; updated: number; detail: string } | null;
   }
-  const [intel, setIntel] = useState<{ disabled: boolean; feeds: IntelFeedDTO[]; greynoise: { configured: boolean } } | null>(null);
+  const [intel, setIntel] = useState<{ disabled: boolean; feeds: IntelFeedDTO[]; greynoise: { configured: boolean }; virustotal: { configured: boolean; quota: string } } | null>(null);
   const [intelSyncing, setIntelSyncing] = useState(false);
   const [enrichIp, setEnrichIp] = useState("");
   const [enrichBusy, setEnrichBusy] = useState(false);
   const [enrichment, setEnrichment] = useState<{ ip: string; noise: boolean | null; riot: boolean | null; name: string | null; link: string | null } | null>(null);
+  const [vtTarget, setVtTarget] = useState("");
+  const [vtBusy, setVtBusy] = useState(false);
+  const [vtResult, setVtResult] = useState<{ target: string; verdict: "malicious" | "suspicious" | "clean" | "unknown"; engineCount: string; reputation: number | null; lastAnalysisDate: string | null; link: string | null } | null>(null);
 
   const load = useCallback(() => {
     api<{ indicators: IndicatorRowDTO[] }>("/api/threats").then((d) => setRows(d.indicators)).catch(() => setRows([]));
     api<{ binding: { mode: "live" | "fixture"; endpoint: string | null } }>("/api/threats/sync")
       .then((d) => setBinding(d.binding))
       .catch(() => setBinding(null));
-    api<{ disabled: boolean; feeds: IntelFeedDTO[]; greynoise: { configured: boolean } }>("/api/threats/intel")
+    api<{ disabled: boolean; feeds: IntelFeedDTO[]; greynoise: { configured: boolean }; virustotal: { configured: boolean; quota: string } }>("/api/threats/intel")
       .then((d) => setIntel(d))
       .catch(() => setIntel(null));
   }, []);
@@ -932,6 +935,24 @@ function ThreatsTab({ canManage, canSync, isSuperAdmin, onChanged }: {
       toast.error(err instanceof ApiCallError ? err.message : "Error");
     } finally {
       setEnrichBusy(false);
+    }
+  };
+
+  const doVtEnrich = async () => {
+    const target = vtTarget.trim();
+    if (!target) return;
+    setVtBusy(true);
+    setVtResult(null);
+    try {
+      const res = await api<{ enrichment: { target: string; verdict: "malicious" | "suspicious" | "clean" | "unknown"; engineCount: string; reputation: number | null; lastAnalysisDate: string | null; link: string | null }; sighting: boolean }>("/api/threats/intel/enrich", {
+        method: "POST", body: JSON.stringify({ target }),
+      });
+      setVtResult(res.enrichment);
+      if (res.sighting) toast.success(`${target} · ${t("intelEnrichSighting")}`);
+    } catch (err) {
+      toast.error(err instanceof ApiCallError ? err.message : "Error");
+    } finally {
+      setVtBusy(false);
     }
   };
 
@@ -1065,6 +1086,56 @@ function ThreatsTab({ canManage, canSync, isSuperAdmin, onChanged }: {
               )}
               {!intel.greynoise.configured && (
                 <span className="text-[11px] text-muted-foreground">{t("intelEnrichKeyMissing")}</span>
+              )}
+            </div>
+            {/* VirusTotal reputation enrichment (IP / URL / file hash — Phase 2) */}
+            <div className="flex flex-wrap items-center gap-2 border-t pt-3">
+              <ShieldAlert className="h-4 w-4 text-rose-600" aria-hidden />
+              <span className="text-sm font-medium">{t("vtEnrichTitle")}</span>
+              <Input
+                value={vtTarget}
+                onChange={(e) => setVtTarget(e.target.value)}
+                placeholder="IP · URL · SHA-256/MD5"
+                className="w-56 font-mono"
+                aria-label={t("vtEnrichTitle")}
+              />
+              <Button
+                size="sm" variant="outline" onClick={doVtEnrich} disabled={vtBusy || !vtTarget.trim() || !intel.virustotal.configured}
+                title={intel.virustotal.configured ? undefined : t("vtEnrichKeyMissing")}
+                className="border-rose-300 text-rose-800 hover:bg-rose-50 dark:border-rose-800 dark:text-rose-300 dark:hover:bg-rose-950"
+              >
+                {t("vtEnrichAction")}
+              </Button>
+              {vtResult && (
+                <Badge
+                  variant="outline"
+                  className={`whitespace-nowrap ${
+                    vtResult.verdict === "malicious"
+                      ? "bg-red-50 text-red-800 border-red-300 dark:bg-red-950/60 dark:text-red-300 dark:border-red-800"
+                      : vtResult.verdict === "suspicious"
+                        ? "bg-amber-50 text-amber-800 border-amber-300 dark:bg-amber-950/60 dark:text-amber-300 dark:border-amber-800"
+                        : vtResult.verdict === "clean"
+                          ? "bg-emerald-50 text-emerald-800 border-emerald-300 dark:bg-emerald-950/60 dark:text-emerald-300 dark:border-emerald-800"
+                          : "bg-muted text-muted-foreground border-border"
+                  }`}
+                  title={[
+                    vtResult.link ?? undefined,
+                    vtResult.reputation !== null ? `reputation ${vtResult.reputation}` : undefined,
+                    vtResult.lastAnalysisDate ? `analysed ${new Date(vtResult.lastAnalysisDate).toLocaleString("en-GB")}` : undefined,
+                  ].filter(Boolean).join(" · ") || undefined}
+                >
+                  {vtResult.verdict === "malicious"
+                    ? t("vtVerdictMalicious")
+                    : vtResult.verdict === "suspicious"
+                      ? t("vtVerdictSuspicious")
+                      : vtResult.verdict === "clean"
+                        ? t("vtVerdictClean")
+                        : t("vtVerdictUnknown")}{" "}
+                  <span className="opacity-60">· {vtResult.engineCount}</span>
+                </Badge>
+              )}
+              {!intel.virustotal.configured && (
+                <span className="text-[11px] text-muted-foreground">{t("vtEnrichKeyMissing")} · {intel.virustotal.quota}</span>
               )}
             </div>
           </CardContent>

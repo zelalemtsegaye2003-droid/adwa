@@ -1,6 +1,7 @@
 /**
  * Adwa Cyber — public threat-intel feed connector verification
- * (Real-Data Roadmap Phase 1: CISA KEV + Spamhaus DROP + key-gated feeds).
+ * (Real-Data Roadmap Phase 1: CISA KEV + Spamhaus DROP + key-gated feeds;
+ *  Phase 2: self-hosted MISP exchange + VirusTotal reputation enrichment).
  * ---------------------------------------------------------------------
  * Verifies the live-data honesty contract end-to-end against the dev stack:
  *
@@ -20,6 +21,9 @@
  *      VIEWER (no threats:sync) → 403 on POST, 200 on status GET.
  *   7. Explicit keyed-feed request without a key → honest 503; unknown
  *      source name → 400; GreyNoise enrichment without a key → 503.
+ *   8. Phase 2: MISP connector honestly unconfigured (MISP_URL/API_KEY
+ *      unset); VirusTotal enrichment unconfigured → 503, invalid input
+ *      shape → 400, and both engines disclose their config on GET.
  *
  * Environment-independent assertions: a feed is accepted as either LIVE
  * (source reachable) or SNAPSHOT (labelled degradation) — both are honest
@@ -72,14 +76,17 @@ try {
   check("1. GET /api/threats/intel → 200", st.status === 200, `status ${st.status}`);
   const feeds = st.body.feeds ?? [];
   const byId = Object.fromEntries(feeds.map((f) => [f.id, f]));
-  check("1a. five connectors registered", feeds.length === 5, `${feeds.length} feeds`);
+  check("1a. six connectors registered", feeds.length === 6, `${feeds.length} feeds`);
   check("1b. CISA KEV: no key required, configured", byId.cisa_kev?.keyRequired === false && byId.cisa_kev?.configured === true);
   check("1c. CISA KEV: bundled snapshot as-of disclosed", Number(byId.cisa_kev?.snapshotCount) > 0 && !!byId.cisa_kev?.snapshotAsOf, `count ${byId.cisa_kev?.snapshotCount}, asOf ${byId.cisa_kev?.snapshotAsOf}`);
   check("1d. Spamhaus DROP: configured with snapshot", byId.spamhaus_drop?.configured === true && Number(byId.spamhaus_drop?.snapshotCount) > 0);
-  for (const keyed of ["urlhaus", "threatfox", "otx"]) {
+  for (const keyed of ["urlhaus", "threatfox", "otx", "misp"]) {
     check(`1e. ${keyed}: honestly unconfigured (key required)`, byId[keyed]?.keyRequired === true && byId[keyed]?.configured === false);
   }
   check("1f. every feed discloses its terms/attribution", feeds.every((f) => typeof f.attribution === "string" && f.attribution.length > 0));
+  check("1g. MISP chip shows the restSearch endpoint", /\/events\/restSearch$/.test(byId.misp?.endpoint ?? ""), byId.misp?.endpoint);
+  check("1h. GET discloses VirusTotal engine (unconfigured, quota stated)", st.body.virustotal?.configured === false && /4 requests\/min/.test(st.body.virustotal?.quota ?? ""), JSON.stringify(st.body.virustotal ?? null));
+  check("1i. GET discloses GreyNoise engine config", typeof st.body.greynoise?.configured === "boolean");
 
   // ── 2. Sync "all" ───────────────────────────────────────────────────────
   const r1 = await jfetch(`${BASE}/api/threats/intel`, { ...jbody(super_admin, { source: "all" }), method: "POST" });
@@ -91,8 +98,8 @@ try {
   check("2b. Spamhaus DROP produced data", ["live", "snapshot"].includes(drop1.mode) && (drop1.ingested ?? 0) > 0, `mode=${drop1.mode} ingested=${drop1.ingested}`);
   check("2c. SNAPSHOT mode carries its as-of honesty label", kev1.mode !== "snapshot" || /captured|catalog/i.test(kev1.asOf ?? ""), `asOf="${kev1.asOf}"`);
   const skipped = r1.body.skipped ?? [];
-  check("2d. keyed feeds without keys reported as skipped", skipped.length === 3 && skipped.every((s) => s.code === "UNCONFIGURED"), JSON.stringify(skipped.map((s) => s.feed)));
-  check("2e. skipped feeds were never ingested", !sum.urlhaus && !sum.threatfox && !sum.otx);
+  check("2d. keyed feeds without keys reported as skipped", skipped.length === 4 && skipped.every((s) => s.code === "UNCONFIGURED"), JSON.stringify(skipped.map((s) => s.feed)));
+  check("2e. skipped feeds were never ingested", !sum.urlhaus && !sum.threatfox && !sum.otx && !sum.misp);
   const firstIngested = (kev1.ingested ?? 0) + (drop1.ingested ?? 0);
 
   // ── 3. Hub rows ──────────────────────────────────────────────────────────
@@ -146,6 +153,14 @@ try {
   check("7a. unknown source → 400", rBad.status === 400, `status ${rBad.status}`);
   const rEnrich = await jfetch(`${BASE}/api/threats/intel/enrich`, { ...jbody(super_admin, { ip: "45.83.66.2" }), method: "POST" });
   check("7b. GreyNoise enrichment without key → 503 (never fabricated)", rEnrich.status === 503 && rEnrich.body.error?.code === "UNCONFIGURED", `status ${rEnrich.status} ${rEnrich.body.error?.code}`);
+
+  // ── 8. Phase 2 honesty: MISP + VirusTotal ──────────────────────────────
+  const rMisp = await jfetch(`${BASE}/api/threats/intel`, { ...jbody(super_admin, { source: "misp" }), method: "POST" });
+  check("8. explicit misp without URL/key → 503 UNCONFIGURED", rMisp.status === 503 && rMisp.body.error?.code === "UNCONFIGURED", `status ${rMisp.status} ${rMisp.body.error?.code}`);
+  const rVt = await jfetch(`${BASE}/api/threats/intel/enrich`, { ...jbody(super_admin, { target: "179.43.182.60" }), method: "POST" });
+  check("8a. VirusTotal enrichment without key → 503 (never fabricated)", rVt.status === 503 && rVt.body.error?.code === "UNCONFIGURED", `status ${rVt.status} ${rVt.body.error?.code}`);
+  const rNeither = await jfetch(`${BASE}/api/threats/intel/enrich`, { ...jbody(super_admin, {}), method: "POST" });
+  check("8b. enrichment with neither ip nor target → 400", rNeither.status === 400, `status ${rNeither.status}`);
 
   // Leave a synced hub behind (a healthy demo state, dedupe-safe).
   console.log(`\nHub now carries ${kevRows.length} KEV + ${dropRows.length} DROP live-source indicators.`);

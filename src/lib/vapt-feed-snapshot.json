@@ -1,6 +1,6 @@
 {
-  "asOf": "2026-11-18T05:59:16.390Z",
-  "note": "Curated service-matchable feed. CVSS v3.1 and EPSS fetched live at build time (NVD API 2.0 / FIRST EPSS API); KEV membership matched against the CISA KEV catalog JSON. Affected ranges from the published advisories cited per entry.",
+  "asOf": "2026-11-18T20:56:48.743Z",
+  "note": "Curated service-matchable feed. CVSS v3.1 and KEV from NVD API 2.0; EPSS refreshed live from the FIRST EPSS API on the as-of date above (scripts/fetch-epss.ts — daily cadence). Affected ranges from the published advisories cited per entry.",
   "entries": [
     {
       "cve": "CVE-2011-2523",
@@ -58,7 +58,7 @@
       "cvss": 9.8,
       "cvssVector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H",
       "epss": 0.14965,
-      "epssPercentile": 0.96768,
+      "epssPercentile": 0.96777,
       "kev": false,
       "source": "NVD CVE-2010-20103; Aqua CVSS 3.1 9.8; Metasploit module"
     },
@@ -116,7 +116,7 @@
       "cvss": 9.8,
       "cvssVector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H",
       "epss": 0.797,
-      "epssPercentile": 0.99613,
+      "epssPercentile": 0.99614,
       "kev": false,
       "source": "NVD CVE-2023-38408 (CVSS 9.8 per Aqua/NVD); OpenSSH release notes"
     },

@@ -91,18 +91,22 @@ without real credentials (enabled via `GOOGLE_*` overrides in `.env`).
 | Start the app — <http://localhost:3000> | `bun run dev` (runs in the foreground) |
 | Start mock Google (:3010) | `cd mini-services/mock-google && bun run dev` |
 | Start mock Ethio-CERT (:3020) | `cd mini-services/mock-ethiocert && bun run dev` |
+| Start mock MISP (:3030) | `cd mini-services/mock-misp && bun run dev` — set `MISP_URL=http://localhost:3030` + `MISP_API_KEY=adwa-dev-misp-key` to exercise the self-hosted MISP exchange connector (Phase 2) |
 | Stop any of the above | `Ctrl+C` in its terminal |
-| Stop background / stray processes | by port: `lsof -ti:3000 \| xargs kill` (repeat for 3010, 3020) — or `pkill -f "next dev"` for the app |
+| Stop background / stray processes | by port: `lsof -ti:3000 \| xargs kill` (repeat for 3010, 3020, 3030) — or `pkill -f "next dev"` for the app |
 | Restart the app | stop, then `bun run dev` again — code edits hot-reload live; a full restart is only needed after installing dependencies or editing `prisma/schema.prisma` |
 | Health check | `curl -s http://localhost:3000/api/health` |
 
-The two mini-services are optional. Without :3010, the "Sign in with Google"
+The mini-services are optional. Without :3010, the "Sign in with Google"
 button will error while `.env` still points `GOOGLE_AUTH_BASE` at the mock —
 remove the three `GOOGLE_*_URL/AUTH_BASE` overrides to talk to the real
 provider instead. Without :3020, an explicitly configured
 `ETHIOCERT_API_URL` makes sync runs fail loudly (FAILED `SyncRun` + 502,
 never a silent fall-back); unset the variable to use the bundled pilot
-fixture.
+fixture. Without :3030 / `MISP_URL`, the self-hosted MISP connector honestly
+shows "key required" in the threat-intel panel and "all" syncs skip it
+(never a fabricated run) — `node scripts/misp-live-test.mjs` exercises the
+live binding against the mock.
 
 ### Production — standalone server
 
@@ -242,7 +246,8 @@ src/components/adwa/        dashboard, catalogue, scan wizard, findings, report,
 src/components/auth/        login screen (with password reset), MFA setup +
                             password change, users, audit
 docs/architecture.png      system architecture diagram (see above)
-mini-services/              mock Google OIDC (:3010), mock Ethio-CERT (:3020)
+mini-services/              mock Google OIDC (:3010), mock Ethio-CERT (:3020),
+                            mock MISP private exchange (:3030)
 docs/                       DECISIONS, AUTH, VAPT, EVIDENCE, DEPLOY, TESTING, OPS,
                             USER_GUIDE, PILOT_ONBOARDING, INCIDENT_RUNBOOK
 Dockerfile · docker-compose.yml · deploy/Caddyfile   one-command deploy

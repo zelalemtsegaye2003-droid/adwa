@@ -19,6 +19,8 @@ import { runSnmpAudit, snmpVulnsFromReport } from "@/lib/vapt-snmp";
 import { auditDatabase, dbVulnsFromReport, type DbCredentials } from "@/lib/vapt-db-audit";
 import { decryptSecret } from "@/lib/auth/crypto";
 import { appendVaptAudit } from "@/lib/vapt-audit";
+import { FEED_AS_OF } from "@/lib/vapt-cve-feed";
+import { epssFor, epssProvenanceNote } from "@/lib/vapt-epss";
 import { createHash } from "crypto";
 
 export const runtime = "nodejs";
@@ -274,6 +276,10 @@ export async function POST(req: NextRequest) {
   const snmpReports: unknown[] = [];
   const dbReports: unknown[] = [];
   const infraReports: { asset: string; host: string; openPorts: number[]; banners: { port: number; banner: string }[]; serviceChecks: unknown[] }[] = [];
+  // Live-EPSS bookkeeping (roadmap §5.3 — every CVE finding carries a provenance label)
+  let epssLiveCount = 0;
+  let epssFallbackCount = 0;
+  let epssHeuristicCount = 0;
 
   // Stored scan credentials (AES-256-GCM at rest) — decrypted only inside
   // the engine calls below, never logged, never echoed in findings.
@@ -296,10 +302,19 @@ export async function POST(req: NextRequest) {
       return;
     }
     trackedKeys.add(fp);
+    // Live EPSS first (roadmap §5.3): a live FIRST score overrides the
+    // bundled snapshot value; failures keep the labelled snapshot value;
+    // non-CVE findings keep their labelled heuristic prior.
+    const liveEpss = draft.cveId ? await epssFor(draft.cveId) : null;
+    const epss = liveEpss ? liveEpss.epss : draft.epss;
+    const provenance = epssProvenanceNote(liveEpss, FEED_AS_OF, !!draft.cveId);
+    if (provenance.source === "live") epssLiveCount++;
+    else if (provenance.source === "snapshot") epssFallbackCount++;
+    else epssHeuristicCount++;
     const severity = severityFromCvss(draft.cvssScore);
     const { score, priorityClass } = prioritise({
       cvssScore: draft.cvssScore,
-      epss: draft.epss,
+      epss,
       kev: draft.kev,
       assetCriticality: asset.criticality,
       assetSurface: asset.surface,
@@ -318,11 +333,11 @@ export async function POST(req: NextRequest) {
         severity,
         cvssScore: draft.cvssScore,
         cvssVector: draft.cvssVector,
-        epss: draft.epss,
+        epss,
         kev: draft.kev,
         priorityScore: score,
         priorityClass,
-        evidence: JSON.stringify(draft.evidence),
+        evidence: JSON.stringify({ ...draft.evidence, epssProvenance: provenance.note }),
         fingerprint: fp,
         status: "open",
         dueAt: vaptSlaDueDate(severity, now),
@@ -530,7 +545,8 @@ export async function POST(req: NextRequest) {
         completedAt: new Date(),
         durationMs: Date.now() - startedAt,
         detail: [
-          `Engine: live (real TCP/TLS/HTTP probes + banner→CVE feed matching; feed data as of the bundled snapshot).`,
+          `Engine: live (real TCP/TLS/HTTP probes + banner→CVE feed matching).`,
+          `EPSS: ${epssLiveCount} live from FIRST, ${epssFallbackCount} from the bundled snapshot (as of ${FEED_AS_OF}), ${epssHeuristicCount} heuristic priors (non-CVE findings).`,
           `Scope: ${effectiveScope?.name ?? "auto-resolved"} (${profile} profile).`,
           unreachable.length ? `Unreachable target(s): ${unreachable.join(", ")}.` : "",
           engineNotes.join(" "),

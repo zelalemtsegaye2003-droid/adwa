@@ -412,11 +412,11 @@ const DICT: Record<string, [string, string]> = {
   socSyncSourceSnapshot: ["SNAPSHOT", "ቅጂ"],
   socSyncReceipt: ["Receipt {0}", "ደረሰኝ {0}"],
   socSyncFailed: ["failed", "አልተሳካም"],
-  // Public threat-intel feeds (Real-Data Roadmap Phase 1)
+  // Public threat-intel feeds (Real-Data Roadmap Phase 1 + Phase 2)
   intelPanel: ["Public threat-intel feeds", "የሕዝብ የስጋት-መረጃ ፍሎች"],
   intelPanelSub: [
-    "CISA KEV & Spamhaus DROP are live now; URLhaus, ThreatFox and OTX activate with their free keys — every row honestly labelled LIVE, SNAPSHOT or key-required",
-    "CISA KEV & Spamhaus DROP አሁን ቀጥታ ናቸው፤ URLhaus፣ ThreatFox እና OTX በነፃ ቁልፋቸው ይነቃሉ — እያንዳንዱ ረድፍ ቀጥታ፣ ቅጂ ወይም ቁልፍ-ያስፈልጋል ተብሎ ይሰየማል",
+    "CISA KEV & Spamhaus DROP are live now; URLhaus, ThreatFox, OTX and the self-hosted MISP exchange activate with their keys — every row honestly labelled LIVE, SNAPSHOT or key-required",
+    "CISA KEV & Spamhaus DROP አሁን ቀጥታ ናቸው፤ URLhaus፣ ThreatFox፣ OTX እና የቤት-ውስጥ MISP ልውውጥ በቁልፋቸው ይነቃሉ — እያንዳንዱ ረድፍ ቀጥታ፣ ቅጂ ወይም ቁልፍ-ያስፈልጋል ተብሎ ይሰየማል",
   ],
   intelSyncNow: ["Sync public feeds", "ክፍት ፍሎችን አመሳስል"],
   intelKeyRequired: ["key required", "ቁልፍ ያስፈልጋል"],
@@ -432,6 +432,14 @@ const DICT: Record<string, [string, string]> = {
   intelEnrichRiot: [" · common business service", " · የተለመደ የንግድ አገልግሎት"],
   intelEnrichSighting: [" · sighting recorded in hub", " · እይታ በማዕከሉ ተመዝግቧል"],
   intelEnrichKeyMissing: ["Set GREYNOISE_API_KEY (free community key) to enable", "ለማንቃት GREYNOISE_API_KEY ያስቀምጡ (ነፃ ቁልፍ)"],
+  // VirusTotal reputation enrichment (Real-Data Roadmap Phase 2)
+  vtEnrichTitle: ["VirusTotal reputation", "የVirusTotal ስም"],
+  vtEnrichAction: ["Check reputation", "ስም ፈትሽ"],
+  vtVerdictMalicious: ["Malicious", "ተብቂብ"],
+  vtVerdictSuspicious: ["Suspicious", "ጥርጥር የሚያስነሳ"],
+  vtVerdictClean: ["Clean", "ንጹህ"],
+  vtVerdictUnknown: ["No VirusTotal record", "በVirusTotal አልተመዘገበም"],
+  vtEnrichKeyMissing: ["Set VIRUSTOTAL_API_KEY (free key) to enable", "ለማንቃት VIRUSTOTAL_API_KEY ያስቀምጡ (ነፃ ቁልፍ)"],
   intelNoFeeds: ["Public intel feeds are disabled (INTEL_FEEDS_OFF).", "የሕዝብ መረጃ ፍሎች ተዘግተዋል (INTEL_FEEDS_OFF)።"],
   // Incident lifecycle
   incDetected: ["Detected", "ተገኝቷል"],

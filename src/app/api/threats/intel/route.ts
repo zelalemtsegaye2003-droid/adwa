@@ -17,22 +17,23 @@ import {
 export const runtime = "nodejs";
 
 /** ThreatIndicator.source value per feed (extends the ETHIO_CERT | MISP_FEED | … set). */
-const FEED_SOURCE: Record<Exclude<IntelFeedId, "greynoise">, string> = {
+const FEED_SOURCE: Record<Exclude<IntelFeedId, "greynoise" | "virustotal">, string> = {
   cisa_kev: "CISA_KEV",
   spamhaus_drop: "SPAMHAUS_DROP",
   urlhaus: "URLHAUS",
   threatfox: "THREATFOX",
   otx: "OTX",
+  misp: "MISP_FEED", // the self-hosted private channel joins the seeded MISP taxonomy
 };
 
 const SEV_ORDER = ["critical", "high", "medium", "low"];
 
 /**
- * POST /api/threats/intel — public threat-intel feed synchronisation (Phase 1
- * of the Real-Data Roadmap: CISA KEV + Spamhaus DROP live, URLhaus /
- * ThreatFox / OTX key-gated).
+ * POST /api/threats/intel — public threat-intel feed synchronisation (Real-Data
+ * Roadmap Phase 1: CISA KEV + Spamhaus DROP live, URLhaus / ThreatFox / OTX
+ * key-gated; Phase 2: the self-hosted MISP private exchange joins the run).
  *
- * Body: { source?: "all" | "cisa_kev" | "spamhaus_drop" | "urlhaus" | "threatfox" | "otx" }
+ * Body: { source?: "all" | "cisa_kev" | "spamhaus_drop" | "urlhaus" | "threatfox" | "otx" | "misp" }
  *
  * Honesty contract, per feed:
  *   live      — SyncRun source LIVE, endpoint recorded, entries ingested
@@ -44,7 +45,9 @@ const SEV_ORDER = ["critical", "high", "medium", "low"];
  *              response, never recorded as an ingest run
  * Every run is written to the hash-chained audit log. Dedupe on (type, value):
  * new indicators are created, known ones get a sighting + lastSeen refresh +
- * severity escalation when the feed raised it.
+ * severity escalation when the feed raised it. MISP entries carry their TLP
+ * markings; the hybrid sharing decision keeps TLP:AMBER+/TLP:RED inside the
+ * tenant (peer-to-peer only, never hub-broadcast).
  */
 export async function POST(req: NextRequest) {
   const guard = await requireAuthAny(req, ["threats:sync"]);
@@ -71,16 +74,17 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  const keyedConfigured = (feed: Exclude<IntelFeedId, "greynoise">): boolean => {
+  const keyedConfigured = (feed: Exclude<IntelFeedId, "greynoise" | "virustotal">): boolean => {
     if (feed === "urlhaus" || feed === "threatfox") return !!cfg.abusechKey;
     if (feed === "otx") return !!cfg.otxKey;
+    if (feed === "misp") return !!(cfg.mispUrl && cfg.mispKey);
     return true; // key-less feeds are always runnable
   };
 
-  const feeds: Exclude<IntelFeedId, "greynoise">[] =
+  const feeds: Exclude<IntelFeedId, "greynoise" | "virustotal">[] =
     requested === "all"
-      ? (Object.keys(FEED_SOURCE) as Exclude<IntelFeedId, "greynoise">[]).filter(keyedConfigured)
-      : [requested as Exclude<IntelFeedId, "greynoise">];
+      ? (Object.keys(FEED_SOURCE) as Exclude<IntelFeedId, "greynoise" | "virustotal">[]).filter(keyedConfigured)
+      : [requested as Exclude<IntelFeedId, "greynoise" | "virustotal">];
 
   // Explicitly requesting a keyed feed whose key is missing → honest 503, no run.
   if (requested !== "all" && !keyedConfigured(feeds[0])) {
@@ -93,12 +97,17 @@ export async function POST(req: NextRequest) {
   const skipped: { feed: string; code: string; message: string }[] = [];
   if (requested === "all") {
     // Visible in the response — not silently omitted, not recorded as a run.
-    for (const f of Object.keys(FEED_SOURCE) as Exclude<IntelFeedId, "greynoise">[]) {
+    for (const f of Object.keys(FEED_SOURCE) as Exclude<IntelFeedId, "greynoise" | "virustotal">[]) {
       if (!keyedConfigured(f)) {
         skipped.push({
           feed: f,
           code: "UNCONFIGURED",
-          message: f === "otx" ? "OTX_API_KEY is not set — free key from otx.alienvault.com." : "ABUSECH_AUTH_KEY is not set — free Auth-Key from auth.abuse.ch.",
+          message:
+            f === "otx"
+              ? "OTX_API_KEY is not set — free key from otx.alienvault.com."
+              : f === "misp"
+                ? "MISP_URL and MISP_API_KEY are not set — self-hosted MISP instance (AGPL, free software)."
+                : "ABUSECH_AUTH_KEY is not set — free Auth-Key from auth.abuse.ch.",
         });
       }
     }
@@ -260,7 +269,7 @@ export async function POST(req: NextRequest) {
         source: "LIVE",
         endpoint: err.endpoint === "-" ? null : err.endpoint,
         triggeredById: user.id,
-        detail: `${FEED_SOURCE[err.feed as Exclude<IntelFeedId, "greynoise">] ?? err.feed} feed failed: ${err.message}`,
+        detail: `${FEED_SOURCE[err.feed as Exclude<IntelFeedId, "greynoise" | "virustotal">] ?? err.feed} feed failed: ${err.message}`,
       },
     });
     await audit({
@@ -292,7 +301,8 @@ export async function POST(req: NextRequest) {
  * GET /api/threats/intel — connector statuses for the SOC honesty panel:
  * every feed shows its configuration, its bundled-snapshot as-of (if any) and
  * its last synchronisation run. Keyed feeds say "key required" instead of
- * pretending to be live.
+ * pretending to be live. Enrichment engines (GreyNoise, VirusTotal) disclose
+ * their own configuration and quota.
  */
 export async function GET(req: NextRequest) {
   const guard = await requireAuthAny(req, ["threats:view"]);
@@ -314,6 +324,11 @@ export async function GET(req: NextRequest) {
   return NextResponse.json({
     disabled: cfg.disabled,
     greynoise: { configured: !!cfg.greynoiseKey, endpoint: "https://api.greynoise.io/v3/community/{ip}" },
+    virustotal: {
+      configured: !!cfg.virustotalKey,
+      endpoint: "https://www.virustotal.com/api/v3",
+      quota: "4 requests/min · 500/day (free public tier)",
+    },
     feeds,
   });
 }

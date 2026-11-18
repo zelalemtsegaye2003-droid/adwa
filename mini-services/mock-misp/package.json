@@ -1,0 +1,9 @@
+{
+  "name": "adwa-mock-misp",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Development mock of a self-hosted MISP private sharing instance for Adwa Cyber e2e testing",
+  "scripts": {
+    "dev": "bun --hot index.ts"
+  }
+}

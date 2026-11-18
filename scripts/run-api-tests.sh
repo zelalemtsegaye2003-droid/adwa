@@ -10,6 +10,7 @@ cd "$(dirname "$(readlink -f "$0")")/.." # repo root, from any cwd
 LOG=/tmp/adwa-dev.log
 MOCK_G=/tmp/mock-google.log
 MOCK_EC=/tmp/mock-ethiocert.log
+MOCK_MISP=/tmp/mock-misp.log
 VULN_LAB=/tmp/vuln-lab.log
 
 cleanup() {
@@ -27,6 +28,7 @@ cleanup; sleep 1
 echo "── starting mini-services + next dev ──────────────────────────"
 (cd mini-services/mock-google && nohup bun run dev > "$MOCK_G" 2>&1 &)
 (cd mini-services/mock-ethiocert && nohup bun run dev > "$MOCK_EC" 2>&1 &)
+(cd mini-services/mock-misp && nohup bun run dev > "$MOCK_MISP" 2>&1 &)
 (cd mini-services/vuln-lab && nohup bun index.ts > "$VULN_LAB" 2>&1 &)
 nohup bun run dev > "$LOG" 2>&1 &
 
@@ -35,21 +37,22 @@ for i in $(seq 1 90); do
   a=$(curl -s -o /dev/null -w '%{http_code}' --max-time 3 http://localhost:3000/ 2>/dev/null)
   g=$(curl -s -o /dev/null -w '%{http_code}' --max-time 3 http://localhost:3010/ 2>/dev/null)
   e=$(curl -s -o /dev/null -w '%{http_code}' --max-time 3 http://localhost:3020/ 2>/dev/null)
+  m=$(curl -s -o /dev/null -w '%{http_code}' --max-time 3 http://localhost:3030/ 2>/dev/null)
   l=$(curl -s -o /dev/null -w '%{http_code}' --max-time 3 http://localhost:3060/ 2>/dev/null)
-  if [ "$a" = "200" ] && [ "$g" != "000" ] && [ "$e" = "200" ] && [ "$l" = "200" ]; then ready=1; break; fi
+  if [ "$a" = "200" ] && [ "$g" != "000" ] && [ "$e" = "200" ] && [ "$m" = "200" ] && [ "$l" = "200" ]; then ready=1; break; fi
   sleep 2
 done
 if [ -z "$ready" ]; then
-  echo "STACK FAILED TO START (app=$a google=$g ethiocert=$e)"
-  tail -5 "$LOG" "$MOCK_EC" 2>/dev/null
+  echo "STACK FAILED TO START (app=$a google=$g ethiocert=$e misp=$m)"
+  tail -5 "$LOG" "$MOCK_EC" "$MOCK_MISP" 2>/dev/null
   exit 1
 fi
-echo "stack ready (app=200 google=$g ethiocert=200)"
+echo "stack ready (app=200 google=$g ethiocert=200 misp=200)"
 echo ""
 
 SUITES=("$@")
 if [ ${#SUITES[@]} -eq 0 ]; then
-  SUITES=(ethiocert-bind-test soc-test intel-feeds-test sla-test report-test rules-engine-test scan-lifecycle-test evidence-security-test gates-test trackc-test awareness-test awareness-tools-api-test vapt-test)
+  SUITES=(ethiocert-bind-test soc-test intel-feeds-test misp-live-test sla-test report-test rules-engine-test scan-lifecycle-test evidence-security-test gates-test trackc-test awareness-test awareness-tools-api-test vapt-test)
 fi
 
 restart_app() {
@@ -75,6 +78,22 @@ for s in "${SUITES[@]}"; do
   # suites themselves mutate the lifecycle as part of the test).
   case "$s" in
     ethiocert-bind-test|soc-test|intel-feeds-test) node scripts/seed-soc.cjs > /dev/null || { FAILED=1; echo "seed-soc failed"; continue; } ;;
+    misp-live-test)
+      # This suite binds the self-hosted MISP connector to the mock (:3030) —
+      # restart the app carrying the binding env; the next suite's restart
+      # returns to the honest unconfigured default.
+      pkill -f 'next dev' 2>/dev/null
+      pkill -f 'next-server' 2>/dev/null
+      sleep 2
+      MISP_URL=http://localhost:3030 MISP_API_KEY=adwa-dev-misp-key nohup bun run dev > "$LOG" 2>&1 &
+      ok=0
+      for i in $(seq 1 60); do
+        a=$(curl -s -o /dev/null -w '%{http_code}' --max-time 3 http://localhost:3000/ 2>/dev/null)
+        [ "$a" = "200" ] && ok=1 && break
+        sleep 2
+      done
+      if [ "$ok" != "1" ]; then echo "APP FAILED TO RESTART WITH MISP BINDING"; FAILED=1; continue; fi
+      ;;
     sla-test)       node scripts/seed-sla.cjs  > /dev/null || { FAILED=1; echo "seed-sla failed"; continue; } ;;
     rules-engine-test) node scripts/seed-evidence-links.cjs > /dev/null || { FAILED=1; echo "seed-evidence-links failed"; continue; } ;;
     gates-test)     bun scripts/seed-gates.ts  > /dev/null 2>&1 || true ;;

@@ -1,6 +1,7 @@
 /**
  * Adwa Cyber — public threat-intelligence feed connectors.
- * (Real-Data Review & Roadmap — Phase 1 implementation.)
+ * (Real-Data Review & Roadmap — Phase 1 implementation; Phase 2 adds the
+ * self-hosted MISP exchange and VirusTotal reputation enrichment.)
  *
  * One connector per source, all free tiers, one honesty contract:
  *
@@ -14,6 +15,13 @@
  *   AlienVault OTX  subscribed community pulses — OTX_API_KEY (free key)
  *   GreyNoise Community  per-IP "is this a known mass scanner?" enrichment —
  *                   GREYNOISE_API_KEY (free key); an enrichment action, not bulk
+ *   MISP            self-hosted private sharing instance (roadmap §5.1) —
+ *                   MISP_URL + MISP_API_KEY (AGPL, free software, TLP honoured);
+ *                   a curated channel INSA / sector peers can push sensitive
+ *                   indicators through — TLP:AMBER+ stays inside the tenant
+ *   VirusTotal      per-target reputation (IP / URL / file hash, roadmap §5.2) —
+ *                   VIRUSTOTAL_API_KEY (free public tier: 4 req/min, 500/day;
+ *                   an enrichment action, not bulk)
  *
  * Modes (the platform-wide honesty pattern):
  *   live       entries were fetched from the source right now
@@ -28,7 +36,7 @@ import dropSnapshotJson from "./intel-snapshots/spamhaus-drop.json";
 
 // ── configuration ────────────────────────────────────────────────────────────
 
-export type IntelFeedId = "cisa_kev" | "spamhaus_drop" | "urlhaus" | "threatfox" | "otx" | "greynoise";
+export type IntelFeedId = "cisa_kev" | "spamhaus_drop" | "urlhaus" | "threatfox" | "otx" | "greynoise" | "misp" | "virustotal";
 
 export interface IntelConfig {
   timeoutMs: number;
@@ -37,10 +45,14 @@ export interface IntelConfig {
   abusechKey: string | null;
   otxKey: string | null;
   greynoiseKey: string | null;
+  mispUrl: string | null; // self-hosted MISP base URL, e.g. https://misp.insa.gov.et
+  mispKey: string | null;
+  virustotalKey: string | null;
 }
 
 export function intelConfig(): IntelConfig {
   const flag = (v: string | undefined) => /^(1|true|yes|on)$/i.test((v ?? "").trim());
+  const clean = (v: string | undefined) => (v ?? "").trim().replace(/\/+$/, "") || null;
   return {
     timeoutMs: Number(process.env.INTEL_FEED_TIMEOUT_MS ?? 15_000) || 15_000,
     disabled: flag(process.env.INTEL_FEEDS_OFF),
@@ -48,6 +60,9 @@ export function intelConfig(): IntelConfig {
     abusechKey: (process.env.ABUSECH_AUTH_KEY ?? "").trim() || null,
     otxKey: (process.env.OTX_API_KEY ?? "").trim() || null,
     greynoiseKey: (process.env.GREYNOISE_API_KEY ?? "").trim() || null,
+    mispUrl: clean(process.env.MISP_URL),
+    mispKey: (process.env.MISP_API_KEY ?? "").trim() || null,
+    virustotalKey: (process.env.VIRUSTOTAL_API_KEY ?? "").trim() || null,
   };
 }
 
@@ -57,6 +72,8 @@ export const URLHAUS_URL = "https://urlhaus-api.abuse.ch/v2/files/exports/";
 export const THREATFOX_URL = "https://threatfox-api.abuse.ch/api/v1/";
 export const OTX_URL = "https://otx.alienvault.com/api/v1/pulses/subscribed";
 export const GREYNOISE_URL = "https://api.greynoise.io/v3/community";
+export const MISP_ENDPOINT = "/events/restSearch"; // appended to MISP_URL
+export const VIRUSTOTAL_URL = "https://www.virustotal.com/api/v3";
 
 // ── errors ───────────────────────────────────────────────────────────────────
 
@@ -117,12 +134,13 @@ export interface IntelFeedStatus {
 }
 
 /** Feed labels are English brand names — not localised. */
-export const FEED_LABELS: Record<Exclude<IntelFeedId, "greynoise">, string> = {
+export const FEED_LABELS: Record<Exclude<IntelFeedId, "greynoise" | "virustotal">, string> = {
   cisa_kev: "CISA KEV",
   spamhaus_drop: "Spamhaus DROP",
   urlhaus: "URLhaus",
   threatfox: "ThreatFox",
   otx: "AlienVault OTX",
+  misp: "MISP (self-hosted)",
 };
 
 const CVE_RE = /^CVE-\d{4}-\d{4,}$/;
@@ -752,6 +770,338 @@ export async function enrichIpGreynoise(ip: string): Promise<GreynoiseEnrichment
   };
 }
 
+// ── 7. MISP self-hosted private exchange (keyed — roadmap §5.1) ───────────────
+
+interface MispTag {
+  name?: string;
+}
+
+interface MispAttribute {
+  id?: string;
+  uuid?: string;
+  type?: string;
+  category?: string;
+  to_ids?: boolean;
+  value?: string;
+  timestamp?: string | number; // unix epoch seconds
+}
+
+interface MispEvent {
+  id?: string;
+  uuid?: string;
+  info?: string; // event title
+  date?: string; // YYYY-MM-DD the event is about
+  published?: boolean | number;
+  threat_level_id?: string; // 1 high | 2 medium | 3 low | 4 undefined
+  analysis?: string;
+  timestamp?: string | number;
+  Tag?: MispTag[];
+  Attribute?: MispAttribute[];
+}
+
+/** MISP tlp: machine tags → platform TLP markings. */
+export function mispTlpFromTags(tags: MispTag[]): string {
+  for (const tag of tags) {
+    const m = /^tlp:(clear|green|amber\+strict|amber|red)$/i.exec((tag.name ?? "").trim());
+    if (m) {
+      const v = m[1].toLowerCase();
+      if (v === "clear") return "TLP:CLEAR";
+      if (v === "green") return "TLP:GREEN";
+      if (v === "amber+strict") return "TLP:AMBER+STRICT";
+      if (v === "amber") return "TLP:AMBER";
+      return "TLP:RED";
+    }
+  }
+  return "TLP:AMBER"; // conservative default when the event carries no TLP tag
+}
+
+/** MISP attribute types → the hub taxonomy (unsupported types are skipped). */
+export function mispTypeToIndicatorType(t: string): string | null {
+  switch (t.toLowerCase()) {
+    case "ip-src":
+    case "ip-dst":
+      return "ip";
+    case "domain":
+    case "hostname":
+      return "domain";
+    case "url":
+    case "link":
+      return "url";
+    case "md5":
+      return "hash_md5";
+    case "sha256":
+      return "hash_sha256";
+    case "sha1": // no sha1 in the hub taxonomy — honestly skipped, never mangled
+      return null;
+    case "email-src":
+    case "email-dst":
+      return "email";
+    case "filename":
+    case "filename|md5":
+    case "filename|sha256":
+      return "filename";
+    default:
+      return null;
+  }
+}
+
+/** Event tags map onto the platform taxonomy (same mapping family as OTX). */
+export function mispCategory(tags: MispTag[]): string {
+  const t = tags.map((x) => x.name ?? "").join(" ").toLowerCase();
+  if (t.includes("ransom")) return "ransomware";
+  if (t.includes("phishing")) return "phishing";
+  if (t.includes("botnet") || t.includes("malware") || t.includes("c2") || t.includes("trojan")) return "malware";
+  if (t.includes("apt")) return "apt";
+  if (t.includes("ddos")) return "ddos";
+  return "other";
+}
+
+/** MISP threat_level_id → severity (1=high, 2=medium, 3=low, 4=undefined). */
+export function mispSeverity(threatLevelId: string | undefined): string {
+  switch (String(threatLevelId ?? "4")) {
+    case "1":
+      return "high";
+    case "3":
+      return "low";
+    default:
+      return "medium"; // 2 and undefined → medium
+  }
+}
+
+/**
+ * Parse a MISP restSearch JSON response (returnformat json):
+ * {"response":[{"Event":{…, Tag:[{name:"tlp:amber"}], Attribute:[…]}}]}
+ * (a bare array of Event envelopes is accepted too — both shapes are seen in
+ * the wild across MISP versions). TLP:RED is honoured, never dropped: the
+ * hybrid sharing decision keeps it peer-to-peer inside the tenant.
+ */
+export function parseMispEvents(body: unknown): { entries: IntelIndicatorInput[]; skippedInvalid: number; duplicates: number; events: number } {
+  if (typeof body !== "object" || body === null) throw new IntelFeedError("misp", "BAD_PAYLOAD", "MISP response is not JSON.", 502, MISP_ENDPOINT);
+  const raw = body as Record<string, unknown>;
+  let list: unknown[];
+  if (Array.isArray(raw.response)) list = raw.response;
+  else if (Array.isArray(body)) list = body;
+  else throw new IntelFeedError("misp", "BAD_PAYLOAD", "MISP response has no response array.", 502, MISP_ENDPOINT);
+
+  const seen = new Set<string>();
+  const entries: IntelIndicatorInput[] = [];
+  let skippedInvalid = 0;
+  let duplicates = 0;
+  let events = 0;
+  for (const item of list) {
+    const ev = (item as { Event?: MispEvent }).Event ?? (item as MispEvent);
+    if (typeof ev !== "object" || ev === null) {
+      skippedInvalid++;
+      continue;
+    }
+    const tags = Array.isArray(ev.Tag) ? ev.Tag : [];
+    const tlp = mispTlpFromTags(tags);
+    const category = mispCategory(tags);
+    const severity = mispSeverity(ev.threat_level_id);
+    const eventTitle = (ev.info ?? "").trim() || "shared MISP event";
+    const eventDate = typeof ev.date === "string" && /^\d{4}-\d{2}-\d{2}$/.test(ev.date) ? ev.date : null;
+    const attrs = Array.isArray(ev.Attribute) ? ev.Attribute : [];
+    if (attrs.length > 0) events++;
+    for (const a of attrs) {
+      const value = String(a.value ?? "").trim();
+      const type = a.type ? mispTypeToIndicatorType(a.type) : null;
+      if (!value || !type) {
+        skippedInvalid++;
+        continue;
+      }
+      const key = `${type}|${value}`;
+      if (seen.has(key)) {
+        duplicates++; // the same indicator across events — dedupe, never double-ingest
+        continue;
+      }
+      seen.add(key);
+      // Attribute timestamp (unix seconds) is the finest first-observation
+      // time; fall back to the event date.
+      let firstSeenAt: string | null = null;
+      if (a.timestamp) {
+        const ts = Number(a.timestamp);
+        if (Number.isFinite(ts) && ts > 0) firstSeenAt = new Date(ts * 1000).toISOString();
+      }
+      if (!firstSeenAt && eventDate) firstSeenAt = eventDate;
+      entries.push({
+        type,
+        value,
+        titleEn: `MISP · ${eventTitle}`,
+        descriptionEn:
+          `Indicator shared through the self-hosted MISP threat-intelligence platform (event "${eventTitle}"${ev.uuid ? `, UUID ${ev.uuid}` : ""}). TLP marking (${tlp}) is honoured — restricted markings stay inside the tenant.`,
+        category,
+        severity,
+        tlp,
+        confidence: a.to_ids === true ? 90 : 70, // to_ids = publisher marks it detection-worthy
+        sourceRef: ev.uuid ? `MISP event ${ev.uuid}` : ev.id ? `MISP event #${ev.id}` : "MISP",
+        firstSeenAt,
+      });
+    }
+  }
+  return { entries, skippedInvalid, duplicates, events };
+}
+
+export async function fetchMisp(maxEntries: number, timeoutMs: number): Promise<IntelFeedResult> {
+  const c = intelConfig();
+  if (!c.mispUrl || !c.mispKey) {
+    throw new IntelFeedError("misp", "UNCONFIGURED", "MISP_URL and MISP_API_KEY are not set — self-hosted MISP instance (AGPL, free software).", 503, `${c.mispUrl ?? "MISP_URL"}${MISP_ENDPOINT}`);
+  }
+  const endpoint = `${c.mispUrl}${MISP_ENDPOINT}`;
+  // restSearch: published events modified in the last 7 days, one page.
+  const since = Math.floor((Date.now() - 7 * 24 * 3600 * 1000) / 1000);
+  let res: Response;
+  try {
+    res = await fetchWithTimeout(
+      endpoint,
+      {
+        method: "POST",
+        headers: { Authorization: c.mispKey, Accept: "application/json", "Content-Type": "application/json" },
+        body: JSON.stringify({ returnformat: "json", published: true, timestamp: since, limit: 25, page: 1 }),
+      },
+      timeoutMs
+    );
+  } catch (err) {
+    throw networkError("misp", endpoint, err);
+  }
+  if (res.status === 401 || res.status === 403) throw new IntelFeedError("misp", "UNAUTHORIZED", "MISP auth key rejected.", res.status, endpoint);
+  if (!res.ok) throw new IntelFeedError("misp", "BAD_PAYLOAD", `MISP restSearch HTTP ${res.status}.`, 502, endpoint);
+  const body = await res.json().catch(() => null);
+  if (body === null) throw new IntelFeedError("misp", "BAD_PAYLOAD", "MISP restSearch returned non-JSON.", 502, endpoint);
+  const parsed = parseMispEvents(body);
+  const capped = parsed.entries.slice(0, maxEntries);
+  return {
+    feed: "misp",
+    label: FEED_LABELS.misp,
+    mode: "live",
+    endpoint,
+    asOf: `published events, last 7 days (${parsed.events} with indicators)`,
+    entries: capped,
+    skippedInvalid: parsed.skippedInvalid,
+    note:
+      (parsed.duplicates ? `${parsed.duplicates} duplicate indicator(s) across events deduplicated. ` : "") +
+      (capped.length < parsed.entries.length ? `Capped at ${capped.length} of ${parsed.entries.length} indicators this run. ` : "") +
+      `Terms: MISP — AGPL-3.0, self-hosted private sharing channel; TLP markings honoured (TLP:AMBER+ and TLP:RED never leave the tenant).`,
+  };
+}
+
+// ── 8. VirusTotal reputation enrichment (per target — roadmap §5.2) ─────────
+
+/** Classify an enrichment target: IPv4, http(s) URL, or MD5/SHA-1/SHA-256 file hash. */
+export function vtTargetKind(target: string): "ip" | "url" | "hash" | null {
+  const t = target.trim();
+  if (/^\d{1,3}(\.\d{1,3}){3}$/.test(t)) {
+    // reject malformed octets (999.1.1.1 passes the shape, not the range)
+    if (t.split(".").every((o) => Number(o) <= 255)) return "ip";
+    return null;
+  }
+  if (/^https?:\/\//i.test(t) && t.length <= 2048) return "url";
+  if (/^[0-9a-f]{32}$|^[0-9a-f]{40}$|^[0-9a-f]{64}$/.test(t)) return "hash";
+  return null;
+}
+
+/** VT v3 endpoint path for a target kind (URL ids are base64url, unpadded). */
+export function vtEndpointPath(target: string, kind: "ip" | "url" | "hash"): string {
+  if (kind === "ip") return `/ip_addresses/${encodeURIComponent(target)}`;
+  if (kind === "hash") return `/files/${target}`;
+  return `/urls/${Buffer.from(target, "utf8").toString("base64url")}`;
+}
+
+export interface VtEnrichment {
+  target: string;
+  kind: "ip" | "url" | "hash";
+  verdict: "malicious" | "suspicious" | "clean" | "unknown";
+  malicious: number;
+  suspicious: number;
+  harmless: number;
+  undetected: number;
+  timeout: number;
+  engineCount: string; // e.g. "2/72 engines"
+  reputation: number | null; // community votes (ip/domain)
+  lastAnalysisDate: string | null; // ISO
+  link: string | null;
+}
+
+/** Map a VT v3 object report onto the enrichment contract (pure — testable). */
+export function parseVtReport(body: unknown, target: string, kind: "ip" | "url" | "hash"): VtEnrichment {
+  if (typeof body !== "object" || body === null) throw new IntelFeedError("virustotal", "BAD_PAYLOAD", "VirusTotal response is not JSON.", 502, VIRUSTOTAL_URL);
+  const raw = body as { data?: { attributes?: Record<string, unknown>; links?: { self?: string } } };
+  const attrs = raw.data?.attributes;
+  if (!attrs || typeof attrs !== "object") throw new IntelFeedError("virustotal", "BAD_PAYLOAD", "VirusTotal response has no data.attributes.", 502, VIRUSTOTAL_URL);
+  const stats = attrs.last_analysis_stats as Record<string, number> | undefined;
+  const num = (v: unknown) => (typeof v === "number" && Number.isFinite(v) ? v : 0);
+  const malicious = num(stats?.malicious);
+  const suspicious = num(stats?.suspicious);
+  const harmless = num(stats?.harmless);
+  const undetected = num(stats?.undetected);
+  const timeout = num(stats?.timeout);
+  const reputation = typeof attrs.reputation === "number" ? attrs.reputation : null;
+  const lastAnalysisDate =
+    typeof attrs.last_analysis_date === "number" && attrs.last_analysis_date > 0
+      ? new Date(attrs.last_analysis_date * 1000).toISOString()
+      : null;
+  const link = raw.data?.links?.self ?? null;
+  const verdict: VtEnrichment["verdict"] =
+    malicious > 0 ? "malicious" : suspicious > 0 ? "suspicious" : harmless + undetected > 0 ? "clean" : "unknown";
+  const total = malicious + suspicious + harmless + undetected + timeout;
+  return {
+    target,
+    kind,
+    verdict,
+    malicious,
+    suspicious,
+    harmless,
+    undetected,
+    timeout,
+    engineCount: `${malicious + suspicious}/${total} engines`,
+    reputation,
+    lastAnalysisDate,
+    link,
+  };
+}
+
+/**
+ * One reputation lookup against the VirusTotal public API (free tier:
+ * 4 requests/min, 500/day — an analyst action, never bulk-synced).
+ * Unconfigured → honest 503; an object never analysed by VT → verdict
+ * "unknown" with zero counts (a real answer, not an error, not a fabrication).
+ */
+export async function enrichVirusTotal(target: string): Promise<VtEnrichment> {
+  const c = intelConfig();
+  if (!c.virustotalKey) {
+    throw new IntelFeedError("virustotal", "UNCONFIGURED", "VIRUSTOTAL_API_KEY is not set — free key from virustotal.com (4 req/min · 500/day).", 503, VIRUSTOTAL_URL);
+  }
+  const kind = vtTargetKind(target);
+  if (!kind) {
+    throw new IntelFeedError("virustotal", "BAD_PAYLOAD", "Target must be an IPv4 address, an http(s) URL, or an MD5/SHA-1/SHA-256 hash.", 400, VIRUSTOTAL_URL);
+  }
+  const endpoint = `${VIRUSTOTAL_URL}${vtEndpointPath(target.trim(), kind)}`;
+  let res: Response;
+  try {
+    res = await fetchWithTimeout(endpoint, { headers: { "x-apikey": c.virustotalKey, Accept: "application/json" } }, c.timeoutMs);
+  } catch (err) {
+    throw networkError("virustotal", endpoint, err);
+  }
+  if (res.status === 404) {
+    // Never analysed by VT — an honest "unknown", never invented counts.
+    return {
+      target: target.trim(),
+      kind,
+      verdict: "unknown",
+      malicious: 0, suspicious: 0, harmless: 0, undetected: 0, timeout: 0,
+      engineCount: "0/0 engines",
+      reputation: null,
+      lastAnalysisDate: null,
+      link: null,
+    };
+  }
+  if (res.status === 401 || res.status === 403) throw new IntelFeedError("virustotal", "UNAUTHORIZED", "VirusTotal key rejected.", res.status, VIRUSTOTAL_URL);
+  if (res.status === 429) throw new IntelFeedError("virustotal", "UNREACHABLE", "VirusTotal public-API quota exceeded (4 req/min · 500/day).", 429, VIRUSTOTAL_URL);
+  if (!res.ok) throw new IntelFeedError("virustotal", "BAD_PAYLOAD", `VirusTotal HTTP ${res.status}.`, 502, VIRUSTOTAL_URL);
+  const body = await res.json().catch(() => null);
+  if (body === null) throw new IntelFeedError("virustotal", "BAD_PAYLOAD", "VirusTotal returned non-JSON.", 502, VIRUSTOTAL_URL);
+  return parseVtReport(body, target.trim(), kind);
+}
+
 // ── registry ─────────────────────────────────────────────────────────────────
 
 export function intelFeedStatuses(): IntelFeedStatus[] {
@@ -778,6 +1128,13 @@ export function intelFeedStatuses(): IntelFeedStatus[] {
     st("urlhaus", URLHAUS_URL, true, !!c.abusechKey, "abuse.ch community API — free Auth-Key, attribution required"),
     st("threatfox", THREATFOX_URL, true, !!c.abusechKey, "abuse.ch community API — free Auth-Key, attribution required"),
     st("otx", OTX_URL, true, !!c.otxKey, "AlienVault OTX — free API key, rate-limited"),
+    st(
+      "misp",
+      `${c.mispUrl ?? "https://<your-misp-host>"}${MISP_ENDPOINT}`,
+      true,
+      !!(c.mispUrl && c.mispKey),
+      "MISP — AGPL-3.0, self-hosted private sharing channel; TLP honoured"
+    ),
   ];
 }
 
@@ -804,6 +1161,7 @@ export async function runIntelFetch(feeds: IntelFeedId[]): Promise<IntelFetchOut
       else if (feed === "urlhaus") results.push(await fetchUrlhaus(c.maxEntries, c.timeoutMs));
       else if (feed === "threatfox") results.push(await fetchThreatFox(c.maxEntries, c.timeoutMs));
       else if (feed === "otx") results.push(await fetchOtx(c.maxEntries, c.timeoutMs));
+      else if (feed === "misp") results.push(await fetchMisp(c.maxEntries, c.timeoutMs));
     } catch (err) {
       if (err instanceof IntelFeedError) errors.push(err);
       else errors.push(new IntelFeedError(feed, "BAD_PAYLOAD", err instanceof Error ? err.message : "unknown error", 500, "-"));
@@ -813,4 +1171,4 @@ export async function runIntelFetch(feeds: IntelFeedId[]): Promise<IntelFetchOut
   return { results, errors };
 }
 
-export const INTEL_FEED_IDS: IntelFeedId[] = ["cisa_kev", "spamhaus_drop", "urlhaus", "threatfox", "otx"];
+export const INTEL_FEED_IDS: IntelFeedId[] = ["cisa_kev", "spamhaus_drop", "urlhaus", "threatfox", "otx", "misp"];

@@ -52,7 +52,7 @@ const coverConfig = {
   subtitle: "Comments and suggestions: replacing demo fixtures with live internet data across the Adwa Sec platform",
   englishLabel: "ADWA SEC ADVISORY",
   metaLines: [
-    "Version 1.0 - issued 19 November 2026",
+    "Version 1.1 - issued 19 November 2026 (Phase 2 status update)",
     "Scope: VAPT intelligence, SOC threat feeds, EASM, authentication, notifications",
     "Position: platform assessment with a phased, cost-aware implementation plan",
   ],
@@ -148,8 +148,10 @@ c.push(bizTable(
 c.push(body(
   "Implementation shape: one scheduled connector per source behind the existing sync pipeline (fetch, validate, dedupe by indicator value, classify, publish to the tenant hub), a source column on every hub row (LIVE - URLhaus 12:40), and the same as-of honesty labelling the EASM module already renders. Estimated effort: one connector per day including tests."));
 
-// ── 5. Phase 2 ──────────────────────────────────────────────────────────────
+// ── 5. Phase 2 ──────────────────────────────────────────────────────────
 c.push(h1("5. Phase 2 - Keyed and Self-Hosted Intelligence (About Two Weeks)"));
+c.push(note(
+  "Status as of 19 November 2026: the code items of Phase 2 are implemented and verified. The self-hosted MISP exchange connector is live behind MISP_URL + MISP_API_KEY (published events of the last 7 days, TLP markings honoured - TLP:AMBER+ and TLP:RED rows stay peer-to-peer inside the tenant, never hub-broadcast; a deterministic mock on port 3030 keeps CI reproducible). The VirusTotal reputation row answers for any IP, URL or file hash behind VIRUSTOTAL_API_KEY (free public tier: 4 requests/min, 500/day - an analyst action, never bulk). And the EPSS fallback constants are retired as planned: scans now look up live FIRST EPSS scores (batched, 6-hour cache), every finding's evidence bundle labels its EPSS provenance (live / bundled snapshot as-of / heuristic prior for non-CVE findings), and scripts/fetch-epss.ts (bun run vapt:epss) refreshes the bundled snapshot daily. The paid items (Shodan / SecurityTrails enrichment) are deliberately deferred until a paying pilot justifies them; Phase 3 remains coordination, not code."));
 c.push(h2("5.1 MISP self-hosted"));
 c.push(body(
   "MISP is the open-source threat-intelligence platform used by national CERTs worldwide. Self-hosting one instance (it is AGPL, free) and connecting it through its REST API gives the platform a curated, private sharing channel: INSA or sector peers can push sensitive indicators that must never appear in public feeds. The connector maps MISP events onto the existing hub taxonomy and honours TLP markings - TLP:AMBER+ items stay inside the tenant, which mirrors how real national exchanges behave."));

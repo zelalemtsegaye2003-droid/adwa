@@ -14,6 +14,26 @@ standalone build suits a single VM behind your own reverse proxy.
 | `APP_ORIGIN` | Public origin for reset/verification links when running behind a proxy. |
 | `SMTP_*` | Unset → reset links are printed to the app log (console transport). Do not run a real pilot without SMTP. |
 
+## 0.1 Threat-intel & VAPT live-data bindings
+
+All optional — every connector has an honest unconfigured state (the UI shows
+"key required"; "all" syncs visibly skip it; nothing is ever fabricated).
+
+| Variable | Effect |
+|---|---|
+| `ABUSECH_AUTH_KEY` | Activates abuse.ch URLhaus + ThreatFox ingestion (free key, auth.abuse.ch). |
+| `OTX_API_KEY` | Activates AlienVault OTX subscribed-pulse ingestion (free key). |
+| `GREYNOISE_API_KEY` | Activates per-IP scanner classification in the threat-intel panel (free Community key). |
+| `MISP_URL` + `MISP_API_KEY` | Activates the self-hosted MISP private exchange (`POST {MISP_URL}/events/restSearch`): published events of the last 7 days are ingested with their TLP markings honoured — TLP:AMBER+/TLP:RED rows stay peer-to-peer inside the tenant, never hub-broadcast. Dev double: `mini-services/mock-misp` (:3030), key `adwa-dev-misp-key`. |
+| `VIRUSTOTAL_API_KEY` | Activates the VirusTotal reputation row (IP / URL / file hash) in the threat-intel panel. Free public tier: **4 req/min · 500/day** — an analyst action, never bulk. |
+| `INTEL_FEEDS_OFF` | `true`/`1` kills every public connector (ops switch, e.g. air-gapped demos). |
+| `EPSS_LIVE_OFF` | `true`/`1` → VAPT findings use strictly the bundled EPSS snapshot (offline mode); default is a live FIRST lookup at scan time (6-hour in-process cache) with every finding's evidence labelling its EPSS provenance. |
+| `ETHIOCERT_API_URL` + `ETHIOCERT_API_KEY` | Binds the SOC ↔ Ethio-CERT national exchange live (see above for failure semantics). |
+
+Keep the bundled VAPT feed snapshot current with a daily cron:
+`bun run vapt:epss` (refreshes CVSS-feed EPSS scores from
+api.first.org; a failed fetch exits 1 and leaves the file untouched).
+
 Seeding is guarded in production (decision D6): bootstrap seeds
 (catalogue/pilot users/SOC/gates) need `SEED_ON_BOOT=1`; demo seeds need
 `ALLOW_DEMO_SEED=1`. Never set `ALLOW_DEMO_SEED=1` on a tenant database.
