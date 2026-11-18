@@ -220,7 +220,7 @@ numbers = {
     },
 }
 
-out = "/adwa/scripts/docgen/numbers.json"
+out = "scripts/docgen/numbers.json"
 os.makedirs(os.path.dirname(out), exist_ok=True)
 with open(out, "w") as f:
     json.dump(numbers, f, indent=2)

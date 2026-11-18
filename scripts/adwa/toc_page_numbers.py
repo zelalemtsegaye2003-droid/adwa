@@ -14,8 +14,8 @@ import tempfile
 import zipfile
 from pathlib import Path
 
-DOCX = Path("/adwa/download/Adwa_Cyber_Implementation_Roadmap.docx")
-PDF = Path("/adwa/download/Adwa_Cyber_Implementation_Roadmap.pdf")
+DOCX = Path("download/Adwa_Cyber_Implementation_Roadmap.docx")
+PDF = Path("download/Adwa_Cyber_Implementation_Roadmap.pdf")
 FRONT_PAGES = 3  # PDF pages before body page 1 (cover + 2 TOC pages)
 
 

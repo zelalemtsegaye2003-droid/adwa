@@ -2,13 +2,13 @@
  * Adwa Sec startup package — live-platform screenshot tour.
  * Logs in via the API (solving the SVG captcha exactly like the test suite),
  * injects auth cookies into Playwright, then walks the app views.
- * Output: /adwa/download/screenshots/shot-NN-*.png
+ * Output: download/screenshots/shot-NN-*.png (relative to the repo root)
  */
 import { chromium } from "playwright";
 import fs from "fs";
 
 const BASE = "http://localhost:3000";
-const OUT = "/adwa/download/screenshots";
+const OUT = process.cwd() + "/download/screenshots";
 const CREDS = { email: "admin@adwacyber.et", password: "Adwa#Admin2026!" }; // SUPER_ADMIN, MFA off
 const IP = "10.88.3.21"; // distinct pseudo-IP so rate limits don't collide
 

@@ -17,7 +17,7 @@ const cover = C.buildCoverR1({
   palette: C.P,
 });
 
-const CH = "/adwa/scripts/docgen/charts";
+const CH = process.cwd() + "/scripts/docgen/charts";
 const body = [
   C.h1("1. Executive Summary"),
   C.para("Ethiopia's financial sector is digitising at extraordinary speed while its defensive capacity lags years behind. The result is a measurable, regulated and growing cybersecurity gap: financial services suffer the largest share of the country's reported incidents, digital-fraud losses reached a reported ETB 1.3 billion in 2024, and new personal-data and central-bank rules now impose obligations that institutions have no affordable, local means of meeting. Adwa Sec exists to close this gap with a bilingual cybersecurity platform and accompanying services built in Ethiopia, priced for the Ethiopian market. This document sets out the evidence for the problem, its root causes, and how each cause is addressed by a specific, already-implemented platform capability."),
@@ -69,6 +69,6 @@ const body = [
 
 const doc = C.makeDoc({ cover, toc: C.tocBlock(), body, headerTitle: "Adwa Sec — Problem and Solution" });
 C.docx.Packer.toBuffer(doc).then((buf) => {
-  fs.writeFileSync("/adwa/download/AdwaSec_05_Problem_and_Solution.docx", buf);
+  fs.writeFileSync(process.cwd() + "/download/AdwaSec_05_Problem_and_Solution.docx", buf);
   console.log("written: AdwaSec_05_Problem_and_Solution.docx");
 });

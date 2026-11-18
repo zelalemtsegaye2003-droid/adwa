@@ -46,7 +46,7 @@ const check = (name, cond, extra = "") => {
 };
 
 // ── Fixtures ─────────────────────────────────────────────────────────────────
-const { PrismaClient } = await import("/adwa/node_modules/.prisma/client/index.js").catch(() => import("@prisma/client"));
+const { PrismaClient } = await import(process.cwd() + "/node_modules/.prisma/client/index.js").catch(() => import("@prisma/client"));
 const db = new PrismaClient();
 const cbe = await db.organization.findFirst({ where: { name: { contains: "Commercial" } } });
 const wasasa = await db.organization.findFirst({ where: { name: { contains: "Wasasa" } } });

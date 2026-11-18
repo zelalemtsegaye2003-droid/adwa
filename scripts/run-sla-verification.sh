@@ -4,7 +4,7 @@
 # lingering next-server can hold port 3000; so: kill by port first, verify
 # the port is free, start fresh, prime the page compile, then test.)
 set -uo pipefail
-cd /adwa
+cd "$(dirname "$(readlink -f "$0")")/.." # repo root, from any cwd
 
 echo "═══ cleaning up any lingering server ═══"
 pkill -f "next dev" 2>/dev/null

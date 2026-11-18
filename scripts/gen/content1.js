@@ -5,7 +5,7 @@ const {
   h1, h2, body, bodyRuns, tableCaption, figCaption, bizTable, image,
 } = require("./helpers");
 
-const ASSETS = "/adwa/scripts/assets";
+const ASSETS = process.cwd() + "/scripts/assets";
 
 const chapters = [];
 

@@ -56,7 +56,7 @@ async function recentAudit(session, type, contains) {
 }
 
 // ── Setup ────────────────────────────────────────────────────────────────────
-const { PrismaClient } = await import("@prisma/client").catch(() => import("/adwa/node_modules/.prisma/client/index.js"));
+const { PrismaClient } = await import("@prisma/client").catch(() => import(process.cwd() + "/node_modules/.prisma/client/index.js"));
 const db = new PrismaClient();
 const cbe = await db.organization.findFirst({ where: { name: { contains: "Commercial" } } });
 await db.$disconnect();

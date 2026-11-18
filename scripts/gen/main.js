@@ -18,7 +18,7 @@ const chapters = [
   ...require("./content3"),
 ];
 
-const OUTPUT = "/adwa/download/Adwa_Cyber_Implementation_Roadmap.docx";
+const OUTPUT = process.cwd() + "/download/Adwa_Cyber_Implementation_Roadmap.docx";
 
 // ---------------------------------------------------------------------------
 // Shared building blocks

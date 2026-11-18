@@ -2,7 +2,7 @@
 """Verify Year-1 arithmetic in the Adwa roadmap content files."""
 import re
 
-SRC = "/adwa/scripts/adwa/content_b.js"
+SRC = "scripts/adwa/content_b.js"
 txt = open(SRC, encoding="utf-8").read()
 
 # Personnel rows: (label, months, low, high, count)
@@ -41,7 +41,7 @@ for s in ["50,400", "90,600", "94,400", "175,600", "9,440", "17,560",
 print("content_b.js figures OK")
 
 # content_a exec summary must carry the same budget range
-a = open("/adwa/scripts/adwa/content_a.js", encoding="utf-8").read()
+a = open("scripts/adwa/content_a.js", encoding="utf-8").read()
 assert "USD 104,000\u2013193,000" in a, "exec summary budget range missing"
 assert "104k\u2013193k" in txt, "scenario op-cost range missing"
 print("content_a.js exec summary budget OK")
@@ -59,7 +59,7 @@ stale = [
     "Phases 1\u20132 implemented",
 ]
 for f in ["content_a.js", "content_b.js", "content_c.js"]:
-    body = open(f"/adwa/scripts/adwa/{f}", encoding="utf-8").read()
+    body = open(f"scripts/adwa/{f}", encoding="utf-8").read()
     for s in stale:
         assert s.lower() not in body.lower(), f"stale phrase '{s}' still in {f}"
 print("No stale 'already implemented' claims remain")

@@ -56,7 +56,7 @@ const check = (name, cond, extra = "") => results.push(`${cond ? "PASS" : "FAIL"
 async function resetGates() {
   // reset all criteria to NOT_STARTED so readiness math is deterministic;
   // clear the accountability tables so counts are deterministic too
-  const { PrismaClient } = await import("/adwa/node_modules/.prisma/client/index.js").catch(() => import("@prisma/client"));
+  const { PrismaClient } = await import(process.cwd() + "/node_modules/.prisma/client/index.js").catch(() => import("@prisma/client"));
   const db = new PrismaClient();
   await db.gateEvent.deleteMany();
   await db.gateEvidence.deleteMany();
@@ -190,7 +190,7 @@ try {
   check("Amharic dossier renders (Ethiopic font embedded)", r.status === 200 && r.buf.length > 20_000);
 
   // ── 8. Audit trail (platform AuthEvent log) ────────────────────────────────
-  const { PrismaClient } = await import("/adwa/node_modules/.prisma/client/index.js").catch(() => import("@prisma/client"));
+  const { PrismaClient } = await import(process.cwd() + "/node_modules/.prisma/client/index.js").catch(() => import("@prisma/client"));
   const db = new PrismaClient();
   const events = await db.authEvent.findMany({
     where: { type: { in: ["GATE_STATUS_CHANGED", "GATE_EVIDENCE_ATTACHED", "GATE_DOSSIER_EXPORTED"] }, createdAt: { gte: new Date(Date.now() - 10 * 60_000) } },

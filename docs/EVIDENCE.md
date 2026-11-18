@@ -71,6 +71,6 @@ certificate, the branch access-review log and the disaster-recovery plan —
 each with an on-disk file and a recorded SHA-256.
 
 `bun scripts/seed-evidence.ts --heal` restores artefact files that were lost
-on disk while their DB rows survived (e.g. after a sandbox recycle): the
+on disk while their DB rows survived (e.g. after a storage restore): the
 deterministic content is rewritten and `fileSize`/`checksum` refreshed, so
 the integrity gate stays self-consistent.

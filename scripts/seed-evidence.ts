@@ -431,7 +431,7 @@ const DOCS: SeedDoc[] = [
 ];
 
 /**
- * Heal mode (`--heal`): after a sandbox recycle the on-disk artefacts can be
+ * Heal mode (`--heal`): after a host/storage recycle the on-disk artefacts can be
  * lost while the DB rows survive. For every seeded doc whose file is missing,
  * regenerate the deterministic content, rewrite the file and refresh
  * fileSize/checksum so the vault stays self-consistent.

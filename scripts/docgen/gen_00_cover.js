@@ -1,7 +1,7 @@
 /** 00 Package cover letter + requirement-to-file checklist. */
 const C = require("./common.js");
 const fs = require("fs");
-const N = JSON.parse(fs.readFileSync("/adwa/scripts/docgen/numbers.json", "utf8"));
+const N = JSON.parse(fs.readFileSync(process.cwd() + "/scripts/docgen/numbers.json", "utf8"));
 
 const body = [
   C.h1("Application Cover Letter"),
@@ -42,6 +42,6 @@ const doc = C.makeDoc({
   headerTitle: "Adwa Sec — Startup Application Package",
 });
 C.docx.Packer.toBuffer(doc).then((buf) => {
-  fs.writeFileSync("/adwa/download/AdwaSec_00_Application_Cover.docx", buf);
+  fs.writeFileSync(process.cwd() + "/download/AdwaSec_00_Application_Cover.docx", buf);
   console.log("written: AdwaSec_00_Application_Cover.docx");
 });

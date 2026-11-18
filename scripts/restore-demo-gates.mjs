@@ -14,7 +14,7 @@ const BASE = process.env.BASE_URL ?? "http://localhost:3000";
 const fs = await import("node:fs");
 const path = await import("node:path");
 const { execSync } = await import("node:child_process");
-const { PrismaClient } = await import("/adwa/node_modules/.prisma/client/index.js").catch(() => import("@prisma/client"));
+const { PrismaClient } = await import(process.cwd() + "/node_modules/.prisma/client/index.js").catch(() => import("@prisma/client"));
 
 const db = new PrismaClient();
 

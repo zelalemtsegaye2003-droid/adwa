@@ -39,7 +39,7 @@ const authed = (s) => ({ headers: { Cookie: s.cookie } });
 const results = [];
 const check = (name, cond, extra = "") => results.push(`${cond ? "PASS" : "FAIL"}  ${name}${extra ? " — " + extra : ""}`);
 
-const { PrismaClient } = await import("/adwa/node_modules/.prisma/client/index.js").catch(() => import("@prisma/client"));
+const { PrismaClient } = await import(process.cwd() + "/node_modules/.prisma/client/index.js").catch(() => import("@prisma/client"));
 const db = new PrismaClient();
 const cbe = await db.organization.findFirst({ where: { name: { contains: "Commercial" } } });
 const wasasa = await db.organization.findFirst({ where: { name: { contains: "Wasasa" } } });
@@ -122,7 +122,7 @@ check("GET links shows AUTO_TAG NBE-03", r.body.links.some((l) => l.code === "NB
 
 // cross-tenant link attempt (Wasasa doc from CBE session)
 const wasasaDoc = await (async () => {
-  const { PrismaClient } = await import("/adwa/node_modules/.prisma/client/index.js").catch(() => import("@prisma/client"));
+  const { PrismaClient } = await import(process.cwd() + "/node_modules/.prisma/client/index.js").catch(() => import("@prisma/client"));
   const db2 = new PrismaClient();
   const d = await db2.evidenceDocument.findFirst({ where: { organizationId: wasasa.id, status: "ACTIVE" } });
   await db2.$disconnect();

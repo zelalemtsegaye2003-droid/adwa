@@ -19,7 +19,7 @@
  * Usage: node scripts/awareness-test.mjs
  */
 const BASE = process.env.BASE_URL ?? "http://localhost:3000";
-const { PrismaClient } = await import("/adwa/node_modules/.prisma/client/index.js").catch(() => import("@prisma/client"));
+const { PrismaClient } = await import(process.cwd() + "/node_modules/.prisma/client/index.js").catch(() => import("@prisma/client"));
 const db = new PrismaClient();
 
 async function jfetch(url, opts = {}) {

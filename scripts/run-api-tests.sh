@@ -1,11 +1,11 @@
 #!/bin/bash
 # Adwa Cyber — one-shot dev stack + API test runner.
-# The sandbox reaps background processes when a shell call ends, so the
+# background processes may be reaped between shell calls, so the
 # server and the mini-services must live within a single call: this script
 # starts them, waits for readiness, runs the suites, then tears down.
 # Usage: bash scripts/run-api-tests.sh [suite ...]   (default: all suites)
 set -u
-cd /adwa
+cd "$(dirname "$(readlink -f "$0")")/.." # repo root, from any cwd
 
 LOG=/tmp/adwa-dev.log
 MOCK_G=/tmp/mock-google.log

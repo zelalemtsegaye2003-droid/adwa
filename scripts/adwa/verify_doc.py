@@ -6,8 +6,8 @@ import subprocess
 
 from PIL import Image
 
-DOCX = "/adwa/download/Adwa_Cyber_Implementation_Roadmap.docx"
-PDF = "/adwa/download/Adwa_Cyber_Implementation_Roadmap.pdf"
+DOCX = "download/Adwa_Cyber_Implementation_Roadmap.docx"
+PDF = "download/Adwa_Cyber_Implementation_Roadmap.pdf"
 
 print("=== 1. Pixel-level page checks ===")
 pages = sorted(glob.glob("/tmp/render/page-*.jpg"))

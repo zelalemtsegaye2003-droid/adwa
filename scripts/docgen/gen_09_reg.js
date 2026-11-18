@@ -54,6 +54,6 @@ const doc = C.makeDoc({
   headerTitle: "Adwa Sec — Registration and Founder Identification",
 });
 C.docx.Packer.toBuffer(doc).then((buf) => {
-  fs.writeFileSync("/adwa/download/AdwaSec_09_Registration_and_Founder_ID.docx", buf);
+  fs.writeFileSync(process.cwd() + "/download/AdwaSec_09_Registration_and_Founder_ID.docx", buf);
   console.log("written: AdwaSec_09_Registration_and_Founder_ID.docx");
 });

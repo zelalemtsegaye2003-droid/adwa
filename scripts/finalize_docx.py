@@ -25,7 +25,7 @@ from pypdf import PdfReader
 W = "http://schemas.openxmlformats.org/wordprocessingml/2006/main"
 NS = {"w": W}
 
-DOCX = Path("/adwa/download/Adwa_Cyber_Implementation_Roadmap.docx")
+DOCX = Path("download/Adwa_Cyber_Implementation_Roadmap.docx")
 PDF = Path("/tmp/rawpdf/Adwa_Cyber_Implementation_Roadmap.pdf")
 WORK = Path("/tmp/docx_final")
 

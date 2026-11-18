@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import os
 
-OUT_DIR = "/adwa/scripts/assets"
+OUT_DIR = "scripts/assets"
 os.makedirs(OUT_DIR, exist_ok=True)
 
 ACCENT = "#1B6B7A"

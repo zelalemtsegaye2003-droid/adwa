@@ -3,7 +3,7 @@
 # Same discipline as run-api-tests.sh: fresh dev server per suite (the
 # in-memory rate limiter is intentionally persistent per process).
 set -u
-cd /adwa
+cd "$(dirname "$(readlink -f "$0")")/.." # repo root, from any cwd
 
 LOG=/tmp/adwa-dev.log
 MOCK_G=/tmp/mock-google.log

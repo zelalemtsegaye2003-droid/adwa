@@ -254,6 +254,6 @@ const doc = new C.docx.Document({
 });
 
 C.docx.Packer.toBuffer(doc).then((buf) => {
-  fs.writeFileSync("/adwa/download/AdwaSec_01_Founder_CV.docx", buf);
+  fs.writeFileSync(process.cwd() + "/download/AdwaSec_01_Founder_CV.docx", buf);
   console.log("written: AdwaSec_01_Founder_CV.docx (two founders, 4 pages)");
 });

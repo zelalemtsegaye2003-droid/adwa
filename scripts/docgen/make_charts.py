@@ -15,9 +15,9 @@ for p in ["/usr/share/fonts/truetype/chinese/NotoSansSC-Regular.ttf"]:
 plt.rcParams["font.sans-serif"] = ["Noto Sans SC", "DejaVu Sans"]
 plt.rcParams["axes.unicode_minus"] = False
 
-N = json.load(open("/adwa/scripts/docgen/numbers.json"))
+N = json.load(open("scripts/docgen/numbers.json"))
 NAVY = "#0A1628"; CYAN = "#1B6B7A"; LIGHT = "#7FA6AD"; RED = "#B0533A"; GREY = "#506070"
-OUT = "/adwa/scripts/docgen/charts"
+OUT = "scripts/docgen/charts"
 
 def mfmt(v, pos=None):
     if v >= 1_000_000:

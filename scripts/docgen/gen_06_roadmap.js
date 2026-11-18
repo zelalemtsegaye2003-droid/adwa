@@ -81,6 +81,6 @@ const body = [
 
 const doc = C.makeDoc({ cover, toc: C.tocBlock(), body, headerTitle: "Adwa Sec — Product and Service Roadmap" });
 C.docx.Packer.toBuffer(doc).then((buf) => {
-  fs.writeFileSync("/adwa/download/AdwaSec_06_Product_Roadmap.docx", buf);
+  fs.writeFileSync(process.cwd() + "/download/AdwaSec_06_Product_Roadmap.docx", buf);
   console.log("written: AdwaSec_06_Product_Roadmap.docx");
 });

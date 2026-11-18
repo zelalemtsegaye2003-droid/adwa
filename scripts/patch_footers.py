@@ -10,7 +10,7 @@ import sys
 import zipfile
 from pathlib import Path
 
-DOCX = Path("/adwa/download/Adwa_Cyber_Implementation_Roadmap.docx")
+DOCX = Path("download/Adwa_Cyber_Implementation_Roadmap.docx")
 WORK = Path("/tmp/docx_patch")
 
 

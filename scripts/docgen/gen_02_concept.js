@@ -2,7 +2,7 @@
 const C = require("./common.js");
 const { Paragraph, TextRun } = C.docx;
 const fs = require("fs");
-const N = JSON.parse(fs.readFileSync("/adwa/scripts/docgen/numbers.json", "utf8"));
+const N = JSON.parse(fs.readFileSync(process.cwd() + "/scripts/docgen/numbers.json", "utf8"));
 
 const F = C.EN_FONT;
 const cover = C.buildCoverR1({
@@ -52,6 +52,6 @@ const body = [
 
 const doc = C.makeDoc({ cover, body, headerTitle: "Adwa Sec — Startup Concept Note" });
 C.docx.Packer.toBuffer(doc).then((buf) => {
-  fs.writeFileSync("/adwa/download/AdwaSec_02_Concept_Note.docx", buf);
+  fs.writeFileSync(process.cwd() + "/download/AdwaSec_02_Concept_Note.docx", buf);
   console.log("written: AdwaSec_02_Concept_Note.docx");
 });

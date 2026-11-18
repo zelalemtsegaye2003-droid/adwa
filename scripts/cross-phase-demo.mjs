@@ -217,7 +217,7 @@ const die = (t) => { console.error(`   ✘ FAILED: ${t}`); process.exit(1); };
   // ── STEP 6 — Tenant isolation proof ───────────────────────────────────────
   banner("STEP 6 · SECURITY — tenant isolation across the same flow");
   step("CBE admin requests a Wasasa MFI scan (cross-tenant probe)");
-  const { PrismaClient } = await import("/adwa/node_modules/.prisma/client/index.js").catch(() => import("@prisma/client"));
+  const { PrismaClient } = await import(process.cwd() + "/node_modules/.prisma/client/index.js").catch(() => import("@prisma/client"));
   const db = new PrismaClient();
   const wasasaScan = await db.scan.findFirst({ where: { organization: { name: { contains: "Wasasa" } } }, select: { id: true } });
   r = await jfetch(`/api/scans/${wasasaScan.id}`, { headers: H(cbe) });

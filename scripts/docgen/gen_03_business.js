@@ -1,8 +1,8 @@
 /** 03 Business Plan — full plan with TOC, charts, tables from locked numbers. */
 const C = require("./common.js");
 const fs = require("fs");
-const N = JSON.parse(fs.readFileSync("/adwa/scripts/docgen/numbers.json", "utf8"));
-const CH = "/adwa/scripts/docgen/charts";
+const N = JSON.parse(fs.readFileSync(process.cwd() + "/scripts/docgen/numbers.json", "utf8"));
+const CH = process.cwd() + "/scripts/docgen/charts";
 
 const cover = C.buildCoverR1({
   title: "Adwa Sec — Business Plan",
@@ -176,6 +176,6 @@ const body = [
 
 const doc = C.makeDoc({ cover, toc: C.tocBlock(), body, headerTitle: "Adwa Sec — Business Plan" });
 C.docx.Packer.toBuffer(doc).then((buf) => {
-  fs.writeFileSync("/adwa/download/AdwaSec_03_Business_Plan.docx", buf);
+  fs.writeFileSync(process.cwd() + "/download/AdwaSec_03_Business_Plan.docx", buf);
   console.log("written: AdwaSec_03_Business_Plan.docx");
 });

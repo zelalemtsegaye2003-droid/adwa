@@ -44,7 +44,7 @@ import { join } from "path";
  * is covered by scripts/test-google.ts.
  */
 const BASE = "http://localhost:3000";
-const PROJECT = "/adwa";
+const PROJECT = process.cwd();
 
 const SUPER = { email: "admin@adwacyber.et", password: "Adwa#Admin2026!" };
 const VIEWER = { email: "viewer@ethiotelecom.et", password: "Adwa#Demo2026!" };

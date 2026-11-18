@@ -1,9 +1,10 @@
 #!/bin/bash
 # Adwa Cyber — self-service recovery suite runner.
 # Starts next dev, runs scripts/test-password-reset.ts, tears down.
-# (Everything in one call: the sandbox reaps background processes between calls.)
+# (Everything in one call: long-lived background processes may be reaped
+# between separate shell invocations.)
 set -u
-cd /adwa
+cd "$(dirname "$(readlink -f "$0")")/.." # repo root, from any cwd
 
 LOG=/tmp/adwa-dev.log
 

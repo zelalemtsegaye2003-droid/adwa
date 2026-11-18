@@ -11,7 +11,7 @@ const contentA = require("./content_a");
 const contentB = require("./content_b");
 const contentC = require("./content_c");
 
-const OUT = "/adwa/download/Adwa_Cyber_Implementation_Roadmap.docx";
+const OUT = process.cwd() + "/download/Adwa_Cyber_Implementation_Roadmap.docx";
 
 // ── Build body content FIRST so numberingConfigs gets populated ──
 const bodyChildren = [...contentA.build(), ...contentB.build(), ...contentC.build()];

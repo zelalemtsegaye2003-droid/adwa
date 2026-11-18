@@ -2,7 +2,7 @@
 # Adwa Cyber — run the dev server + report PDF verification in ONE shell
 # (background processes are reaped between tool calls; kill by port first).
 set -uo pipefail
-cd /adwa
+cd "$(dirname "$(readlink -f "$0")")/.." # repo root, from any cwd
 
 echo "═══ cleaning up any lingering server ═══"
 pkill -f "next dev" 2>/dev/null

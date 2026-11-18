@@ -2,7 +2,7 @@
 const C = require("./common.js");
 const fs = require("fs");
 
-const SHOTS = "/adwa/download/screenshots/embed";
+const SHOTS = process.cwd() + "/download/screenshots/embed";
 
 const cover = C.buildCoverR1({
   title: "Adwa Sec — MVP Demonstration",
@@ -93,6 +93,6 @@ const body = [
 
 const doc = C.makeDoc({ cover, toc: C.tocBlock(), body, headerTitle: "Adwa Sec — MVP Demonstration" });
 C.docx.Packer.toBuffer(doc).then((buf) => {
-  fs.writeFileSync("/adwa/download/AdwaSec_08_MVP_Demonstration.docx", buf);
+  fs.writeFileSync(process.cwd() + "/download/AdwaSec_08_MVP_Demonstration.docx", buf);
   console.log("written: AdwaSec_08_MVP_Demonstration.docx");
 });

@@ -5,7 +5,7 @@ from docx.table import Table
 from docx.text.paragraph import Paragraph
 from docx.oxml.ns import qn
 
-doc = Document('/adwa/upload/Adwa_Cyber_Startup_Proposal.docx')
+doc = Document('upload/Adwa_Cyber_Startup_Proposal.docx')
 
 
 def iter_blocks(parent):
@@ -35,7 +35,7 @@ for block in iter_blocks(doc):
         out.append(f'===== END TABLE {ti} =====\n')
 
 text = '\n'.join(out)
-with open('/adwa/scripts/extract/proposal_full.txt', 'w', encoding='utf-8') as f:
+with open('scripts/extract/proposal_full.txt', 'w', encoding='utf-8') as f:
     f.write(text)
 print(f'wrote {len(text)} chars, {ti} tables')
 import re

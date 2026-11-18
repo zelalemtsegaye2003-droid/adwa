@@ -42,7 +42,6 @@ yarn-error.log*
 next-env.d.ts
 local-*
 .claude
-.local-ai-config
 *.log
 dev.log
 dev.out.log
@@ -68,3 +67,4 @@ download/*.bundle
 # template leftovers (not part of the product)
 tests/*.sh
 examples/
+__pycache__/

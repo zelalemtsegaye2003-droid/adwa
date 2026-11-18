@@ -5,7 +5,7 @@ payroll; salary ladder anchored to levels.fyi median; 10%/yr escalation; Basis &
 """
 import json, sys, os
 
-XLSX_SKILL_DIR = "/adwa/skills/xlsx"
+XLSX_SKILL_DIR = "skills/xlsx"
 for sub in [XLSX_SKILL_DIR, os.path.join(XLSX_SKILL_DIR, "templates")]:
     if sub not in sys.path:
         sys.path.insert(0, sub)
@@ -20,8 +20,8 @@ from templates.base import (
     PRIMARY, ACCENT_POSITIVE, ACCENT_NEGATIVE, ACCENT_WARNING, NEUTRAL_600, CHART_COLORS,
 )
 
-N = json.load(open("/adwa/scripts/docgen/numbers.json"))
-OUT = "/adwa/download/AdwaSec_07_Financial_Projections.xlsx"
+N = json.load(open("scripts/docgen/numbers.json"))
+OUT = "download/AdwaSec_07_Financial_Projections.xlsx"
 
 ETB = '#,##0;(#,##0)'
 PCT = '0.0%'
