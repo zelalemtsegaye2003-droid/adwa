@@ -22,6 +22,7 @@ module (NBE-anchored corrective actions).
 | **AD attack-path graph & BFS analysis** | `src/lib/vapt-ad-paths.ts` + `src/lib/vapt-ad-engine.ts` |
 | **Bid capability response matrix (66 tender lines)** | `src/lib/vapt-bid-matrix.ts` |
 | API routes | `src/app/api/vapt/{overview,assets,scans,scopes,vulnerabilities,checks,audit,ad-paths,bid-matrix}` |
+| Custom-check live test-run | `src/app/api/vapt/checks/[id]/test/route.ts` |
 | Promotion into Findings | `src/app/api/vapt/vulnerabilities/[id]/promote/route.ts` |
 | UI tabs (Overview / Assets / Scans / Vulnerabilities / **AD Attack Paths** / **Bid Matrix** / **Scopes & Authorization**) | `src/components/adwa/vapt.tsx` + `vapt-adpaths.tsx` + `vapt-bidmatrix.tsx` + `vapt-scopes.tsx` |
 | **Vulnerable lab target** (engine acceptance) | `mini-services/vuln-lab` (banners/headers only, localhost) |
@@ -79,6 +80,21 @@ never silently closed this way.
 
 The old simulated-catalogue path is retained only as labelled reference data
 (`src/lib/vapt-data.ts`) — scan `engineMode` is now always `live`.
+
+### 4. Custom checks — sandboxed YAML matchers with a LIVE test-run
+
+Analysts author checks in a declarative YAML subset (`POST /api/vapt/checks`;
+`banner-regex`, `http-response`, `tls`, `port-open` matchers — data only,
+**no execution surface**; malformed YAML/regexes are rejected at save time).
+
+`POST /api/vapt/checks/[id]/test` with `{ "target": "10.2.6.20", "ports": [21, 443] }`
+executes the SAME SAFE live probes the scan engine uses against that target
+and evaluates the check's matchers over the REAL observations (banners, TLS
+posture, open ports; DAST header battery for URL targets). The target must
+pass the authorization gate first — an out-of-scope target is rejected with
+403 **before any packet is sent**, and the attempt is recorded in the
+hash-chained audit log as `CHECK_REJECTED` (a successful run records
+`CHECK_TESTED` and stamps the check's `lastRunAt`/`lastResult`).
 
 ## The vulnerable lab target (plan §7 acceptance lab)
 

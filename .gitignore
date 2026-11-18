@@ -46,8 +46,10 @@ local-*
 *.log
 dev.log
 dev.out.log
-test
-prompt
+# root-level scratch dirs (anchored so nested product routes like
+# src/app/api/vapt/checks/[id]/test/ are never ignored)
+/test
+/prompt
 
 server.log
 # Skills directory

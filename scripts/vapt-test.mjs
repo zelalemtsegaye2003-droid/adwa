@@ -212,6 +212,12 @@ try {
     // re-observed by a FULL scan → verified-fixed (plan §4).
     const redisBefore = redisVulns.length;
     if (redisBefore > 0) {
+      // Idempotency: a previous suite run may have auto-closed the labHost
+      // Redis finding already — reset it to open so THIS run exercises the
+      // auto-close path again (the suite is safe to re-run on a warm DB).
+      for (const v of redisVulns.filter((x) => (x.asset?.name ?? "").includes("multi-service host") && x.status !== "open")) {
+        await jfetch(`/api/vapt/vulnerabilities/${v.id}`, jbody(cbeAdmin, { status: "open" }, "PATCH"));
+      }
       r = await jfetch("/api/vapt/scans", jbody(cbeAdmin, {
         scanType: "FULL", name: "vapt-test auto-close (port removed)", assetIds: [labHost.id],
         ports: [3021, 3022, 3060, 3061], // 3062 (Redis) intentionally absent

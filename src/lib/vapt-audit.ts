@@ -26,7 +26,8 @@ export type VaptAuditType =
   | "FINDING_DEDUPED"
   | "FINDING_AUTOCLOSED" // not re-observed on rescan → verified fixed
   | "CHECK_CREATED"
-  | "CHECK_TESTED";
+  | "CHECK_TESTED"
+  | "CHECK_REJECTED"; // custom-check test-run blocked at the authorization gate
 
 export interface VaptAuditInput {
   type: VaptAuditType;
