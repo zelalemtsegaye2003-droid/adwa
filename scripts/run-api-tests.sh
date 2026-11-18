@@ -49,7 +49,7 @@ echo ""
 
 SUITES=("$@")
 if [ ${#SUITES[@]} -eq 0 ]; then
-  SUITES=(ethiocert-bind-test soc-test sla-test report-test rules-engine-test scan-lifecycle-test evidence-security-test gates-test trackc-test awareness-test awareness-tools-api-test vapt-test)
+  SUITES=(ethiocert-bind-test soc-test intel-feeds-test sla-test report-test rules-engine-test scan-lifecycle-test evidence-security-test gates-test trackc-test awareness-test awareness-tools-api-test vapt-test)
 fi
 
 restart_app() {
@@ -74,7 +74,7 @@ for s in "${SUITES[@]}"; do
   # SOC-dependent suites need deterministic incident/indicator state (the
   # suites themselves mutate the lifecycle as part of the test).
   case "$s" in
-    ethiocert-bind-test|soc-test) node scripts/seed-soc.cjs > /dev/null || { FAILED=1; echo "seed-soc failed"; continue; } ;;
+    ethiocert-bind-test|soc-test|intel-feeds-test) node scripts/seed-soc.cjs > /dev/null || { FAILED=1; echo "seed-soc failed"; continue; } ;;
     sla-test)       node scripts/seed-sla.cjs  > /dev/null || { FAILED=1; echo "seed-sla failed"; continue; } ;;
     rules-engine-test) node scripts/seed-evidence-links.cjs > /dev/null || { FAILED=1; echo "seed-evidence-links failed"; continue; } ;;
     gates-test)     bun scripts/seed-gates.ts  > /dev/null 2>&1 || true ;;

@@ -1,0 +1,198 @@
+{
+  "source": "cisa_kev",
+  "sourceUrl": "https://www.cisa.gov/sites/default/files/feeds/known_exploited_vulnerabilities.json",
+  "capturedAt": "2026-11-19T00:00:00Z",
+  "catalogVersion": "2026.11.13",
+  "dateReleased": "2026-11-13T20:24:18.3008Z",
+  "catalogCount": 1781,
+  "note": "CISA KEV catalog snapshot — RECENT ADDITIONS subset (entries added 2026-10-30 through 2026-11-13, 17 of 1781 catalog entries). Captured verbatim from the live CISA JSON feed. Public domain (CISA terms of use). The live connector ingests the full catalog.",
+  "entries": [
+    {
+      "cveID": "CVE-2026-114713",
+      "vendorProject": "UnrealIRCd",
+      "product": "UnrealIRCd",
+      "vulnerabilityName": "UnrealIRCd Improper Neutralization of Delimiters Vulnerability",
+      "dateAdded": "2026-11-13",
+      "dueDate": "2026-11-16",
+      "knownRansomwareCampaignUse": "Unknown",
+      "shortDescription": "UnrealIRCd contains an improper neutralization of delimiters vulnerability that allows any user on a network with two or more linked servers to inject server-to-server commands that are executed with server authority.",
+      "cwes": ["CWE-140"]
+    },
+    {
+      "cveID": "CVE-2026-123039",
+      "vendorProject": "Check Point",
+      "product": "Multiple Products",
+      "vulnerabilityName": "Check Point Multiple Products Incorrect Permission Assignment for Critical Resource Vulnerability",
+      "dateAdded": "2026-11-13",
+      "dueDate": "2026-11-16",
+      "knownRansomwareCampaignUse": "Unknown",
+      "shortDescription": "Check Point Firewall, Multi-Domain Security Management Server, Scalable Platforms, Security Gateway and Security Management Server contain an incorrect permissions assignment for critical resources vulnerability when the Gaia OS DynamicCLI daemon runs as root and listens on a world-writable local socket without authenticating connecting processes. An authenticated local user can send a command to the socket and have it executed as root.",
+      "cwes": ["CWE-732", "CWE-862"]
+    },
+    {
+      "cveID": "CVE-2026-124194",
+      "vendorProject": "Microsoft",
+      "product": "Office",
+      "vulnerabilityName": "Microsoft Office Outlook Missing User Interaction for Potentially Unsafe Action Vulnerability",
+      "dateAdded": "2026-11-10",
+      "dueDate": "2026-11-24",
+      "knownRansomwareCampaignUse": "Unknown",
+      "shortDescription": "Microsoft Office Outlook contains a missing user interaction for potentially unsafe action vulnerability that allows an unauthorized attacker to perform spoofing over a network.",
+      "cwes": ["CWE-356"]
+    },
+    {
+      "cveID": "CVE-2026-111793",
+      "vendorProject": "Openwave Messaging Limited",
+      "product": "Webtop Media Transcoder",
+      "vulnerabilityName": "Openwave Messaging Limited Webtop Media Transcoder Incorrect Resource Transfer Between Spheres Vulnerability",
+      "dateAdded": "2026-11-10",
+      "dueDate": "2026-11-24",
+      "knownRansomwareCampaignUse": "Unknown",
+      "shortDescription": "Openwave Messaging Limited Webtop Media Transcoder contains an incorrect resource transfer between spheres vulnerability that may allow an authenticated user to process and convert unintended document types if bypassing the Webmail experience.",
+      "cwes": ["CWE-669"]
+    },
+    {
+      "cveID": "CVE-2026-20320",
+      "vendorProject": "Cisco",
+      "product": "BroadWorks",
+      "vulnerabilityName": "Cisco BroadWorks Improper Restriction of XML External Entity Reference Vulnerability",
+      "dateAdded": "2026-11-10",
+      "dueDate": "2026-11-24",
+      "knownRansomwareCampaignUse": "Unknown",
+      "shortDescription": "Cisco BroadWorks contains an improper restriction of XML external entity reference vulnerability that could allow an unauthenticated, remote attacker to read sensitive configuration information on an affected system.",
+      "cwes": ["CWE-611"]
+    },
+    {
+      "cveID": "CVE-2026-111560",
+      "vendorProject": "Barracuda Networks",
+      "product": "Multiple Products",
+      "vulnerabilityName": "Barracuda Networks Multiple Products OS Command Injection Vulnerability",
+      "dateAdded": "2026-11-10",
+      "dueDate": "2026-11-13",
+      "knownRansomwareCampaignUse": "Unknown",
+      "shortDescription": "Barracuda Networks ESG, Load Balancer, ADC, BMA, WCC, WAF and WSG contain an OS command injection vulnerability that could allow an authenticated administrator to inject OS commands that execute with root privileges when the crafted timezone value is subsequently processed. This vulnerability can be chained with CVE-2026-116606.",
+      "cwes": ["CWE-78"]
+    },
+    {
+      "cveID": "CVE-2026-116606",
+      "vendorProject": "Barracuda Networks",
+      "product": "Barracuda Email Security Gateway (ESG)",
+      "vulnerabilityName": "Barracuda Networks Email Security Gateway (ESG) Authentication Bypass Using an Alternate Path or Channel Vulnerability",
+      "dateAdded": "2026-11-10",
+      "dueDate": "2026-11-13",
+      "knownRansomwareCampaignUse": "Unknown",
+      "shortDescription": "Barracuda Networks ESG contains an authentication bypass using an alternate path or channel that could allow an unauthenticated remote attacker to invoke a configuration-import function and restore a crafted, compatible backup archive, resulting in unauthorized modification of the appliance's global configuration. This vulnerability can be chained with CVE-2026-111560.",
+      "cwes": ["CWE-288"]
+    },
+    {
+      "cveID": "CVE-2026-125350",
+      "vendorProject": "Google",
+      "product": "Chromium",
+      "vulnerabilityName": "Google Chromium Use-After-Free Vulnerability",
+      "dateAdded": "2026-11-10",
+      "dueDate": "2026-11-24",
+      "knownRansomwareCampaignUse": "Unknown",
+      "shortDescription": "Google Chromium contains a use-after-free vulnerability in the XML component that could allow a remote attacker to execute arbitrary code inside the sandbox via a specially crafted webpage. This vulnerability could affect multiple web browsers that utilize Chromium, including, but not limited to, Google Chrome, Microsoft Edge and Opera.",
+      "cwes": ["CWE-416"]
+    },
+    {
+      "cveID": "CVE-2026-102895",
+      "vendorProject": "GPUStack",
+      "product": "GPUStack",
+      "vulnerabilityName": "GPUStack Improper Authentication Vulnerability",
+      "dateAdded": "2026-11-09",
+      "dueDate": "2026-11-12",
+      "knownRansomwareCampaignUse": "Unknown",
+      "shortDescription": "GPUStack contains an improper authentication vulnerability which could allow unauthenticated administrative access, including user and model changes, persistent administrator API-key creation, disclosure of worker and cloud-provider secrets, and code execution through POST /v2/inference-backends/from-yaml.",
+      "cwes": ["CWE-287", "CWE-290", "CWE-346"]
+    },
+    {
+      "cveID": "CVE-2026-123158",
+      "vendorProject": "OpenBSD",
+      "product": "OpenSSH",
+      "vulnerabilityName": "OpenBSD OpenSSH Unexpected Status Code or Return Value Vulnerability",
+      "dateAdded": "2026-11-09",
+      "dueDate": "2026-11-12",
+      "knownRansomwareCampaignUse": "Unknown",
+      "shortDescription": "OpenBSD OpenSSH on Linux contains an unexpected status code or return value vulnerability that could allow for authentication bypass.",
+      "cwes": ["CWE-394"]
+    },
+    {
+      "cveID": "CVE-2026-116779",
+      "vendorProject": "SignalWire",
+      "product": "FreeSwitch",
+      "vulnerabilityName": "SignalWire FreeSwitch Code Injection Vulnerability",
+      "dateAdded": "2026-11-09",
+      "dueDate": "2026-11-12",
+      "knownRansomwareCampaignUse": "Unknown",
+      "shortDescription": "SignalWire FreeSwitch contains a code injection vulnerability that permits configuration and credential disclosure, arbitrary call control, and command execution.",
+      "cwes": ["CWE-77", "CWE-78", "CWE-749"]
+    },
+    {
+      "cveID": "CVE-2026-123218",
+      "vendorProject": "IBM",
+      "product": "Aspera Faspex",
+      "vulnerabilityName": "IBM Aspera Faspex Incorrect Authorization Vulnerability",
+      "dateAdded": "2026-11-09",
+      "dueDate": "2026-11-12",
+      "knownRansomwareCampaignUse": "Unknown",
+      "shortDescription": "IBM Aspera Faspex contains an incorrect authorization vulnerability that could allow an authenticated user to craft a specific message to bypass authorization, causing privilege escalations.",
+      "cwes": ["CWE-863"]
+    },
+    {
+      "cveID": "CVE-2026-19868",
+      "vendorProject": "SonicWall",
+      "product": "SonicOS SSLVPN",
+      "vulnerabilityName": "SonicWall SonicOS SSLVPN Use of Single-factor Authentication Vulnerability",
+      "dateAdded": "2026-11-06",
+      "dueDate": "2026-11-20",
+      "knownRansomwareCampaignUse": "Unknown",
+      "shortDescription": "SonicWall SonicOS SSLVPN contains a use of single-factor authentication vulnerability that may allow a user with valid credentials for an alternate authentication method to bypass SAML authentication controls. Successful exploitation may also bypass SAML-enforced multi-factor authentication (MFA).",
+      "cwes": ["CWE-308"]
+    },
+    {
+      "cveID": "CVE-2024-27834",
+      "vendorProject": "Apple",
+      "product": "Multiple Products",
+      "vulnerabilityName": "Apple Multiple Products Improper Authentication Vulnerability",
+      "dateAdded": "2026-11-04",
+      "dueDate": "2026-11-18",
+      "knownRansomwareCampaignUse": "Unknown",
+      "shortDescription": "Apple iOS, iPadOS, macOS, Safari, tvOS and watchOS 10.5 contain an improper authentication vulnerability which could allow an attacker with arbitrary read and write capability to bypass pointer authentication.",
+      "cwes": ["CWE-287"]
+    },
+    {
+      "cveID": "CVE-2026-119977",
+      "vendorProject": "WordPress",
+      "product": "WordPress Core",
+      "vulnerabilityName": "WordPress WordPress Core Time-of-check Time-of-use (TOCTOU) Race Condition Vulnerability",
+      "dateAdded": "2026-11-03",
+      "dueDate": "2026-11-06",
+      "knownRansomwareCampaignUse": "Unknown",
+      "shortDescription": "WordPress WordPress Core contains a time-of-check time-of-use (TOCTOU) race condition vulnerability that could allow unauthenticated attackers to execute code on the server during the upgrade window. This is due to predictable, web-accessible staging paths used during full-package core upgrades.",
+      "cwes": ["CWE-367"]
+    },
+    {
+      "cveID": "CVE-2026-118527",
+      "vendorProject": "Ivanti",
+      "product": "Connect Secure",
+      "vulnerabilityName": "Ivanti Connect Secure Generation of Predictable Numbers or Identifiers Vulnerability",
+      "dateAdded": "2026-10-30",
+      "dueDate": "2026-11-13",
+      "knownRansomwareCampaignUse": "Unknown",
+      "shortDescription": "Ivanti Connect Secure contains a generation of predictable numbers or identifiers vulnerability that allows a remote authenticated attacker to upload files with attacker-controlled content to a known location on disk. This vulnerability can be chained with CVE-2026-104935 and CVE-2026-111357.",
+      "cwes": ["CWE-340"]
+    },
+    {
+      "cveID": "CVE-2026-111357",
+      "vendorProject": "Ivanti",
+      "product": "Connect Secure",
+      "vulnerabilityName": "Ivanti Connect Secure Missing Authentication for Critical Function Vulnerability",
+      "dateAdded": "2026-10-30",
+      "dueDate": "2026-11-02",
+      "knownRansomwareCampaignUse": "Unknown",
+      "shortDescription": "Ivanti Connect Secure contains a missing authentication for critical function vulnerability that could allow a local authenticated attacker to escalate their privileges. This vulnerability can be chained with CVE-2026-104935 and CVE-2026-118527.",
+      "cwes": []
+    }
+  ]
+}

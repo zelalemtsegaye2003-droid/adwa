@@ -296,11 +296,11 @@ model ThreatIndicator {
   titleAm        String
   descriptionEn  String?
   descriptionAm  String?
-  category       String // ransomware | phishing | bec | malware | ddos | credential_stuffing | apt | scam | insider | other
+  category       String // ransomware | phishing | bec | malware | ddos | credential_stuffing | apt | scam | insider | data_breach | vulnerability | other
   severity       String // critical | high | medium | low
   tlp            String              @default("TLP:AMBER") // TLP:RED | TLP:AMBER+STRICT | TLP:AMBER | TLP:GREEN | TLP:CLEAR
-  source         String              @default("ANALYST") // ETHIO_CERT | MISP_FEED | ANALYST | ORG_UPLOAD
-  sourceRef      String? // Ethio-CERT bulletin no. / feed id
+  source         String              @default("ANALYST") // ETHIO_CERT | MISP_FEED | ANALYST | ORG_UPLOAD | public intel feeds: CISA_KEV | SPAMHAUS_DROP | URLHAUS | THREATFOX | OTX
+  sourceRef      String? // Ethio-CERT bulletin no. / feed id (e.g. "KEV 2026.11.13", "SBL256894")
   confidence     Int                 @default(50) // 0–100
   sensitivity    Int                 @default(3) // 1–5 — drives the hybrid sharing decision
   sharing        String              @default("HUB") // HUB (anonymised broadcast) | P2P (targeted peers)
@@ -415,7 +415,7 @@ model SyncRun {
   id             String        @id @default(cuid())
   direction      String // INGEST | REPORT
   status         String        @default("success") // success | failed
-  source         String        @default("FIXTURE") // LIVE = Ethio-CERT exchange API binding | FIXTURE = bundled pilot fixture
+  source         String        @default("FIXTURE") // LIVE = live source fetch (exchange or public feed) | SNAPSHOT = bundled labelled snapshot (as-of) | FIXTURE = bundled pilot fixture
   endpoint       String? // exchange endpoint the run bound to (LIVE only)
   receiptId      String? // exchange acknowledgement for upward REPORTs (LIVE only)
   ingested       Int           @default(0)

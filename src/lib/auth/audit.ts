@@ -72,6 +72,9 @@ export type AuthEventType =
   | "THREAT_UPDATED"
   | "THREAT_SHARED"
   | "ETHIOCERT_SYNC"
+  // Public threat-intel feed connectors (Real-Data Roadmap Phase 1)
+  | "PUBLIC_INTEL_SYNC"
+  | "PUBLIC_INTEL_ENRICH"
   // Multilingual awareness platform (proposal Phase 3, Track B)
   | "AWARENESS_MODULE_CREATED"
   | "AWARENESS_MODULE_UPDATED"

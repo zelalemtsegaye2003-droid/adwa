@@ -323,13 +323,17 @@ export function predictThreats(
 export const INDICATOR_TYPES = ["ip", "domain", "url", "hash_sha256", "hash_md5", "email", "filename", "cve"] as const;
 export const THREAT_CATEGORIES = [
   "ransomware", "phishing", "bec", "malware", "ddos", "credential_stuffing",
-  "apt", "scam", "insider", "data_breach", "other",
+  "apt", "scam", "insider", "data_breach", "vulnerability", "other",
 ] as const;
 export const INCIDENT_CATEGORIES = [
   "ransomware", "phishing", "bec", "malware", "data_breach", "ddos",
   "unauthorized_access", "other",
 ] as const;
 export const TLP_MARKINGS = ["TLP:CLEAR", "TLP:GREEN", "TLP:AMBER", "TLP:AMBER+STRICT", "TLP:RED"] as const;
-export const INDICATOR_SOURCES = ["ETHIO_CERT", "MISP_FEED", "ANALYST", "ORG_UPLOAD"] as const;
+export const INDICATOR_SOURCES = [
+  "ETHIO_CERT", "MISP_FEED", "ANALYST", "ORG_UPLOAD",
+  // Public threat-intel connectors (Real-Data Roadmap Phase 1)
+  "CISA_KEV", "SPAMHAUS_DROP", "URLHAUS", "THREATFOX", "OTX",
+] as const;
 export const INCIDENT_SOURCES = ["SOC_MONITOR", "THREAT_MATCH", "ORG_REPORT", "ETHIO_CERT"] as const;
 export const DETECTION_METHODS = ["signature", "behavioural", "anomaly", "threat_intel_match", "manual"] as const;

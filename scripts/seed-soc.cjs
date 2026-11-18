@@ -51,7 +51,10 @@ async function main() {
   await db.incident.deleteMany();
   await db.indicatorShare.deleteMany();
   await db.syncRun.deleteMany();
-  await db.threatIndicator.deleteMany({ where: { OR: [{ source: "ETHIO_CERT" }, { source: "ORG_UPLOAD" }, { source: "MISP_FEED" }, { source: "ANALYST" }] } });
+  await db.threatIndicator.deleteMany({ where: { OR: [
+    { source: "ETHIO_CERT" }, { source: "ORG_UPLOAD" }, { source: "MISP_FEED" }, { source: "ANALYST" },
+    { source: "CISA_KEV" }, { source: "SPAMHAUS_DROP" }, { source: "URLHAUS" }, { source: "THREATFOX" }, { source: "OTX" },
+  ] } });
 
   const orgs = await db.organization.findMany();
   const byName = (n) => orgs.find((o) => o.name.toLowerCase().includes(n.toLowerCase()));

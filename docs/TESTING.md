@@ -1,11 +1,11 @@
 # Adwa Cyber — Testing Guide
 
-743 checks across 16 suites, all green. Three runner scripts,
+743+36 checks across 16 suites, all green. Three runner scripts,
 each self-contained (they start/stop their own dev stack because background
 processes do not survive between shell calls in some environments):
 
 ```bash
-bash scripts/run-api-tests.sh       # 11 API suites — 525 checks
+bash scripts/run-api-tests.sh       # 12 API suites — 561 checks
 bash scripts/ci-run-auth-suites.sh  # 4 auth suites — 180 checks
 bash scripts/run-recovery-tests.sh  # recovery suite — 38 checks
 ```
@@ -23,6 +23,7 @@ Suites are deterministic; several depend on seeded fixtures. The runner
 |---|---|---|
 | `ethiocert-bind-test` | 26 | `seed-soc.cjs` (deterministic indicators) |
 | `soc-test` | 91 | `seed-soc.cjs` (RQ3 latencies 6/8/21 min, median 8) |
+| `intel-feeds-test` | 36 | `seed-soc.cjs` — public-intel connectors: CISA KEV + Spamhaus DROP ingest (LIVE or labelled SNAPSHOT — both accepted, environment-independent), dedupe, RBAC, keyed feeds honestly skipped; see `.env.example` for the optional keys |
 | `sla-test` | 32 | `seed-sla.cjs` (Wasasa overdue + "historical" scan) |
 | `report-test` | 25 | completed demo scan (base `db:seed`) |
 | `rules-engine-test` | 27 | `seed-evidence-links.cjs` (ART17-02, NBE-05/12/17/21/24/28 links, NBE-14 manual) |

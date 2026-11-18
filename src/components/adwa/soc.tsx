@@ -17,6 +17,7 @@ import { Progress } from "@/components/ui/progress";
 import {
   Activity, AlertTriangle, Radar, ShieldCheck, Timer, Zap, Radio, ArrowRight,
   BellRing, Flame, Gauge, RefreshCw, Send, Eye, Users2, FileJson, PlugZap, Database,
+  Satellite, KeyRound, Globe2,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useI18n } from "@/lib/i18n";
@@ -85,7 +86,7 @@ const CATEGORY_KEY: Record<string, string> = {
   ransomware: "catRansomware", phishing: "catPhishing", bec: "catBec",
   malware: "catMalware", ddos: "catDdos", credential_stuffing: "catCredentialStuffing",
   apt: "catApt", scam: "catScam", insider: "catInsider", data_breach: "catDataBreach",
-  unauthorized_access: "catUnauthorizedAccess", other: "catOther",
+  unauthorized_access: "catUnauthorizedAccess", vulnerability: "catVulnerability", other: "catOther",
 };
 
 // ── Badges ───────────────────────────────────────────────────────────────────
@@ -113,6 +114,11 @@ function SourceBadge({ source }: { source: string }) {
     MISP_FEED: { label: t("tiSourceMisp"), cls: "bg-indigo-50 text-indigo-800 border-indigo-300 dark:bg-indigo-950/60 dark:text-indigo-300 dark:border-indigo-800" },
     ORG_UPLOAD: { label: t("tiSourceOrg"), cls: "bg-emerald-50 text-emerald-800 border-emerald-300 dark:bg-emerald-950/60 dark:text-emerald-300 dark:border-emerald-800" },
     ANALYST: { label: t("tiSourceAnalyst"), cls: "bg-muted text-muted-foreground border-border" },
+    CISA_KEV: { label: t("tiSourceKev"), cls: "bg-rose-50 text-rose-800 border-rose-300 dark:bg-rose-950/60 dark:text-rose-300 dark:border-rose-800" },
+    SPAMHAUS_DROP: { label: t("tiSourceDrop"), cls: "bg-orange-50 text-orange-800 border-orange-300 dark:bg-orange-950/60 dark:text-orange-300 dark:border-orange-800" },
+    URLHAUS: { label: t("tiSourceUrlhaus"), cls: "bg-sky-50 text-sky-800 border-sky-300 dark:bg-sky-950/60 dark:text-sky-300 dark:border-sky-800" },
+    THREATFOX: { label: t("tiSourceThreatfox"), cls: "bg-lime-50 text-lime-800 border-lime-300 dark:bg-lime-950/60 dark:text-lime-300 dark:border-lime-800" },
+    OTX: { label: t("tiSourceOtx"), cls: "bg-violet-50 text-violet-800 border-violet-300 dark:bg-violet-950/60 dark:text-violet-300 dark:border-violet-800" },
   };
   const e = map[source] ?? map.ANALYST;
   return <Badge variant="outline" className={`whitespace-nowrap ${e.cls} hover:bg-transparent`}>{e.label}</Badge>;
@@ -418,9 +424,11 @@ function SocOverview({ metrics }: { metrics: MetricsDTO | null }) {
                         ? "bg-red-50 text-red-800 border-red-300 dark:bg-red-950/60 dark:text-red-300 dark:border-red-800"
                         : r.source === "LIVE"
                           ? "bg-emerald-50 text-emerald-800 border-emerald-300 dark:bg-emerald-950/60 dark:text-emerald-300 dark:border-emerald-800"
-                          : "bg-muted text-muted-foreground border-border"
+                          : r.source === "SNAPSHOT"
+                            ? "bg-amber-50 text-amber-800 border-amber-300 dark:bg-amber-950/60 dark:text-amber-300 dark:border-amber-800"
+                            : "bg-muted text-muted-foreground border-border"
                     }`}>
-                      {r.status === "failed" ? t("socSyncFailed") : r.source === "LIVE" ? t("socSyncSourceLive") : t("socSyncSourceFixture")}
+                      {r.status === "failed" ? t("socSyncFailed") : r.source === "LIVE" ? t("socSyncSourceLive") : r.source === "SNAPSHOT" ? t("socSyncSourceSnapshot") : t("socSyncSourceFixture")}
                     </Badge>
                     <div className="min-w-0">
                       <p className="truncate text-xs" title={r.detail ?? undefined}>{r.detail}</p>
@@ -814,15 +822,36 @@ function ThreatsTab({ canManage, canSync, isSuperAdmin, onChanged }: {
   const [syncing, setSyncing] = useState(false);
   const [binding, setBinding] = useState<{ mode: "live" | "fixture"; endpoint: string | null } | null>(null);
 
+  interface IntelFeedDTO {
+    id: string;
+    label: string;
+    endpoint: string;
+    keyRequired: boolean;
+    configured: boolean;
+    snapshotCount?: number;
+    snapshotAsOf?: string;
+    snapshotNote?: string;
+    attribution: string;
+    lastSync: { createdAt: string; status: string; source: string; ingested: number; updated: number; detail: string } | null;
+  }
+  const [intel, setIntel] = useState<{ disabled: boolean; feeds: IntelFeedDTO[]; greynoise: { configured: boolean } } | null>(null);
+  const [intelSyncing, setIntelSyncing] = useState(false);
+  const [enrichIp, setEnrichIp] = useState("");
+  const [enrichBusy, setEnrichBusy] = useState(false);
+  const [enrichment, setEnrichment] = useState<{ ip: string; noise: boolean | null; riot: boolean | null; name: string | null; link: string | null } | null>(null);
+
   const load = useCallback(() => {
     api<{ indicators: IndicatorRowDTO[] }>("/api/threats").then((d) => setRows(d.indicators)).catch(() => setRows([]));
     api<{ binding: { mode: "live" | "fixture"; endpoint: string | null } }>("/api/threats/sync")
       .then((d) => setBinding(d.binding))
       .catch(() => setBinding(null));
+    api<{ disabled: boolean; feeds: IntelFeedDTO[]; greynoise: { configured: boolean } }>("/api/threats/intel")
+      .then((d) => setIntel(d))
+      .catch(() => setIntel(null));
   }, []);
   useEffect(() => { load(); }, [load]);
 
-  const CATS = ["ransomware", "phishing", "bec", "malware", "ddos", "credential_stuffing", "apt", "scam", "insider", "data_breach", "other"];
+  const CATS = ["ransomware", "phishing", "bec", "malware", "ddos", "credential_stuffing", "apt", "scam", "insider", "data_breach", "vulnerability", "other"];
 
   const filtered = useMemo(() => {
     if (!rows) return null;
@@ -865,6 +894,44 @@ function ThreatsTab({ canManage, canSync, isSuperAdmin, onChanged }: {
       toast.error(err instanceof ApiCallError ? err.message : "Error");
     } finally {
       setSyncing(false);
+    }
+  };
+
+  const doIntelSync = async () => {
+    setIntelSyncing(true);
+    try {
+      const res = await api<{ totals: { ingested: number; updated: number; feeds: number }; skipped: { feed: string }[]; failed: { feed: string; message: string }[] }>("/api/threats/intel", {
+        method: "POST", body: JSON.stringify({ source: "all" }),
+      });
+      toast.success(
+        t("intelSyncToast", String(res.totals.ingested), String(res.totals.updated), String(res.totals.feeds)) +
+          (res.skipped.length ? t("intelSyncSkippedToast", String(res.skipped.length)) : "")
+      );
+      for (const f of res.failed) toast.error(`${f.feed}: ${f.message}`);
+      load();
+      onChanged();
+    } catch (err) {
+      toast.error(err instanceof ApiCallError ? err.message : "Error");
+    } finally {
+      setIntelSyncing(false);
+    }
+  };
+
+  const doEnrich = async () => {
+    const ip = enrichIp.trim();
+    if (!ip) return;
+    setEnrichBusy(true);
+    setEnrichment(null);
+    try {
+      const res = await api<{ enrichment: { ip: string; noise: boolean | null; riot: boolean | null; name: string | null; link: string | null }; sighting: boolean }>("/api/threats/intel/enrich", {
+        method: "POST", body: JSON.stringify({ ip }),
+      });
+      setEnrichment(res.enrichment);
+      if (res.sighting) toast.success(`${ip} · ${t("intelEnrichSighting")}`);
+    } catch (err) {
+      toast.error(err instanceof ApiCallError ? err.message : "Error");
+    } finally {
+      setEnrichBusy(false);
     }
   };
 
@@ -913,6 +980,97 @@ function ThreatsTab({ canManage, canSync, isSuperAdmin, onChanged }: {
         </Card>
       )}
 
+      {/* Public threat-intel feeds panel (Real-Data Roadmap Phase 1) */}
+      {canSync && intel !== null && (
+        <Card>
+          <CardContent className="p-4 space-y-3">
+            <div className="flex flex-wrap items-center gap-3">
+              <Satellite className={`h-4 w-4 text-violet-600 ${intelSyncing ? "animate-pulse" : ""}`} aria-hidden />
+              <span className="text-sm font-medium">{t("intelPanel")}</span>
+              {intel.disabled ? (
+                <Badge variant="outline" className="whitespace-nowrap bg-red-50 text-red-800 border-red-300 dark:bg-red-950/60 dark:text-red-300 dark:border-red-800">{t("intelNoFeeds")}</Badge>
+              ) : (
+                <div className="ml-auto">
+                  {isSuperAdmin && (
+                    <Button size="sm" onClick={doIntelSync} disabled={intelSyncing} className="bg-violet-700 hover:bg-violet-800 text-white">
+                      <RefreshCw className={`mr-1.5 h-3.5 w-3.5 ${intelSyncing ? "animate-spin" : ""}`} aria-hidden />
+                      {t("intelSyncNow")}
+                    </Button>
+                  )}
+                </div>
+              )}
+            </div>
+            <p className="text-sm text-muted-foreground">{t("intelPanelSub")}</p>
+            <div className="flex flex-wrap gap-2">
+              {intel.feeds.map((f) => {
+                const last = f.lastSync;
+                const cls =
+                  !f.configured
+                    ? "bg-zinc-50 text-zinc-600 border-zinc-300 dark:bg-zinc-950/60 dark:text-zinc-400 dark:border-zinc-800"
+                    : last?.status === "failed"
+                      ? "bg-red-50 text-red-800 border-red-300 dark:bg-red-950/60 dark:text-red-300 dark:border-red-800"
+                      : last?.source === "LIVE"
+                        ? "bg-emerald-50 text-emerald-800 border-emerald-300 dark:bg-emerald-950/60 dark:text-emerald-300 dark:border-emerald-800"
+                        : last?.source === "SNAPSHOT"
+                          ? "bg-amber-50 text-amber-800 border-amber-300 dark:bg-amber-950/60 dark:text-amber-300 dark:border-amber-800"
+                          : "bg-muted text-muted-foreground border-border";
+                const tip = [
+                  f.attribution,
+                  f.endpoint,
+                  f.snapshotNote ? `${t("intelSnapshotAsOf", f.snapshotAsOf ?? "")} · ${f.snapshotNote}` : "",
+                  last ? `${last.source} · ${new Date(last.createdAt).toLocaleString("en-GB")}` : "",
+                ].filter(Boolean).join(" · ");
+                return (
+                  <Badge key={f.id} variant="outline" title={tip} className={`whitespace-nowrap ${cls} hover:bg-transparent`}>
+                    {!f.configured && <KeyRound className="mr-1 h-3 w-3 shrink-0" aria-hidden />}
+                    {f.label}
+                    <span className="mx-1 opacity-50" aria-hidden>·</span>
+                    {!f.configured ? t("intelKeyRequired") : last?.source === "LIVE" ? t("socSyncSourceLive") : last?.source === "SNAPSHOT" ? t("socSyncSourceSnapshot") : last ? t("socSyncSourceLive") : t("intelNotSynced")}
+                  </Badge>
+                );
+              })}
+            </div>
+            {/* GreyNoise Community per-IP enrichment */}
+            <div className="flex flex-wrap items-center gap-2 border-t pt-3">
+              <Globe2 className="h-4 w-4 text-sky-600" aria-hidden />
+              <span className="text-sm font-medium">{t("intelEnrichTitle")}</span>
+              <Input
+                value={enrichIp}
+                onChange={(e) => setEnrichIp(e.target.value)}
+                placeholder="203.0.113.10"
+                className="w-44 font-mono"
+                aria-label={t("intelEnrichTitle")}
+              />
+              <Button
+                size="sm" variant="outline" onClick={doEnrich} disabled={enrichBusy || !enrichIp.trim() || !intel.greynoise.configured}
+                title={intel.greynoise.configured ? undefined : t("intelEnrichKeyMissing")}
+                className="border-sky-300 text-sky-800 hover:bg-sky-50 dark:border-sky-800 dark:text-sky-300 dark:hover:bg-sky-950"
+              >
+                {t("intelEnrichAction")}
+              </Button>
+              {enrichment && (
+                <Badge
+                  variant="outline"
+                  className={`whitespace-nowrap ${
+                    enrichment.noise
+                      ? "bg-amber-50 text-amber-800 border-amber-300 dark:bg-amber-950/60 dark:text-amber-300 dark:border-amber-800"
+                      : "bg-emerald-50 text-emerald-800 border-emerald-300 dark:bg-emerald-950/60 dark:text-emerald-300 dark:border-emerald-800"
+                  }`}
+                  title={enrichment.link ?? undefined}
+                >
+                  {enrichment.noise
+                    ? t("intelEnrichNoise", enrichment.name ? ` — ${enrichment.name}` : "") + (enrichment.riot ? t("intelEnrichRiot") : "")
+                    : t("intelEnrichQuiet")}
+                </Badge>
+              )}
+              {!intel.greynoise.configured && (
+                <span className="text-[11px] text-muted-foreground">{t("intelEnrichKeyMissing")}</span>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       <div className="flex flex-wrap items-center gap-3">
         <div className="grid flex-1 gap-2 sm:grid-cols-3 max-w-xl">
           <Select value={severityFilter} onValueChange={setSeverityFilter}>
@@ -940,6 +1098,11 @@ function ThreatsTab({ canManage, canSync, isSuperAdmin, onChanged }: {
               <SelectItem value="MISP_FEED">{t("tiSourceMisp")}</SelectItem>
               <SelectItem value="ORG_UPLOAD">{t("tiSourceOrg")}</SelectItem>
               <SelectItem value="ANALYST">{t("tiSourceAnalyst")}</SelectItem>
+              <SelectItem value="CISA_KEV">{t("tiSourceKev")}</SelectItem>
+              <SelectItem value="SPAMHAUS_DROP">{t("tiSourceDrop")}</SelectItem>
+              <SelectItem value="URLHAUS">{t("tiSourceUrlhaus")}</SelectItem>
+              <SelectItem value="THREATFOX">{t("tiSourceThreatfox")}</SelectItem>
+              <SelectItem value="OTX">{t("tiSourceOtx")}</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -1048,11 +1211,12 @@ function CreateIndicatorDialog({ open, onClose, onCreated }: { open: boolean; on
   const [busy, setBusy] = useState(false);
 
   const TYPES = ["ip", "domain", "url", "hash_sha256", "email", "filename"];
-  const CATS = ["ransomware", "phishing", "bec", "malware", "ddos", "credential_stuffing", "apt", "scam", "insider", "data_breach", "other"];
+  const CATS = ["ransomware", "phishing", "bec", "malware", "ddos", "credential_stuffing", "apt", "scam", "insider", "data_breach", "vulnerability", "other"];
   const CATEGORY_KEY: Record<string, string> = {
     ransomware: "catRansomware", phishing: "catPhishing", bec: "catBec",
     malware: "catMalware", ddos: "catDdos", credential_stuffing: "catCredentialStuffing",
-    apt: "catApt", scam: "catScam", insider: "catInsider", data_breach: "catDataBreach", other: "catOther",
+    apt: "catApt", scam: "catScam", insider: "catInsider", data_breach: "catDataBreach",
+    vulnerability: "catVulnerability", other: "catOther",
   };
 
   const submit = async () => {
