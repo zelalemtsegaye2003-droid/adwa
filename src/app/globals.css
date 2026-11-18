@@ -120,3 +120,66 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* ── Modern shell: intel ticker + per-module hero ─────────────────────────── */
+@keyframes ticker-scroll {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-50%); }
+}
+.ticker-track {
+  animation: ticker-scroll 120s linear infinite;
+  will-change: transform;
+}
+.ticker:hover .ticker-track,
+.ticker:focus-within .ticker-track {
+  animation-play-state: paused;
+}
+
+/* Hero banner — gradient paint + faint blueprint grid overlay */
+.hero-strip {
+  position: relative;
+  isolation: isolate;
+  border-radius: 1rem;
+  overflow: hidden;
+  box-shadow: 0 10px 30px -12px rgba(0, 0, 0, 0.35);
+}
+.hero-strip::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background-image:
+    linear-gradient(to right, rgba(255, 255, 255, 0.07) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.07) 1px, transparent 1px);
+  background-size: 28px 28px;
+  mask-image: linear-gradient(100deg, rgba(0, 0, 0, 0.9), rgba(0, 0, 0, 0.15) 65%, transparent);
+}
+.hero-strip::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: radial-gradient(520px 180px at 12% 0%, rgba(255, 255, 255, 0.28), transparent 60%);
+  pointer-events: none;
+}
+
+/* Sidebar active button painted per-module via inline gradient */
+.nav-active-btn {
+  color: #fff;
+  box-shadow: 0 6px 18px -8px rgba(0, 0, 0, 0.45);
+  transition: filter 150ms ease;
+}
+.nav-active-btn:hover {
+  color: #fff;
+  filter: brightness(1.09);
+}
+.nav-active-btn:focus-visible {
+  color: #fff;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ticker-track {
+    animation: none;
+  }
+}
+

@@ -135,11 +135,6 @@ export function FindingsView() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h2 className="text-2xl font-bold tracking-tight">{t("findTitle")}</h2>
-        <p className="text-muted-foreground">{t("findSub")}</p>
-      </div>
-
       {/* Remediation SLA summary (Procl. 1426/2026 corrective-action timelines) */}
       {slaCounts && (
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">

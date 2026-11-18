@@ -17,7 +17,7 @@ import { Progress } from "@/components/ui/progress";
 import { Checkbox } from "@/components/ui/checkbox";
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid } from "recharts";
 import {
-  Crosshair, Server, Globe, AlertTriangle, Flame, ShieldCheck, Radar, Bug, Plus, Pencil, Trash2,
+  Server, Globe, AlertTriangle, Flame, ShieldCheck, Radar, Bug, Plus, Pencil, Trash2,
   Zap, Eye, FileJson, Timer, ShieldAlert, CheckCircle2, RefreshCw, KeyRound,
 } from "lucide-react";
 import { toast } from "sonner";
@@ -187,14 +187,7 @@ export function VaptView({ canManage, isSuperAdmin }: { canManage: boolean; isSu
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div>
-          <h2 className="text-2xl font-bold tracking-tight flex items-center gap-2">
-            <Crosshair className="h-6 w-6 text-emerald-700" aria-hidden />
-            {t("navVapt")}
-          </h2>
-          <p className="text-muted-foreground">{t("vaptSub")}</p>
-        </div>
+      <div className="flex flex-wrap items-start justify-end gap-3">
         <Badge variant="outline" className="bg-emerald-50 text-emerald-800 border-emerald-300 dark:bg-emerald-950/60 dark:text-emerald-300 dark:border-emerald-800 whitespace-nowrap">
           NBE/NCB/S/02/2026/27 · LOT4
         </Badge>

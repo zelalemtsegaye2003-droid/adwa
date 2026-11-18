@@ -68,11 +68,6 @@ export function DashboardView({ onOpenReport, onResumeScan, canRunScans }: { onO
 
   return (
     <div className="space-y-6">
-      <div>
-        <h2 className="text-2xl font-bold tracking-tight">{t("dashTitle")}</h2>
-        <p className="text-muted-foreground">{t("dashSub")}</p>
-      </div>
-
       {/* KPI cards */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {kpis.map((k) => (
@@ -327,10 +322,11 @@ function PillarRadar() {
   return (
     <ResponsiveContainer width="100%" height={268}>
       {/* smaller radius + smaller tick font: long pillar labels (e.g. "SBB/83 Art. 5.1")
-          used to collide with each other around the chart edge. */}
+          used to collide with each other around the chart edge. 10-char ticks keep
+          any two neighbouring polar labels fully separated. */}
       <RadarChart data={data} outerRadius="58%">
         <PolarGrid />
-        <PolarAngleAxis dataKey="pillar" tick={{ fontSize: 9.5 }} tickFormatter={(v: string) => (v.length > 13 ? `${v.slice(0, 12)}…` : v)} />
+        <PolarAngleAxis dataKey="pillar" tick={{ fontSize: 9 }} tickFormatter={(v: string) => (v.length > 10 ? `${v.slice(0, 9)}…` : v)} />
         <Radar dataKey="score" stroke="#059669" fill="#059669" fillOpacity={0.35} />
         <Tooltip />
       </RadarChart>

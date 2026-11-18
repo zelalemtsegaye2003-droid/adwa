@@ -28,7 +28,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import {
-  ShieldAlert, Lock, LockOpen, CheckCircle2, CircleDashed, Loader2, Ban,
+  Lock, LockOpen, CheckCircle2, CircleDashed, Loader2, Ban,
   FileSignature, Scale, Handshake, Landmark, DraftingCompass, Umbrella,
   FileCheck2, Paperclip, History, FileDown, ArrowRight,
 } from "lucide-react";
@@ -259,14 +259,7 @@ export function TrackCView({ canManageCii = false }: { canManageCii?: boolean })
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div>
-          <h1 className="flex items-center gap-2 text-2xl font-semibold tracking-tight">
-            <ShieldAlert className="h-6 w-6 text-emerald-700" />
-            {t("gateTitle")}
-          </h1>
-          <p className="max-w-3xl text-sm text-muted-foreground">{t("gateSub")}</p>
-        </div>
+      <div className="flex flex-wrap items-start justify-end gap-3">
         {trackPane === "board" && (
           <a
             href={`/api/gates/dossier?lang=${lang}`}

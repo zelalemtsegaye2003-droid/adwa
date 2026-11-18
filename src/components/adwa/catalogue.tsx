@@ -116,11 +116,6 @@ export function CatalogueView() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h2 className="text-2xl font-bold tracking-tight">{t("catTitle")}</h2>
-        <p className="text-muted-foreground">{t("catSub")}</p>
-      </div>
-
       {/* Framework switcher */}
       {frameworks && frameworks.length > 0 && (
         <div className="space-y-3">

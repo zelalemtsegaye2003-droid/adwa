@@ -353,11 +353,6 @@ export function ScanWizard({
 
   return (
     <div ref={topRef} className="space-y-6">
-      <div>
-        <h2 className="text-2xl font-bold tracking-tight">{t("scanTitle")}</h2>
-        <p className="text-muted-foreground">{t("scanSub")}</p>
-      </div>
-
       {/* Stepper */}
       <div className="flex items-center gap-2 text-sm">
         {[1, 2, 3].map((s, i) => (

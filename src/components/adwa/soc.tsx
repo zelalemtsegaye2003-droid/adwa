@@ -183,14 +183,7 @@ export function SocView({
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div>
-          <h2 className="text-2xl font-bold tracking-tight flex items-center gap-2">
-            <Radar className="h-6 w-6 text-emerald-700" aria-hidden />
-            {t("socTitle")}
-          </h2>
-          <p className="text-muted-foreground">{t("socSub")}</p>
-        </div>
+      <div className="flex flex-wrap items-start justify-end gap-3">
         <Badge variant="outline" className="bg-emerald-50 text-emerald-800 border-emerald-300 dark:bg-emerald-950/60 dark:text-emerald-300 dark:border-emerald-800 whitespace-nowrap">
           {t("socPhaseBadge")}
         </Badge>

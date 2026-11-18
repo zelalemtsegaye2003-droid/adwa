@@ -14,7 +14,7 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
-  GraduationCap, School as SchoolIcon, Users, BookOpen, ClipboardCheck, ShieldCheck,
+  School as SchoolIcon, Users, BookOpen, ClipboardCheck, ShieldCheck,
   Plus, Copy, ExternalLink, Download, RefreshCw, FileCheck2, Sigma, Lock, CheckCircle2, XCircle,
   Sparkles, Languages,
 } from "lucide-react";
@@ -223,18 +223,9 @@ export function AwarenessView() {
   const p = overview.programme;
 
   return (
-    <div className="space-y-4 p-4 md:p-6">
+    <div className="space-y-4">
       {/* Header */}
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div>
-          <div className="flex items-center gap-2">
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-700 text-white"><GraduationCap className="h-5 w-5" /></div>
-            <div>
-              <h1 className="text-xl font-bold tracking-tight">{t("awTitle")}</h1>
-              <p className="text-sm text-muted-foreground">{t("awSub")}</p>
-            </div>
-          </div>
-        </div>
+      <div className="flex flex-wrap items-start justify-end gap-3">
         <div className="flex items-center gap-2">
           <Button variant="outline" size="sm" onClick={() => void refresh()}>
             <RefreshCw className="mr-1 h-4 w-4" /> {lang === "en" ? "Refresh" : "ተመለስ"}

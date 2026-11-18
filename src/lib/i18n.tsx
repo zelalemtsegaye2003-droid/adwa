@@ -345,6 +345,8 @@ const DICT: Record<string, [string, string]> = {
   disabled: ["Disabled", "ተጥፏል"],
   resetPassword: ["Reset password", "የመግቢያ ቃል ይቀይሩ"],
   auditLog: ["Audit Log", "የምስክር መዝገብ"],
+  tcTitle: ["Track C — Governance & CII Monitoring", "መስመር C — የአስተዳደር እና የCII ክትትል"],
+  tcSub: ["ACFS assurance gates and critical-information-infrastructure monitoring", "የACFS ማረጋገጫ በሮች እና የትኩረት-ባለ መረጃ መሰረተ-ልማት ክትትል"],
   auditSub: ["Every sign-in, MFA and administrative event", "እያንዳንዱ መግባት፣ MFA እና የአስተዳደር ክስተት"],
   event: ["Event", "ክስተት"],
   when: ["When", "መቼ"],

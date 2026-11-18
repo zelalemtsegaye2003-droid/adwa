@@ -192,14 +192,14 @@ export function ScopesTab({ canManage }: { canManage: boolean }) {
                 <TableBody>
                   {scopes.map((s) => (
                     <TableRow key={s.id}>
-                      <TableCell className="max-w-[220px]">
+                      <TableCell className="max-w-[220px] align-top">
                         <div className="font-medium">{s.name}</div>
-                        <div className="text-xs text-muted-foreground">
+                        <div className="mt-1 text-xs text-muted-foreground">
                           {t("vaptScopeOwner")}: {s.owner}
                         </div>
                       </TableCell>
                       <TableCell className="align-top">
-                      <div className="flex max-w-[300px] flex-wrap gap-1 py-0.5">
+                      <div className="flex max-w-[280px] flex-wrap gap-1 py-0.5">
                         {targetSummary(s).map((chip, i) => (
                           <span
                             key={i}
@@ -211,8 +211,9 @@ export function ScopesTab({ canManage }: { canManage: boolean }) {
                         ))}
                       </div>
                     </TableCell>
-                      <TableCell className="whitespace-nowrap py-2 text-xs tabular-nums">
-                        {fmt(s.validFrom)} → {fmt(s.validUntil)}
+                      <TableCell className="py-2 align-top text-xs tabular-nums">
+                        <div className="whitespace-nowrap">{fmt(s.validFrom)}</div>
+                        <div className="whitespace-nowrap text-muted-foreground">→ {fmt(s.validUntil)}</div>
                       </TableCell>
                       <TableCell>
                         <div className="flex flex-wrap gap-1">

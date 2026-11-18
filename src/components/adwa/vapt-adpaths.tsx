@@ -528,7 +528,12 @@ export function AdPathsTab() {
                   {s.chokepoints.length > 0 && (
                     <p className="pt-1 text-muted-foreground">
                       <Waypoints className="mr-1 inline h-3.5 w-3.5 text-violet-600" aria-hidden />
-                      {t("adChokepoint")}: <span className="font-mono">{s.chokepoints.slice(0, 3).map((c) => `${c.name} (×${c.pathCount})`).join(" · ")}</span>
+                      {t("adChokepoint")}: <span className="font-mono">{s.chokepoints.slice(0, 3).map((c, i) => (
+                        <React.Fragment key={c.name}>
+                          {i > 0 && " · "}
+                          <span className="whitespace-nowrap">{c.name} (×{c.pathCount})</span>
+                        </React.Fragment>
+                      ))}</span>
                     </p>
                   )}
                 </div>

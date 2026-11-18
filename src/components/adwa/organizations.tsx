@@ -44,11 +44,7 @@ export function OrganizationsView({ onNewScan }: { onNewScan: (orgId: string) =>
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h2 className="text-2xl font-bold tracking-tight">{t("orgTitle")}</h2>
-          <p className="text-muted-foreground">{t("orgSub")}</p>
-        </div>
+      <div className="flex flex-wrap items-center justify-end gap-3">
         {isSuper && (
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogTrigger asChild>

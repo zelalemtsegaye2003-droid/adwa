@@ -104,12 +104,8 @@ export function AuditView({ isSuperAdmin }: { isSuperAdmin: boolean }) {
 
   return (
     <section className="space-y-6">
-      <header>
-        <h1 className="flex items-center gap-2 text-2xl font-bold tracking-tight">
-          <ScrollText className="h-6 w-6 text-emerald-700 dark:text-emerald-500" aria-hidden />
-          {t("auditLog")}
-        </h1>
-        <p className="text-sm text-muted-foreground">
+      <header className="flex flex-wrap items-end justify-between gap-4">
+        <p className="max-w-2xl text-sm text-muted-foreground">
           {t("auditSub")}{isSuperAdmin ? ` — ${t("platform")} (${t("crossTenant")})` : ""}
         </p>
       </header>

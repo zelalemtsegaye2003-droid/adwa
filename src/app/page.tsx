@@ -26,6 +26,9 @@ import { SocView } from "@/components/adwa/soc";
 import { AwarenessView } from "@/components/adwa/awareness";
 import { TrackCView } from "@/components/adwa/track-c";
 import { VaptView } from "@/components/adwa/vapt";
+import { CyberCanvas } from "@/components/adwa/cyber-canvas";
+import { TipTicker } from "@/components/adwa/tip-ticker";
+import { tabTheme } from "@/lib/tab-theme";
 import { AuthGate, useAuth } from "@/components/auth/auth-gate";
 import { MfaSetupDialog, MfaBadge } from "@/components/auth/mfa-setup";
 import { UsersView } from "@/components/auth/users-view";
@@ -33,6 +36,48 @@ import { AuditView } from "@/components/auth/audit-view";
 import { ROLE_COLORS, ROLE_SHORT } from "@/lib/auth-client";
 
 type View = "dashboard" | "catalogue" | "organizations" | "scan" | "findings" | "evidence" | "report" | "soc" | "vapt" | "awareness" | "trackc" | "team" | "audit";
+
+/** Module masthead — the per-tab hero banner. Visual identity (colour + icon +
+ *  tagline) is derived from the module's mission, cf. tab-theme.ts. */
+function ViewHero({ view, icon: Icon }: { view: View; icon: React.ElementType }) {
+  const { t } = useI18n();
+  const th = tabTheme(view);
+  return (
+    <div
+      className="hero-strip mb-4 px-4 py-4 text-white sm:mb-6 sm:px-6 sm:py-5"
+      style={{
+        background: `linear-gradient(105deg, ${th.accentDeep} 0%, ${th.accent} 52%, ${th.accentSoft}cc 100%)`,
+      }}
+    >
+      <div className="flex flex-wrap items-center gap-x-4 gap-y-3">
+        <div
+          className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-white/25 bg-white/15 backdrop-blur-sm"
+          aria-hidden
+        >
+          <Icon className="h-5 w-5" />
+        </div>
+        <div className="min-w-0 flex-1">
+          <div className="flex flex-wrap items-center gap-2">
+            <h1 className="text-lg font-bold tracking-tight sm:text-xl">{t(th.titleKey)}</h1>
+            {th.liveChip && (
+              <span className="inline-flex items-center gap-1.5 rounded-full border border-white/30 bg-white/15 px-2 py-0.5 text-[10px] font-semibold tracking-wide uppercase backdrop-blur-sm">
+                <span className="relative flex h-1.5 w-1.5">
+                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-white opacity-75" />
+                  <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-white" />
+                </span>
+                {th.liveChip}
+              </span>
+            )}
+          </div>
+          <p className="mt-0.5 line-clamp-2 max-w-3xl text-xs text-white/85 sm:text-sm">{t(th.subKey)}</p>
+        </div>
+        <span className="hidden rounded-full border border-white/25 bg-white/10 px-3 py-1 text-[10px] font-semibold tracking-wide text-white/90 uppercase backdrop-blur-sm md:inline-flex">
+          {th.chip}
+        </span>
+      </div>
+    </div>
+  );
+}
 
 function Shell() {
   const { t, lang, setLang } = useI18n();
@@ -71,15 +116,21 @@ function Shell() {
     if (v !== "scan") setResumeScanId(null); // leaving the wizard clears any resume target
   };
   const initials = me.user.name.split(" ").map((p) => p[0]).slice(0, 2).join("").toUpperCase();
+  const th = tabTheme(view);
+  const activeNav = nav.find((n) => n.id === view);
 
   return (
     <SidebarProvider>
-      <div className="flex min-h-screen w-full">
+      <div className="relative flex min-h-screen w-full">
         {/* Sidebar */}
         <Sidebar className="border-r border-emerald-100 dark:border-emerald-950">
           <SidebarHeader className="p-4">
             <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-700 text-white shadow-sm" aria-hidden>
+              <div
+                className="flex h-10 w-10 items-center justify-center rounded-xl text-white shadow-md"
+                style={{ background: "linear-gradient(135deg, #059669, #065f46)" }}
+                aria-hidden
+              >
                 <ShieldCheck className="h-5 w-5" />
               </div>
               <div>
@@ -92,21 +143,26 @@ function Shell() {
             <SidebarGroup>
               <SidebarGroupContent>
                 <SidebarMenu>
-                  {nav.filter((n) => n.show).map((item) => (
-                    <SidebarMenuItem key={item.id}>
-                      <SidebarMenuButton
-                        isActive={view === item.id}
-                        onClick={() => {
-                          if (item.id === "scan") setResumeScanId(null); // sidebar entry always starts fresh
-                          go(item.id);
-                        }}
-                        className={view === item.id ? "bg-emerald-700 text-white hover:bg-emerald-800" : ""}
-                      >
-                        <item.icon aria-hidden />
-                        <span>{item.label}</span>
-                      </SidebarMenuButton>
-                    </SidebarMenuItem>
-                  ))}
+                  {nav.filter((n) => n.show).map((item) => {
+                    const it = tabTheme(item.id);
+                    const active = view === item.id;
+                    return (
+                      <SidebarMenuItem key={item.id}>
+                        <SidebarMenuButton
+                          isActive={active}
+                          onClick={() => {
+                            if (item.id === "scan") setResumeScanId(null); // sidebar entry always starts fresh
+                            go(item.id);
+                          }}
+                          className={active ? "nav-active-btn" : ""}
+                          style={active ? { background: `linear-gradient(135deg, ${it.accent}, ${it.accentDeep})` } : undefined}
+                        >
+                          <item.icon aria-hidden />
+                          <span>{item.label}</span>
+                        </SidebarMenuButton>
+                      </SidebarMenuItem>
+                    );
+                  })}
                 </SidebarMenu>
               </SidebarGroupContent>
             </SidebarGroup>
@@ -158,10 +214,15 @@ function Shell() {
           </SidebarFooter>
         </Sidebar>
 
-        {/* Main */}
-        <main className="flex-1 flex flex-col min-w-0">
+        {/* Main — relative container for the 3D ops background */}
+        <main className="relative flex-1 flex flex-col min-w-0">
+          {/* Ambient 3D cyber-ops background (globe + threat arcs), tinted by
+              the active module's accent. Decorative only: aria-hidden,
+              pointer-events-none, reduced-motion aware. */}
+          <CyberCanvas accent={th.accent} />
+
           <header className="sticky top-0 z-20 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/75">
-            <div className="flex h-14 items-center gap-3 px-4">
+            <div className="flex h-12 items-center gap-3 px-4">
               <SidebarTrigger className="md:hidden" aria-label="Toggle menu" />
               <span className="text-sm font-medium text-muted-foreground hidden sm:block">
                 {t("appName")} — {me.user.orgName ?? t("platform")}
@@ -191,12 +252,16 @@ function Shell() {
                 </Button>
               </div>
             </div>
+            {/* Real-world security intel ribbon — published, verifiable facts
+                (NIST CSF 2.0, CIS v8, OWASP, CISA KEV, FIRST EPSS, DBIR…). */}
+            <TipTicker accent={th.accent} />
           </header>
 
           {/* flex-auto (not flex-1): tall views must EXPAND this box so the
               footer sits below the content. flex-1 set flex-basis 0, which
               made overflowing tables paint over the pinned footer. */}
           <div className="flex-auto p-4 sm:p-6">
+            <ViewHero view={view} icon={activeNav?.icon ?? LayoutDashboard} />
             {view === "dashboard" && (
               <DashboardView
                 onOpenReport={(id) => { setReportScanId(id); go("report"); }}
@@ -244,7 +309,7 @@ function Shell() {
             {view === "audit" && <AuditView isSuperAdmin={isSuper} />}
           </div>
 
-          <footer className="mt-auto border-t">
+          <footer className="mt-auto border-t bg-background/80 backdrop-blur">
             <div className="flex flex-col sm:flex-row items-center justify-between gap-2 px-6 py-4 text-xs text-muted-foreground">
               <p>© 2026 {t("appName")} — Adwa Cyber Research Lab</p>
               <p>Proclamation No. 1321/2024 · NCSP 2024 · Digital Ethiopia 2030</p>

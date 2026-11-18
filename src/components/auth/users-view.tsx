@@ -20,7 +20,7 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
-  Users, UserPlus, MoreHorizontal, Loader2, ShieldCheck, ShieldOff, KeyRound,
+  UserPlus, MoreHorizontal, Loader2, ShieldCheck, ShieldOff, KeyRound,
   Building2, ShieldAlert, CheckCircle2, XCircle,
 } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
@@ -127,14 +127,7 @@ export function UsersView({ canManage, isSuperAdmin }: { canManage: boolean; isS
 
   return (
     <section className="space-y-6">
-      <header className="flex flex-wrap items-start justify-between gap-4">
-        <div>
-          <h1 className="flex items-center gap-2 text-2xl font-bold tracking-tight">
-            <Users className="h-6 w-6 text-emerald-700 dark:text-emerald-500" aria-hidden />
-            {t("team")}
-          </h1>
-          <p className="text-sm text-muted-foreground">{t("teamSub")}</p>
-        </div>
+      <header className="flex flex-wrap items-start justify-end gap-4">
         {canManage && (
           <Button className="bg-emerald-700 hover:bg-emerald-800" onClick={() => setAddOpen(true)}>
             <UserPlus className="mr-2 h-4 w-4" aria-hidden />

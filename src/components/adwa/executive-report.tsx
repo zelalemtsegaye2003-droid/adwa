@@ -117,7 +117,6 @@ export function ExecutiveReport({ scanId }: { scanId?: string | null }) {
   if (scans.length === 0) {
     return (
       <div className="space-y-4">
-        <h2 className="text-2xl font-bold tracking-tight">{t("repTitle")}</h2>
         <Card><CardContent className="p-8 text-center text-muted-foreground">{t("noData")}</CardContent></Card>
       </div>
     );
@@ -125,11 +124,7 @@ export function ExecutiveReport({ scanId }: { scanId?: string | null }) {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h2 className="text-2xl font-bold tracking-tight">{t("repTitle")}</h2>
-          <p className="text-muted-foreground">{t("repSub")}</p>
-        </div>
+      <div className="flex flex-wrap items-center justify-end gap-3">
         <div className="flex items-center gap-2">
           <Select value={selected ?? undefined} onValueChange={setUserSelected}>
             <SelectTrigger className="w-64" aria-label={t("navScans")}><SelectValue /></SelectTrigger>
@@ -263,7 +258,7 @@ export function ExecutiveReport({ scanId }: { scanId?: string | null }) {
                     angle={-45}
                     textAnchor="end"
                     height={72}
-                    tickFormatter={(v: string) => (v.length > 14 ? `${v.slice(0, 13)}…` : v)}
+                    tickFormatter={(v: string) => (v.length > 11 ? `${v.slice(0, 10)}…` : v)}
                   />
                   <YAxis domain={[0, 100]} tick={{ fontSize: 11 }} unit="%" />
                   <Tooltip formatter={(_v, _n, p) => [`${p.payload.label} rules flagged`, p.payload.article]} />

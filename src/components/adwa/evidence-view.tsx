@@ -496,14 +496,7 @@ export function EvidenceView({
   // ── Render ─────────────────────────────────────────────────────────────────
   return (
     <section className="space-y-6">
-      <header className="flex flex-wrap items-start justify-between gap-4">
-        <div>
-          <h1 className="flex items-center gap-2 text-2xl font-bold tracking-tight">
-            <FolderLock className="h-6 w-6 text-emerald-700 dark:text-emerald-500" aria-hidden />
-            {t("evTitle")}
-          </h1>
-          <p className="text-sm text-muted-foreground">{t("evSub")}</p>
-        </div>
+      <header className="flex flex-wrap items-start justify-end gap-4">
         {canUpload ? (
           <Button className="bg-emerald-700 hover:bg-emerald-800" onClick={() => openUpload(null)}>
             <UploadCloud className="mr-2 h-4 w-4" aria-hidden />
