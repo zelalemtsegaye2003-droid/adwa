@@ -285,7 +285,7 @@ function PathCard({ p, selected, onSelect }: { p: AttackPathDTO; selected: boole
       }`}
     >
       <div className="flex items-center justify-between gap-2">
-        <p className="truncate font-mono text-xs">{p.entryName} → {p.targetName}</p>
+        <p className="min-w-0 flex-1 truncate font-mono text-xs">{p.entryName} → {p.targetName}</p>
         <div className="flex shrink-0 items-center gap-1.5">
           {p.shortest && <Badge className="bg-red-600 text-white border-red-700 hover:bg-red-600">{t("adShortestBadge")}</Badge>}
           <Badge variant="outline" className="tabular-nums bg-muted/50 hover:bg-transparent">{p.length} {t("adHops")}</Badge>

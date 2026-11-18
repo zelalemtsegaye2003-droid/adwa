@@ -18,7 +18,13 @@ function ScrollArea({
     >
       <ScrollAreaPrimitive.Viewport
         data-slot="scroll-area-viewport"
-        className="focus-visible:ring-ring/50 size-full rounded-[inherit] transition-[color,box-shadow] outline-none focus-visible:ring-[3px] focus-visible:outline-1"
+        // max-h-[inherit]: the caller's max-h-* (e.g. max-h-96) must constrain the
+        // viewport too. With only height:100% (size-full) the percentage resolves
+        // to auto against a max-height-only parent, so the viewport grew to the
+        // full content height and painted past the root — over cards and the
+        // page footer. Inheriting the root's max-height keeps overflow scrolling
+        // INSIDE the root box.
+        className="focus-visible:ring-ring/50 size-full max-h-[inherit] rounded-[inherit] transition-[color,box-shadow] outline-none focus-visible:ring-[3px] focus-visible:outline-1"
       >
         {children}
       </ScrollAreaPrimitive.Viewport>

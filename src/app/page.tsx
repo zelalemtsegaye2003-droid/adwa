@@ -193,7 +193,10 @@ function Shell() {
             </div>
           </header>
 
-          <div className="flex-1 p-4 sm:p-6">
+          {/* flex-auto (not flex-1): tall views must EXPAND this box so the
+              footer sits below the content. flex-1 set flex-basis 0, which
+              made overflowing tables paint over the pinned footer. */}
+          <div className="flex-auto p-4 sm:p-6">
             {view === "dashboard" && (
               <DashboardView
                 onOpenReport={(id) => { setReportScanId(id); go("report"); }}

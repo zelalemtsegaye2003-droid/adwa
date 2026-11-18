@@ -254,9 +254,17 @@ export function ExecutiveReport({ scanId }: { scanId?: string | null }) {
             <CardHeader><CardTitle className="text-base">{t("articleRisk")}</CardTitle></CardHeader>
             <CardContent>
               <ResponsiveContainer width="100%" height={240}>
-                <BarChart data={articleData} margin={{ left: 0, right: 8 }}>
+                <BarChart data={articleData} margin={{ left: 0, right: 8, bottom: 24 }}>
                   <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                  <XAxis dataKey="article" tick={{ fontSize: 11 }} interval={0} angle={-20} textAnchor="end" height={50} />
+                  <XAxis
+                    dataKey="article"
+                    tick={{ fontSize: 9.5 }}
+                    interval={0}
+                    angle={-45}
+                    textAnchor="end"
+                    height={72}
+                    tickFormatter={(v: string) => (v.length > 14 ? `${v.slice(0, 13)}…` : v)}
+                  />
                   <YAxis domain={[0, 100]} tick={{ fontSize: 11 }} unit="%" />
                   <Tooltip formatter={(_v, _n, p) => [`${p.payload.label} rules flagged`, p.payload.article]} />
                   <Bar dataKey="rate" radius={[4, 4, 0, 0]}>

@@ -326,9 +326,11 @@ function PillarRadar() {
   if (data.length === 0) return <p className="text-sm text-muted-foreground py-16 text-center">—</p>;
   return (
     <ResponsiveContainer width="100%" height={268}>
-      <RadarChart data={data} outerRadius="72%">
+      {/* smaller radius + smaller tick font: long pillar labels (e.g. "SBB/83 Art. 5.1")
+          used to collide with each other around the chart edge. */}
+      <RadarChart data={data} outerRadius="58%">
         <PolarGrid />
-        <PolarAngleAxis dataKey="pillar" tick={{ fontSize: 12 }} />
+        <PolarAngleAxis dataKey="pillar" tick={{ fontSize: 9.5 }} tickFormatter={(v: string) => (v.length > 13 ? `${v.slice(0, 12)}…` : v)} />
         <Radar dataKey="score" stroke="#059669" fill="#059669" fillOpacity={0.35} />
         <Tooltip />
       </RadarChart>

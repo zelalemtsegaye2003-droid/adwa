@@ -162,9 +162,7 @@ export function ScopesTab({ canManage }: { canManage: boolean }) {
 
   const targetSummary = useMemo(() => {
     return (s: ScopeRow) =>
-      (s.targetsParsed ?? [])
-        .map((t) => `${t.kind === "cidr" ? "🌐" : t.kind === "ip" ? "📍" : t.kind === "url" ? "🔗" : "🏷"} ${t.value}`)
-        .join(" · ");
+      (s.targetsParsed ?? []).map((t) => `${t.kind === "cidr" ? "🌐" : t.kind === "ip" ? "📍" : t.kind === "url" ? "🔗" : "🏷"} ${t.value}`);
   }, []);
 
   return (
@@ -200,8 +198,20 @@ export function ScopesTab({ canManage }: { canManage: boolean }) {
                           {t("vaptScopeOwner")}: {s.owner}
                         </div>
                       </TableCell>
-                      <TableCell className="max-w-[280px] text-xs">{targetSummary(s)}</TableCell>
-                      <TableCell className="whitespace-nowrap text-xs">
+                      <TableCell className="align-top">
+                      <div className="flex max-w-[300px] flex-wrap gap-1 py-0.5">
+                        {targetSummary(s).map((chip, i) => (
+                          <span
+                            key={i}
+                            title={s.targetsParsed?.[i]?.value ?? chip}
+                            className="inline-flex max-w-full items-center overflow-hidden whitespace-nowrap rounded bg-muted px-1.5 py-0.5 font-mono text-[10px]"
+                          >
+                            <span className="truncate">{chip}</span>
+                          </span>
+                        ))}
+                      </div>
+                    </TableCell>
+                      <TableCell className="whitespace-nowrap py-2 text-xs tabular-nums">
                         {fmt(s.validFrom)} → {fmt(s.validUntil)}
                       </TableCell>
                       <TableCell>

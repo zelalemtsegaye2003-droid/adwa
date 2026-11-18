@@ -184,9 +184,13 @@ export function ScoreRing({ score, size = 120, label }: { score: number; size?: 
           style={{ transition: "stroke-dashoffset 0.8s ease" }}
         />
       </svg>
-      <div className="absolute inset-0 flex flex-col items-center justify-center">
+      <div className="absolute inset-0 flex flex-col items-center justify-center px-1.5">
         <span className="font-bold tabular-nums" style={{ fontSize: size / 4.2 }}>{pct.toFixed(1)}%</span>
-        {label && <span className="text-muted-foreground text-[10px] uppercase tracking-wide mt-0.5">{label}</span>}
+        {label && (
+          <span className="max-w-full text-center text-[8.5px] leading-tight uppercase tracking-wide mt-0.5 break-words hyphens-auto text-muted-foreground">
+            {label}
+          </span>
+        )}
       </div>
     </div>
   );
