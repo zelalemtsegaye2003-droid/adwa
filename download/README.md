@@ -49,6 +49,12 @@ Everything else is final.
 
 ## Earlier deliverables (kept from prior work)
 
+- `AdwaSec_Real_Data_Review_and_Roadmap.docx` / `.pdf` — what is already
+  live, what is still fixture, and the phased plan for real internet data
+  everywhere (Phase 1 + Phase 2 implemented: public feeds, self-hosted MISP
+  exchange, VirusTotal reputation, live EPSS at scan time).
+- `AdwaSec_SelfScan_Demo_Runbook.docx` / `.pdf` — click-by-click steps for
+  the three repeatable self-scan demonstrations.
 - `Adwa_Cyber_Implementation_Roadmap.docx` / `.pdf` — the detailed
   29-page implementation roadmap the application documents summarise.
 - `Adwa_MVP_Readiness_Assessment.docx` / `.pdf` — MVP readiness assessment.
