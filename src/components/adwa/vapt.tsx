@@ -27,6 +27,7 @@ import { slaInfo } from "@/lib/sla";
 import { SeverityBadge, SlaBadge, fmtDate } from "./shared";
 import { AdPathsTab } from "./vapt-adpaths";
 import { BidMatrixTab } from "./vapt-bidmatrix";
+import { ScopesTab } from "./vapt-scopes";
 
 // ── DTOs (mirror /api/vapt/* responses) ──────────────────────────────────────
 
@@ -42,7 +43,7 @@ interface OverviewDTO {
   };
   kevOpenCount: number;
   topRisk: TopRiskRow[];
-  recentScans: { id: string; name: string; scanType: string; status: string; engineMode: string; dastReal: boolean; newCount: number; knownCount: number; targetCount: number; startedAt: string; completedAt: string | null; organization: string | null }[];
+  recentScans: { id: string; name: string; scanType: string; status: string; engineMode: string; dastReal: boolean; infraReal: boolean; newCount: number; knownCount: number; targetCount: number; startedAt: string; completedAt: string | null; organization: string | null }[];
 }
 
 interface TopRiskRow {
@@ -73,8 +74,8 @@ interface VulnRowDTO {
 }
 
 interface ScanRowDTO {
-  id: string; name: string; scanType: string; status: string; engineMode: string; dastReal: boolean;
-  targetCount: number; newCount: number; knownCount: number;
+  id: string; name: string; scanType: string; status: string; engineMode: string; dastReal: boolean; infraReal: boolean; autoClosedCount: number;
+  targetCount: number; newCount: number; knownCount: number; scopeId?: string | null;
   summary: Record<string, number> | null; detail: string | null;
   startedAt: string; completedAt: string | null; durationMs: number | null;
   organization: { id: string; name: string } | null;
@@ -206,6 +207,7 @@ export function VaptView({ canManage, isSuperAdmin }: { canManage: boolean; isSu
           <TabsTrigger value="vulns">{t("vaptTabVulns")}</TabsTrigger>
           <TabsTrigger value="adpaths">{t("vaptTabAd")}</TabsTrigger>
           <TabsTrigger value="bidmatrix">{t("vaptTabBid")}</TabsTrigger>
+          <TabsTrigger value="scopes">{t("vaptTabScopes")}</TabsTrigger>
         </TabsList>
 
         <TabsContent value="overview" className="mt-4">
@@ -225,6 +227,9 @@ export function VaptView({ canManage, isSuperAdmin }: { canManage: boolean; isSu
         </TabsContent>
         <TabsContent value="bidmatrix" className="mt-4">
           <BidMatrixTab />
+        </TabsContent>
+        <TabsContent value="scopes" className="mt-4">
+          <ScopesTab canManage={canManage} />
         </TabsContent>
       </Tabs>
     </div>
@@ -349,7 +354,8 @@ function OverviewTab({ data }: { data: OverviewDTO | null }) {
                     <p className="truncate text-sm font-medium">{s.name}</p>
                     <p className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted-foreground">
                       <Badge variant="outline" className="h-4 px-1.5 text-[10px]">{s.scanType}</Badge>
-                      {s.dastReal && <Badge variant="outline" className="h-4 px-1.5 text-[10px] bg-teal-50 text-teal-700 border-teal-300 dark:bg-teal-950/60 dark:text-teal-300 dark:border-teal-800">{t("vaptEngineHybrid").split("—")[0].trim()}</Badge>}
+                      {s.infraReal && <Badge variant="outline" className="h-4 px-1.5 text-[10px] bg-indigo-50 text-indigo-700 border-indigo-300 dark:bg-indigo-950/60 dark:text-indigo-300 dark:border-indigo-800">INFRA live</Badge>}
+                      {s.dastReal && <Badge variant="outline" className="h-4 px-1.5 text-[10px] bg-teal-50 text-teal-700 border-teal-300 dark:bg-teal-950/60 dark:text-teal-300 dark:border-teal-800">DAST live</Badge>}
                       <span>{s.newCount} {t("vaptScanNew")}</span>
                       <span>· {s.knownCount} {t("vaptScanKnown")}</span>
                       <span>· {fmtDate(s.completedAt ?? s.startedAt)}</span>
@@ -799,7 +805,8 @@ function ScansTab({ scans, assets, canManage, isSuperAdmin, orgs, onChanged }: {
                 </p>
                 <p className="text-xs text-muted-foreground">
                   {result.scan.targetCount} {t("vaptScanTargetsCount")} · {result.scan.newCount} {t("vaptScanNew")} · {result.scan.knownCount} {t("vaptScanKnown")}
-                  {" · "}{result.scan.engineMode === "hybrid" ? t("vaptEngineHybrid") : t("vaptEngineSim")}
+                  {" · "}{t("vaptEngineLive")}{result.scan.infraReal ? " · INFRA ✓" : ""}{result.scan.dastReal ? " · DAST ✓" : ""}
+                  {result.scan.autoClosedCount ? ` · ${result.scan.autoClosedCount} ${t("vaptScanAutoClosed")}` : ""}
                 </p>
                 {result.dastReports && result.dastReports.length > 0 && (
                   <div className="grid gap-1.5">
@@ -849,7 +856,7 @@ function ScansTab({ scans, assets, canManage, isSuperAdmin, orgs, onChanged }: {
                       <TableCell className="max-w-64">
                         <p className="truncate text-sm font-medium">{s.name}</p>
                         {isSuperAdmin && s.organization && <p className="text-xs text-muted-foreground">{s.organization.name}</p>}
-                        <p className="text-xs text-muted-foreground">{s.dastReal ? t("vaptEngineHybrid") : t("vaptEngineSim")}</p>
+                        <p className="text-xs text-muted-foreground">{t("vaptEngineLive")} · {[s.infraReal && "INFRA", s.dastReal && "DAST"].filter(Boolean).join(" + ") || "—"}</p>
                       </TableCell>
                       <TableCell><Badge variant="outline" className="whitespace-nowrap">{s.scanType}</Badge></TableCell>
                       <TableCell>

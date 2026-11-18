@@ -122,6 +122,8 @@ async function main() {
   await db.vaptVulnerability.deleteMany();
   await db.vaptScan.deleteMany();
   await db.vaptAsset.deleteMany();
+  await db.vaptCustomCheck.deleteMany();
+  await db.vaptScope.deleteMany();
   // Remove mirror scans from earlier seed runs (promotion containers).
   await db.scan.deleteMany({ where: { mode: "vapt" } });
 
@@ -137,6 +139,10 @@ async function main() {
     orgMap[key] = org;
   }
   const officer = await db.user.findFirst({ where: { organizationId: orgMap.CBE.id, role: "ORG_ADMIN" } });
+  // Four-eyes: the approving user must be a DIFFERENT user in the org — use
+  // the compliance officer (seed-users guarantees one per pilot org).
+  const approver = (await db.user.findFirst({ where: { organizationId: orgMap.CBE.id, role: "COMPLIANCE_OFFICER" } }))
+    ?? (await db.user.findFirst({ where: { organizationId: orgMap.CBE.id, role: "ORG_ADMIN" } }));
 
   // ── 1. Attack-surface registry ─────────────────────────────────────────────
   console.log("── Attack-surface registry (EASM) ──");
@@ -166,6 +172,105 @@ async function main() {
   }
   const assetCount = Object.keys(assetIds).length;
   console.log(`  + ${assetCount} asset(s) across ${Object.keys(ORG_SPEC).length} organizations (incl. 1 shadow-IT discovery)`);
+
+  // ── 1b. Vulnerable lab-target assets (true-functionality demo — the REAL
+  //        engine detects them when mini-services/vuln-lab is running) ─────
+  const labAssets = [
+    { name: "VULN-LAB web app (Apache 2.4.49 banner)", kind: "WEBAPP", identifier: "http://127.0.0.1:3060", environment: "DEV", surface: "INTERNAL", criticality: "medium", platform: "Apache httpd 2.4.49 (lab)", tags: ["lab", "vulnerable-by-design"] },
+    { name: "VULN-LAB multi-service host", kind: "SERVER", identifier: "127.0.0.1", environment: "DEV", surface: "INTERNAL", criticality: "medium", platform: "Mixed lab services (vsftpd/ProFTPD/OpenSSH/Redis)", tags: ["lab", "vulnerable-by-design"] },
+  ];
+  for (const spec of labAssets) {
+    const a = await db.vaptAsset.create({
+      data: {
+        organizationId: orgMap.CBE.id,
+        name: spec.name, kind: spec.kind, identifier: spec.identifier,
+        environment: spec.environment, surface: spec.surface, criticality: spec.criticality,
+        osOrPlatform: spec.platform, tags: JSON.stringify(spec.tags ?? []),
+        managed: true,
+        notes: "Intentionally vulnerable lab target (mini-services/vuln-lab) — for engine acceptance tests only",
+        firstSeenAt: ago(30), lastSeenAt: ago(0),
+      },
+    });
+    assetIds[`CBE/${spec.name}`] = { id: a.id, spec, orgId: orgMap.CBE.id };
+  }
+  console.log(`  + ${labAssets.length} vulnerable lab-target asset(s) (CBE, engine acceptance)`);
+
+  // ── 1c. Authorization scopes (the plan §1 gate — APPROVED via four-eyes) ─
+  console.log("── Authorization scopes (four-eyes) ──");
+  const officerEmail = officer?.email ?? "admin@cbe.com.et";
+  const approverEmail = approver?.email ?? "ciso@cbe.com.et";
+  const scopeSpecs = [
+    {
+      name: "CBE internal & perimeter scope",
+      targets: [
+        { kind: "cidr", value: "10.0.0.0/8" },
+        { kind: "domain", value: "cbe.com.et" },
+        { kind: "domain", value: "localhost" },
+        { kind: "ip", value: "127.0.0.1" },
+        { kind: "url", value: "http://localhost:3000" },
+      ],
+      owner: "CBE Technology Infrastructure — Ato Bekele (CTO office)",
+      authorizationNote: "CISO written authorization ICT-SEC-2026-114: recurring quarterly VAPT over the registered estate, approved by the security committee 2026-10-12.",
+      validFrom: ago(30), validUntil: new Date(Date.now() + 335 * 86_400_000),
+      intrusiveAllowed: false,
+    },
+  ];
+  for (const spec of scopeSpecs) {
+    const sc = await db.vaptScope.create({
+      data: {
+        organizationId: orgMap.CBE.id,
+        name: spec.name,
+        targets: JSON.stringify(spec.targets),
+        owner: spec.owner,
+        authorizationNote: spec.authorizationNote,
+        validFrom: spec.validFrom,
+        validUntil: spec.validUntil,
+        status: "APPROVED",
+        intrusiveAllowed: spec.intrusiveAllowed,
+        requestedById: officer?.id ?? "seed",
+        approvedById: (approver?.id ?? officer?.id) ?? null,
+        approvedAt: ago(29),
+      },
+    });
+    console.log(`  + scope "${sc.name}" APPROVED (requested ${officerEmail}, approved ${approverEmail}, four-eyes=${sc.requestedById !== sc.approvedById})`);
+  }
+  // Dashen: a scope covering only a /24 — for the out-of-scope rejection demo.
+  const dashenScope = await db.vaptScope.create({
+    data: {
+      organizationId: orgMap.Dashen.id,
+      name: "Dashen DMZ segment scope (partial)",
+      targets: JSON.stringify([{ kind: "cidr", value: "10.9.0.0/24" }]),
+      owner: "Dashen IT Operations",
+      authorizationNote: "Written authorization DIT-2026-077 covering the DMZ /24 only.",
+      validFrom: ago(20), validUntil: new Date(Date.now() + 340 * 86_400_000),
+      status: "APPROVED",
+      requestedById: officer?.id ?? "seed",
+      approvedById: approver?.id ?? null,
+      approvedAt: ago(19),
+    },
+  });
+  console.log(`  + Dashen scope "${dashenScope.name}" APPROVED (covers 10.9.0.0/24 only — out-of-scope rejections demonstrable)`);
+
+  // ── 1d. Sample custom check (declarative YAML, sandboxed) ───────────────
+  const sampleCheck = await db.vaptCustomCheck.create({
+    data: {
+      organizationId: orgMap.CBE.id,
+      name: "Legacy FTP banner disclosure",
+      yaml: [
+        "name: Legacy FTP banner disclosure",
+        "severity: medium",
+        "title: FTP greeting discloses product and version",
+        "remediation: Strip product/version details from the FTP greeting banner.",
+        "match:",
+        "  - type: banner-regex",
+        '    pattern: "220[ -].*(ProFTPD|vsFTPd|vsftpd) [0-9.]+"',
+        "",
+      ].join("\n"),
+      enabled: true,
+      createdById: officer?.id ?? null,
+    },
+  });
+  console.log(`  + sample custom check "${sampleCheck.name}" (banner-regex matcher)`);
 
   // ── 2. Scan runs (engine-labelled, honest) ────────────────────────────────
   console.log("── Scan runs ──");

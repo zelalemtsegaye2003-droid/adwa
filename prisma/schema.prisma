@@ -57,6 +57,8 @@ model Organization {
   vaptAssets      VaptAsset[] // VAPT Center: attack-surface registry
   vaptScans       VaptScan[]
   vaptVulnerabilities VaptVulnerability[]
+  vaptScopes      VaptScope[]
+  vaptCustomChecks VaptCustomCheck[]
 }
 
 // Machine-readable obligation catalogue, scoped to a framework
@@ -183,6 +185,8 @@ model User {
   gateEvidence      GateEvidence[]
   gateEvents        GateEvent[]
   vaptScansTriggered VaptScan[] // VAPT Center: scans this analyst launched
+  vaptScopesRequested VaptScope[] @relation("VaptScopeRequester")
+  vaptScopesApproved VaptScope[] @relation("VaptScopeApprover")
 }
 
 model RefreshToken {
@@ -810,14 +814,19 @@ model VaptScan {
   id                String       @id @default(cuid())
   organizationId    String
   organization      Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  scopeId           String? // authorization scope under which the scan ran
+  scope             VaptScope?   @relation(fields: [scopeId], references: [id], onDelete: SetNull)
+  profile           String       @default("SAFE") // SAFE (default) | INTRUSIVE (four-eyes gated)
   name              String
   scanType          String       @default("FULL") // DISCOVERY | INFRA | DAST | FULL
-  status            String       @default("RUNNING") // RUNNING | COMPLETED | FAILED
-  engineMode       String       @default("hybrid") // hybrid | simulated (honest labelling, decision D3)
+  status            String       @default("RUNNING") // RUNNING | COMPLETED | FAILED | REJECTED
+  engineMode       String       @default("live") // live (real probes) | simulated (reference catalogue)
   targetCount       Int          @default(0)
   newCount          Int          @default(0) // newly detected vulnerabilities
   knownCount        Int          @default(0) // already-open findings re-observed (dedup)
+  autoClosedCount   Int          @default(0) // open findings not re-observed → verified fixed
   dastReal          Boolean      @default(false) // true when real HTTP checks ran
+  infraReal         Boolean      @default(false) // true when real TCP/TLS probes ran
   summary           String? // JSON: { critical, high, medium, low, kev, topPriority, avgPriority }
   detail            String? // engine note / failure reason
   startedAt         DateTime     @default(now())
@@ -829,6 +838,80 @@ model VaptScan {
 
   @@index([organizationId])
   @@index([status])
+}
+
+// ═══ VAPT authorization gate (tender §1 "Authorization first") ═══════════════
+// No scan may run unless every target lies inside an APPROVED scope whose
+// validity window covers the scan date. Approval is four-eyes: the approver
+// must be a different user than the requester. Targets are typed entries
+// (cidr | ip | domain | url) with an owner, a written-authorization note and
+// an expiry — the scope object demanded by the VAPT implementation plan §1.
+model VaptScope {
+  id               String       @id @default(cuid())
+  organizationId   String
+  organization    Organization  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  name             String
+  // JSON array of { kind: "cidr"|"ip"|"domain"|"url", value: string }
+  targets          String
+  owner            String // accountable business owner of the systems in scope
+  authorizationNote String // written authorization reference (ticket/letter id + text)
+  validFrom        DateTime
+  validUntil       DateTime
+  status           String       @default("DRAFT") // DRAFT | APPROVED | REJECTED | EXPIRED
+  intrusiveAllowed Boolean      @default(false) // second-user opt-in for intrusive profiles
+  requestedById    String
+  requestedBy      User         @relation("VaptScopeRequester", fields: [requestedById], references: [id])
+  approvedById     String?
+  approvedBy       User?        @relation("VaptScopeApprover", fields: [approvedById], references: [id])
+  approvedAt       DateTime?
+  rejectReason     String?
+  scans            VaptScan[]
+  createdAt        DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+
+  @@index([organizationId])
+  @@index([status])
+}
+
+// ═══ Hash-chained append-only audit (plan §1: "Audit log every action") ════
+// Every VAPT action (scope change, scan start/finish, finding transition,
+// custom-check run) appends a row whose hash = sha256(seq ‖ prevHash ‖ canonical
+// payload). Any tampering with a row breaks every later hash — verified by
+// GET /api/vapt/audit?verify=1.
+model VaptAuditChain {
+  id        String   @id @default(cuid())
+  seq       Int      @unique // monotonic sequence number
+  type      String   // SCOPE_APPROVED | SCAN_STARTED | SCAN_COMPLETED | SCAN_REJECTED | ...
+  actorId   String?
+  actorEmail String
+  organizationId String?
+  target    String? // scanned asset / scope id — the "what"
+  action    String  // human summary — the "who did what"
+  result    String  // outcome (e.g. "14 findings, 3 new")
+  payload   String   // JSON detail (evidence-grade)
+  prevHash  String   // hash of the previous row ("GENESIS" for seq 1)
+  hash      String   // sha256(seq ‖ prevHash ‖ canonical payload)
+  createdAt DateTime @default(now())
+}
+
+// ═══ Analyst-authored custom checks (plan §Phase 3 custom check engine) ════
+// YAML-defined, versioned, sandboxed matchers — regex/banner/http-response
+// only. No code execution ever: the runner interprets declarative matchers.
+model VaptCustomCheck {
+  id             String   @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  name           String
+  yaml           String   // declarative matcher (see src/lib/vapt-checks.ts)
+  version        Int      @default(1)
+  enabled        Boolean  @default(true)
+  lastRunAt      DateTime?
+  lastResult     String?  // JSON: last test-run outcome
+  createdById    String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@index([organizationId])
 }
 
 // One detected vulnerability — the prioritised, SLA-tracked unit of work.
@@ -854,16 +937,19 @@ model VaptVulnerability {
   priorityClass     String         @default("P3") // P1 | P2 | P3 | P4
   evidence          String? // JSON proof bundle: DAST checks / simulated probe results
   status            String         @default("open") // open | in_progress | remediated | accepted (risk acceptance)
+  fingerprint       String? // sha256(asset ‖ rule/CVE ‖ location) — dedup identity (plan §4)
+  verified          Boolean        @default(false) // exploit-verified (plan §Phase 7; SAFE mode never sets this)
   dueAt             DateTime? // remediation SLA (30/60/90/180 by severity — mirrors SLA policy)
   remediatedAt      DateTime?
   detectedAt        DateTime       @default(now())
   promotedFindingId String? // ScanResult id once synced into the Findings module
   createdAt         DateTime       @default(now())
-  updatedAt         DateTime       @updatedAt
+  updatedAt          DateTime       @updatedAt
 
   @@index([organizationId])
   @@index([status])
   @@index([dueAt])
   @@index([kev])
   @@index([assetId])
+  @@index([fingerprint])
 }

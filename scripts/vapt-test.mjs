@@ -132,7 +132,7 @@ try {
     }));
     check("POST /api/vapt/scans (DAST) 201", r.status === 201, `status=${r.status}`);
     check("scan COMPLETED", r.body.scan?.status === "COMPLETED");
-    check("scan engineMode=hybrid (live DAST ran)", r.body.scan?.engineMode === "hybrid" && r.body.scan?.dastReal === true);
+    check("scan engineMode=live (real DAST ran)", r.body.scan?.engineMode === "live" && r.body.scan?.dastReal === true);
     const report = (r.body.dastReports ?? []).find((x) => x.target === "http://localhost:3000");
     check("live DAST report captured", Boolean(report) && report.reachable === true);
     check("live DAST checks executed (non-empty battery)", (report?.checks ?? []).length >= 5, `checks=${report?.checks?.length ?? 0}`);
@@ -165,6 +165,141 @@ try {
       check("unreachable target marked in scan detail", r.status === 201 && (r.body.scan?.detail ?? "").includes("Unreachable"));
     }
   }
+
+  // ── 4b. REAL INFRA scan against the vulnerable lab target ─────────────
+  //     (mini-services/vuln-lab — true-functionality acceptance: banners →
+  //      live-fetched CVE feed → prioritised findings)
+  const labUp = await fetch("http://127.0.0.1:3060/", { signal: AbortSignal.timeout(1500) }).then((x) => x.status < 500).catch(() => false);
+  check("vuln-lab target running (bun mini-services/vuln-lab)", labUp, labUp ? "up" : "down — start with: bun mini-services/vuln-lab/index.ts");
+  const labHost = cbeAssets.find((a) => a.identifier === "127.0.0.1");
+  const labWeb = cbeAssets.find((a) => a.identifier === "http://127.0.0.1:3060");
+  if (labUp && labHost && labWeb) {
+    r = await jfetch("/api/vapt/scans", jbody(cbeAdmin, {
+      scanType: "FULL", name: "vapt-test live INFRA on vuln-lab",
+      assetIds: [labHost.id, labWeb.id],
+      ports: [3021, 3022, 3060, 3061, 3062],
+    }));
+    check("POST /api/vapt/scans (FULL on lab) 201", r.status === 201, `status=${r.status}`);
+    check("live INFRA probes ran (infraReal)", r.body.scan?.infraReal === true);
+    check("scan scope recorded", Boolean(r.body.scan?.scopeId), `scopeId=${r.body.scan?.scopeId ?? null}`);
+
+    const labVulns = (await jfetch("/api/vapt/vulnerabilities?q=vsftpd", authed(cbeAdmin))).body.vulnerabilities;
+    check("vsftpd 2.3.4 banner → CVE-2011-2523 detected", labVulns.some((v) => v.cveId === "CVE-2011-2523" && v.evidence?.mode === "infra-live"), `n=${labVulns.length}`);
+    const apacheVulns = (await jfetch("/api/vapt/vulnerabilities?q=Apache HTTP Server path traversal", authed(cbeAdmin))).body.vulnerabilities;
+    check("Apache/2.4.49 header → CVE-2021-41773 + 42013 (KEV) detected", apacheVulns.filter((v) => ["CVE-2021-41773", "CVE-2021-42013"].includes(v.cveId)).length >= 2, `n=${apacheVulns.length}`);
+    const sshVulns = (await jfetch("/api/vapt/vulnerabilities?q=OpenSSH ssh-agent", authed(cbeAdmin))).body.vulnerabilities;
+    check("OpenSSH 7.2p2 banner → CVE-2023-38408 detected", sshVulns.some((v) => v.cveId === "CVE-2023-38408"), `n=${sshVulns.length}`);
+    const hbVulns = (await jfetch("/api/vapt/vulnerabilities?q=Heartbleed", authed(cbeAdmin))).body.vulnerabilities;
+    check("OpenSSL 1.0.1e banner → CVE-2014-0160 (KEV) detected", hbVulns.some((v) => v.cveId === "CVE-2014-0160" && v.kev === true), `n=${hbVulns.length}`);
+    const redisVulns = (await jfetch("/api/vapt/vulnerabilities?q=Redis answers PING", authed(cbeAdmin))).body.vulnerabilities;
+    check("unauthenticated Redis PING probe finding", redisVulns.length >= 1 && redisVulns.every((v) => v.evidence?.mode === "infra-live"), `n=${redisVulns.length}`);
+    const proftpdVulns = (await jfetch("/api/vapt/vulnerabilities?q=ProFTPD", authed(cbeAdmin))).body.vulnerabilities;
+    check("ProFTPD 1.3.3c banner → CVE-2010-20103 (not 4221 — fixed in 1.3.3c)", proftpdVulns.some((v) => v.cveId === "CVE-2010-20103") && proftpdVulns.every((v) => v.cveId !== "CVE-2010-4221"), `n=${proftpdVulns.length}`);
+    const liveFindings = [labVulns, sshVulns, hbVulns].flat().filter((v) => v.evidence?.mode === "infra-live");
+    check("live findings carry fingerprints (dedup identity)", liveFindings.length >= 3 && liveFindings.every((v) => v.fingerprint?.length === 64), `live=${liveFindings.length}`);
+    check("live findings carry CVSS + EPSS + priority score", sshVulns.every((v) => v.cvssScore > 0 && v.epss > 0 && v.priorityScore > 0));
+
+    // Re-scan → fingerprint dedup (known, not duplicated).
+    const dedupBefore = (await jfetch("/api/vapt/vulnerabilities?q=vsftpd", authed(cbeAdmin))).body.vulnerabilities.length;
+    r = await jfetch("/api/vapt/scans", jbody(cbeAdmin, {
+      scanType: "FULL", name: "vapt-test re-scan (dedup)", assetIds: [labHost.id, labWeb.id],
+      ports: [3021, 3022, 3060, 3061, 3062],
+    }));
+    const dedupAfter = (await jfetch("/api/vapt/vulnerabilities?q=vsftpd", authed(cbeAdmin))).body.vulnerabilities.length;
+    check("INFRA re-scan dedups via fingerprint", r.status === 201 && dedupAfter === dedupBefore && r.body.scan?.knownCount > 0, `before=${dedupBefore} after=${dedupAfter} known=${r.body.scan?.knownCount}`);
+
+    // Auto-close: rescan WITHOUT the Redis port → the Redis finding is not
+    // re-observed by a FULL scan → verified-fixed (plan §4).
+    const redisBefore = redisVulns.length;
+    if (redisBefore > 0) {
+      r = await jfetch("/api/vapt/scans", jbody(cbeAdmin, {
+        scanType: "FULL", name: "vapt-test auto-close (port removed)", assetIds: [labHost.id],
+        ports: [3021, 3022, 3060, 3061], // 3062 (Redis) intentionally absent
+      }));
+      check("auto-close runs on FULL rescan (redis gone)", r.status === 201 && (r.body.scan?.autoClosedCount ?? 0) >= 1, `autoClosed=${r.body.scan?.autoClosedCount}`);
+      const redisAfter = (await jfetch("/api/vapt/vulnerabilities?q=Redis answers PING", authed(cbeAdmin))).body.vulnerabilities;
+      // Only the RESCANNED asset's finding closes (labHost) — the labWeb copy was
+      // not in this scan's asset set, so it stays open (correct plan §4 semantics).
+      const hostClosed = redisAfter.filter((v) => v.asset?.name?.includes("multi-service host")).every((v) => v.status === "remediated" && v.remediatedAt !== null);
+      check("Redis finding auto-closed as verified-fixed (scanned asset)", hostClosed, `hostCopies=${redisAfter.filter((v) => v.asset?.name?.includes("multi-service host")).length}`);
+    }
+  }
+
+  // ── 4c. Authorization gate: out-of-scope rejection (plan §1 + §7) ──────
+  const dashenAdm = await login("admin@wasasa.et", "Adwa#Demo2026!");
+  r = await jfetch("/api/vapt/assets", jbody(dashenAdm, { name: "Out-of-scope probe", kind: "SERVER", identifier: "192.0.2.99", environment: "PROD", surface: "EXTERNAL", criticality: "low" }));
+  const oosAsset = r.body.asset ?? (await jfetch("/api/vapt/assets", authed(dashenAdm))).body.assets.find((a) => a.identifier === "192.0.2.99");
+  if (oosAsset) {
+    r = await jfetch("/api/vapt/scans", jbody(dashenAdm, { scanType: "FULL", name: "out-of-scope attempt", assetIds: [oosAsset.id] }));
+    check("out-of-scope scan REJECTED 403 at the API level", r.status === 403 && Array.isArray(r.body.unauthorized) && r.body.unauthorized.length === 1, `status=${r.status}`);
+    const auditChain = (await jfetch("/api/vapt/audit?verify=1", authed(dashenAdm))).body;
+    const rejection = (auditChain.chain ?? []).find((row) => row.type === "SCAN_REJECTED" && (row.target ?? "").includes("192.0.2.99"));
+    check("rejection recorded in the hash-chained audit log", Boolean(rejection), `seq=${rejection?.seq ?? null}`);
+    // cleanup
+    await jfetch(`/api/vapt/assets/${oosAsset.id}`, { method: "DELETE", headers: { Cookie: dashenAdm.cookie } });
+  }
+
+  // ── 4d. Scope lifecycle: four-eyes ───────────────────────────────────────
+  const iso = new Date().toISOString();
+  const scopeBody = {
+    name: "vapt-test lab scope",
+    targets: [{ kind: "ip", value: "127.0.0.1" }],
+    owner: "vapt-test",
+    authorizationNote: "test written authorization",
+    validFrom: iso, validUntil: new Date(Date.now() + 30 * 86400000).toISOString(),
+  };
+  r = await jfetch("/api/vapt/scopes", jbody(cbeAdmin, scopeBody));
+  check("POST /api/vapt/scopes creates a DRAFT", r.status === 201 && r.body.scope?.status === "DRAFT", `status=${r.status}`);
+  const draftScopeId = r.body.scope?.id;
+  r = await jfetch(`/api/vapt/scopes/${draftScopeId}`, jbody(cbeAdmin, { action: "approve" }, "PATCH"));
+  check("SELF-approval blocked (four-eyes) 403", r.status === 403, `status=${r.status}`);
+  // officer@cbe.com.et carries MFA in the seed — use the platform SUPER_ADMIN
+  // as the (distinct) second user; four-eyes requires different USERS, and the
+  // gate accepts any permitted approver.
+  const cbeSecondApprover = await login("admin@adwacyber.et", "Adwa#Admin2026!");
+  r = await jfetch(`/api/vapt/scopes/${draftScopeId}`, jbody(cbeSecondApprover, { action: "approve" }, "PATCH"));
+  check("SECOND-user approval 200 (four-eyes satisfied)", r.status === 200 && r.body.scope?.status === "APPROVED", `status=${r.status}`);
+  r = await jfetch("/api/vapt/scopes", authed(cbeAdmin));
+  const myScopes = (r.body.scopes ?? []).filter((sc) => sc.organizationId === (r.body.scopes?.[0]?.organizationId));
+  check("scope register lists four-eyes state", myScopes.some((sc) => sc.fourEyes === true && sc.live === true), `scopes=${myScopes.length}`);
+  // invalid targets rejected
+  r = await jfetch("/api/vapt/scopes", jbody(cbeAdmin, { ...scopeBody, name: "bad", targets: [{ kind: "cidr", value: "300.1.2.3/40" }] }));
+  check("invalid CIDR scope target rejected 400", r.status === 400);
+
+  // ── 4e. Custom checks (declarative YAML, sandboxed) ─────────────────────
+  r = await jfetch("/api/vapt/checks", jbody(cbeAdmin, { name: "bad", yaml: "name: x\nmatch: []\n" }));
+  check("invalid check YAML rejected 400", r.status === 400);
+  r = await jfetch("/api/vapt/checks", jbody(cbeAdmin, {
+    name: "vapt-test lab FTP banner check",
+    yaml: [
+      "name: Lab FTP banner check",
+      "severity: medium",
+      "title: FTP greeting discloses version",
+      "remediation: Strip banner.",
+      "match:",
+      "  - type: banner-regex",
+      '    pattern: "220[ -].*vsFTPd [0-9.]+"',
+    ].join("\n"),
+  }));
+  check("valid custom check created 201", r.status === 201, `status=${r.status}`);
+  const checkId = r.body.check?.id;
+  if (checkId) {
+    r = await jfetch(`/api/vapt/checks/${checkId}/test`, jbody(cbeAdmin, { target: "8.8.8.8" }));
+    check("check test-run out-of-scope target rejected 403", r.status === 403, `status=${r.status}`);
+    if (labUp) {
+      r = await jfetch(`/api/vapt/checks/${checkId}/test`, jbody(cbeAdmin, { target: "127.0.0.1", ports: [3021, 3060] }));
+      check("check test-run (in-scope) evaluates live probes", r.status === 200 && r.body.result?.matched === true, `matched=${r.body.result?.matched} evidence=${(r.body.result?.evidence ?? "").slice(0, 60)}`);
+    }
+  }
+
+  // ── 4f. Hash-chained audit log + tamper check ────────────────────────────
+  r = await jfetch("/api/vapt/audit", authed(cbeAdmin));
+  check("GET /api/vapt/audit returns the chain", r.status === 200 && (r.body.chain ?? []).length >= 3, `rows=${r.body.chain?.length ?? 0}`);
+  check("chain rows carry prev-hash linkage", (r.body.chain ?? []).every((row) => typeof row.prevHash === "string" && row.prevHash.length > 0));
+  r = await jfetch("/api/vapt/audit?verify=1", authed(cbeAdmin));
+  check("tamper check: chain verifies end-to-end", r.status === 200 && r.body.verification?.valid === true, r.body.verification?.note?.slice(0, 80) ?? "");
+  const types = new Set((r.body.chain ?? []).map((row) => row.type));
+  check("audit chain records the full action spectrum", ["SCAN_STARTED", "SCAN_COMPLETED"].every((t) => types.has(t)) && (types.has("SCAN_REJECTED") || types.has("SCOPE_APPROVED") || types.has("CHECK_TESTED")), [...types].join(","));
 
   // ── 5. Remediation workflow + risk acceptance ────────────────────────────
   const openVulns = (await jfetch("/api/vapt/vulnerabilities?status=open&severity=medium", authed(cbeAdmin))).body.vulnerabilities;

@@ -93,7 +93,12 @@ export type AuthEventType =
   | "VAPT_ASSET_UPDATED"
   | "VAPT_ASSET_DELETED"
   | "VAPT_VULN_STATUS_CHANGED"
-  | "VAPT_VULN_PROMOTED";
+  | "VAPT_VULN_PROMOTED"
+  | "VAPT_SCOPE_CREATED"
+  | "VAPT_SCOPE_APPROVED"
+  | "VAPT_SCOPE_REJECTED"
+  | "VAPT_CHECK_CREATED"
+  | "VAPT_CHECK_TESTED";
 
 export interface AuditInput {
   type: AuthEventType;

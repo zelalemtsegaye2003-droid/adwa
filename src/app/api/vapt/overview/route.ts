@@ -83,7 +83,7 @@ export async function GET(req: NextRequest) {
     topRisk: open,
     recentScans: scans.map((s) => ({
       id: s.id, name: s.name, scanType: s.scanType, status: s.status,
-      engineMode: s.engineMode, dastReal: s.dastReal,
+      engineMode: s.engineMode, dastReal: s.dastReal, infraReal: s.infraReal,
       newCount: s.newCount, knownCount: s.knownCount, targetCount: s.targetCount,
       startedAt: s.startedAt, completedAt: s.completedAt,
       organization: s.organization?.name ?? null,

@@ -10,11 +10,13 @@ cd /adwa
 LOG=/tmp/adwa-dev.log
 MOCK_G=/tmp/mock-google.log
 MOCK_EC=/tmp/mock-ethiocert.log
+VULN_LAB=/tmp/vuln-lab.log
 
 cleanup() {
   pkill -f 'next dev' 2>/dev/null
   pkill -f 'next-server' 2>/dev/null
   pkill -f 'mini-services/mock' 2>/dev/null
+  pkill -f 'mini-services/vuln-lab' 2>/dev/null
   pkill -f 'bun --hot' 2>/dev/null
 }
 trap cleanup EXIT
@@ -24,6 +26,7 @@ cleanup; sleep 1
 echo "── starting mini-services + next dev ──────────────────────────"
 (cd mini-services/mock-google && nohup bun run dev > "$MOCK_G" 2>&1 &)
 (cd mini-services/mock-ethiocert && nohup bun run dev > "$MOCK_EC" 2>&1 &)
+(cd mini-services/vuln-lab && nohup bun index.ts > "$VULN_LAB" 2>&1 &)
 nohup bun run dev > "$LOG" 2>&1 &
 
 ready=""
@@ -31,7 +34,8 @@ for i in $(seq 1 90); do
   a=$(curl -s -o /dev/null -w '%{http_code}' --max-time 3 http://localhost:3000/ 2>/dev/null)
   g=$(curl -s -o /dev/null -w '%{http_code}' --max-time 3 http://localhost:3010/ 2>/dev/null)
   e=$(curl -s -o /dev/null -w '%{http_code}' --max-time 3 http://localhost:3020/ 2>/dev/null)
-  if [ "$a" = "200" ] && [ "$g" != "000" ] && [ "$e" = "200" ]; then ready=1; break; fi
+  l=$(curl -s -o /dev/null -w '%{http_code}' --max-time 3 http://localhost:3060/ 2>/dev/null)
+  if [ "$a" = "200" ] && [ "$g" != "000" ] && [ "$e" = "200" ] && [ "$l" = "200" ]; then ready=1; break; fi
   sleep 2
 done
 if [ -z "$ready" ]; then

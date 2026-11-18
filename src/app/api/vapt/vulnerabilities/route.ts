@@ -83,6 +83,8 @@ export async function GET(req: NextRequest) {
       priorityClass: v.priorityClass,
       evidence: v.evidence ? JSON.parse(v.evidence) : null,
       status: v.status,
+      fingerprint: v.fingerprint,
+      verified: v.verified,
       dueAt: v.dueAt,
       remediatedAt: v.remediatedAt,
       detectedAt: v.detectedAt,

@@ -11,42 +11,85 @@ module (NBE-anchored corrective actions).
 
 | Piece | Location |
 |---|---|
-| Data models (`VaptAsset`, `VaptScan`, `VaptVulnerability`) | `prisma/schema.prisma` (+ postgres variant) |
+| Data models (`VaptAsset`, `VaptScan`, `VaptVulnerability`, `VaptScope`, `VaptAuditChain`, `VaptCustomCheck`) | `prisma/schema.prisma` (+ postgres variant) |
 | Reference CVE catalogue (44 entries, NVD/CISA-aligned) | `src/lib/vapt-data.ts` |
-| Engine: prioritisation, SLA, simulation, **live DAST** | `src/lib/vapt-engine.ts` |
+| **Offline CVE feed — live-fetched CVSS/EPSS/KEV** | `src/lib/vapt-cve-feed.ts` + `src/lib/vapt-feed-snapshot.json` (built by `scripts/fetch-vapt-feed.ts`) |
+| Engine: prioritisation, SLA, **live DAST** | `src/lib/vapt-engine.ts` |
+| **REAL infrastructure engine** (TCP scan, banners, TLS, safe service checks) | `src/lib/vapt-netengine.ts` |
+| **Authorization gate** (scopes, CIDR/domain/URL matching, four-eyes) | `src/lib/vapt-scope.ts` |
+| **Hash-chained audit log** (append-only, tamper-check) | `src/lib/vapt-audit.ts` |
+| **Custom YAML check engine** (sandboxed declarative matchers) | `src/lib/vapt-checks.ts` |
 | **AD attack-path graph & BFS analysis** | `src/lib/vapt-ad-paths.ts` + `src/lib/vapt-ad-engine.ts` |
 | **Bid capability response matrix (66 tender lines)** | `src/lib/vapt-bid-matrix.ts` |
-| API routes | `src/app/api/vapt/{overview,assets,scans,vulnerabilities,ad-paths,bid-matrix}` |
+| API routes | `src/app/api/vapt/{overview,assets,scans,scopes,vulnerabilities,checks,audit,ad-paths,bid-matrix}` |
 | Promotion into Findings | `src/app/api/vapt/vulnerabilities/[id]/promote/route.ts` |
-| UI tabs (Overview / Assets / Scans / Vulnerabilities / **AD Attack Paths** / **Bid Matrix**) | `src/components/adwa/vapt.tsx` + `vapt-adpaths.tsx` + `vapt-bidmatrix.tsx` |
+| UI tabs (Overview / Assets / Scans / Vulnerabilities / **AD Attack Paths** / **Bid Matrix** / **Scopes & Authorization**) | `src/components/adwa/vapt.tsx` + `vapt-adpaths.tsx` + `vapt-bidmatrix.tsx` + `vapt-scopes.tsx` |
+| **Vulnerable lab target** (engine acceptance) | `mini-services/vuln-lab` (banners/headers only, localhost) |
 | RBAC permissions (`vapt:view-*`, `vapt:manage-*`) | `src/lib/auth/rbac.ts` |
 | Demo seed | `scripts/seed-vapt.ts` (`bun run seed:vapt`) |
-| API test suite (60 checks) | `scripts/vapt-test.mjs` (runs via `scripts/run-api-tests.sh`) |
+| API test suite (113 checks) | `scripts/vapt-test.mjs` (runs via `scripts/run-api-tests.sh`) |
+| **Traceability matrix** (plan phases → status, honest) | `docs/VAPT_TRACEABILITY.md` |
 
-## The hybrid engine (decision D3 — honestly labelled, never silent)
+## The engine — REAL probes behind an authorization gate (all live, zero simulation)
 
-- **DAST — REAL.** For `WEBAPP`/`API` assets whose identifier is an http(s)
-  URL, the engine performs live, non-destructive GET probes (throttled,
-  never a destructive payload): TLS protocol/certificate audit, HSTS, CSP,
-  framing policy, nosniff, referrer policy, version disclosure,
-  `Set-Cookie` flags (OWASP A02/A05/A07) and `robots.txt` disclosure.
-  Findings carry the raw check evidence as their proof bundle. The demo
-  registers the platform itself (`http://localhost:3000`) as a scan target —
-  `bun run seed:vapt` + a `FULL`/`DAST` scan exercises the live engine
-  end-to-end. The dev server genuinely PASSES its own hardening checks and
-  yields the plaintext-transport finding — real results, not fixtures.
-- **Infrastructure — simulated.** Infrastructure findings come from the
-  bundled reference catalogue (`src/lib/vapt-data.ts`): real, publicly
-  documented CVEs (Log4Shell, Zerologon, ProxyLogon, PAN-OS, EternalBlue…)
-  with CVSS v3.1 base scores, indicative point-in-time EPSS probabilities
-  and CISA KEV membership, plus no-CVE heuristic audit findings
-  (Kerberoastable accounts, SNMPv1 default communities, SMBv1, weak TLS,
-  unauthenticated MongoDB, exposed Kubernetes dashboard…). Selection is
-  deterministic per asset (seeded RNG) so runs are reproducible. Every scan
-  record stores its `engineMode` (`hybrid`/`simulated`) and the UI labels
-  it — a dev/pilot substitute is never presented as live coverage.
-  `ETHIOCERT`-style swap-out: replacing the catalogue with a live
-  NVD/KEV feed is a data-source change behind the same engine interface.
+Every scan now runs through three layers, all real:
+
+### 1. Authorization gate (plan §1 "Authorization first")
+
+No scan (or custom-check test run) starts unless every target lies inside an
+**APPROVED scope** whose validity window covers the scan date. Scopes are
+written-authorization objects (`VaptScope`): typed targets (IPv4 CIDR / IP /
+DNS-suffix domain / URL), a business owner, an authorization note and a window.
+Approval is **four-eyes** — the approver must be a different user than the
+requester; self-approval is rejected with 403. An out-of-scope attempt is
+rejected at the API level and written to the hash-chained audit log as
+`SCAN_REJECTED` — the plan's acceptance test, verbatim.
+
+### 2. Live engines
+
+- **INFRA (real).** `src/lib/vapt-netengine.ts` — TCP connect port scan
+  (concurrency-limited, per-host throttling), a SAFE service-detection ladder
+  (passive greeting read → HTTP HEAD → Redis PING), TLS posture probes
+  (deprecated-protocol acceptance via pinned handshakes + certificate expiry
+  bands), and non-destructive service checks (anonymous FTP, unauthenticated
+  Redis). Banners are parsed into product/version pairs and matched against
+  the bundled offline CVE feed with published affected ranges — vsftpd 2.3.4
+  banners match CVE-2011-2523 exactly; ProFTPD 1.3.3c matches the backdoor
+  CVE-2010-20103 but *not* CVE-2010-4221 (fixed in 1.3.3c) — version
+  arithmetic, not string guessing.
+- **DAST (real).** For `WEBAPP`/`API` assets: live, non-destructive GET probes
+  (throttled): TLS protocol/certificate audit, HSTS, CSP, framing, nosniff,
+  referrer policy, version disclosure, `Set-Cookie` flags (OWASP A02/A05/A07)
+  and `robots.txt` disclosure. The platform itself
+  (`http://localhost:3000`) is a registered demo target — it genuinely passes
+  its own hardening checks and yields the plaintext-transport finding.
+- **Offline feed (live-fetched data).** `scripts/fetch-vapt-feed.ts` builds
+  `src/lib/vapt-feed-snapshot.json` from **live** NVD API 2.0 (primary CVSS
+  v3.1 records), the FIRST EPSS API and KEV membership via the NVD
+  `cisaExploitAdd` field, with per-entry source citations and an `asOf` date
+  (content freshness — the air-gap pattern from plan §Phase 1).
+
+### 3. Unified findings + dedup + auto-close
+
+Every finding carries `fingerprint = sha256(asset ‖ rule ‖ location)` (plan
+§4) — re-scans count known findings instead of duplicating them. A **FULL**
+re-scan that does not re-observe a live finding auto-closes it as
+verified-fixed (remediation proven by absence); seeded reference history is
+never silently closed this way.
+
+The old simulated-catalogue path is retained only as labelled reference data
+(`src/lib/vapt-data.ts`) — scan `engineMode` is now always `live`.
+
+## The vulnerable lab target (plan §7 acceptance lab)
+
+`bun mini-services/vuln-lab/index.ts` starts a localhost-only, deliberately
+mis-configured service set — every "vulnerability" is a label (a crafted
+banner/header), no real software is exploited: an Apache/2.4.49-shaped HTTP
+server with weak headers/cookies/robots, vsftpd-2.3.4 and ProFTPD-1.3.3c
+banner greeters, an OpenSSH-7.2p2/OpenSSL-1.0.1e banner, and an
+unauthenticated Redis. `seed-vapt` registers both lab assets (in-scope) and
+`vapt-test` proves end-to-end detection — including the NEGATIVE case
+(anonymous FTP correctly not flagged).
 
 ## Prioritisation — the tender's "context-aware scoring"
 

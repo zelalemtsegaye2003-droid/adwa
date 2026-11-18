@@ -1,0 +1,9 @@
+{
+  "name": "adwa-vuln-lab",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Intentionally vulnerable lab target (banners/headers only) for Adwa Cyber VAPT engine acceptance tests",
+  "scripts": {
+    "dev": "bun index.ts"
+  }
+}
