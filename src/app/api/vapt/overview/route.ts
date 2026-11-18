@@ -27,7 +27,7 @@ export async function GET(req: NextRequest) {
   }
 
   const scopeFilter = organizationId ? { organizationId } : {};
-  const [assets, vulns, scans] = await Promise.all([
+  const [assets, vulns, scans, discoveries] = await Promise.all([
     db.vaptAsset.findMany({
       where: scopeFilter,
       select: {
@@ -45,6 +45,7 @@ export async function GET(req: NextRequest) {
       take: 6,
       include: { organization: { select: { name: true } } },
     }),
+    db.vaptDiscovery.findMany({ where: scopeFilter, select: { resolved: true, inScope: true, managed: true } }),
   ]);
 
   const now = new Date();
@@ -77,6 +78,12 @@ export async function GET(req: NextRequest) {
       unmanaged: assets.filter((a) => !a.managed).length,
       external: assets.filter((a) => a.surface === "EXTERNAL").length,
       byKind,
+    },
+    easm: {
+      discoveredHostnames: discoveries.length,
+      resolving: discoveries.filter((d) => d.resolved).length,
+      shadowUnmanaged: discoveries.filter((d) => d.resolved && !d.managed).length,
+      outsideApprovedScope: discoveries.filter((d) => !d.inScope).length,
     },
     vulnerabilities: summary,
     kevOpenCount: kevOpen.length,

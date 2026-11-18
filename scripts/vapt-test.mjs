@@ -13,6 +13,9 @@
  *     ScanResult with the shared SLA clock; /api/findings/sla sees it;
  *     /api/stats excludes mirror scans from compliance aggregates.
  *  7. Bidirectional status sync (Findings PATCH mirrors back into VAPT).
+ *  8. SNMP device audit + credentialed DB audit (MongoDB OP_MSG/SCRAM,
+ *     MariaDB handshake) against the protocol labs + EASM discovery run
+ *     (real certificate-transparency + DNS, authorization-gated).
  *
  * Usage: node scripts/vapt-test.mjs   (requires the seeded dev stack)
  */
@@ -298,6 +301,71 @@ try {
     }
   }
 
+  // ── 4f. REAL SNMP device audit + credentialed DB audit (protocol labs:
+  //        mini-services/vuln-lab/protocol-labs.ts — SNMP v1/v2c/v3, MongoDB
+  //        no-auth + SCRAM-SHA-256, MariaDB mysql_native_password) ─────────
+  const snmpAsset = cbeAssets.find((a) => a.identifier === "127.0.0.1:3161");
+  const mongoNoAuth = cbeAssets.find((a) => a.identifier === "127.0.0.1:3160");
+  const mariaAsset = cbeAssets.find((a) => a.identifier === "127.0.0.1:3162");
+  const mongoScram = cbeAssets.find((a) => a.identifier === "127.0.0.1:3164");
+  check("lab protocol assets registered (SNMP/Mongo/MariaDB/Mongo-SCRAM)", Boolean(snmpAsset && mongoNoAuth && mariaAsset && mongoScram));
+  const credEcho = mariaAsset?.credentials ?? [];
+  check("stored credentials echoed masked (kind + username, never the secret)", credEcho.length >= 1 && credEcho.every((c) => c.kind === "mysql" && c.username === "audit" && c.secretCiphertext === undefined && c.secret === undefined), JSON.stringify(credEcho));
+
+  if (labUp && snmpAsset && mongoNoAuth && mariaAsset && mongoScram) {
+    r = await jfetch("/api/vapt/scans", jbody(cbeAdmin, {
+      scanType: "INFRA", name: "vapt-test SNMP + credentialed DB audit (protocol labs)",
+      assetIds: [snmpAsset.id, mongoNoAuth.id, mariaAsset.id, mongoScram.id],
+    }));
+    check("POST /api/vapt/scans (protocol labs) 201", r.status === 201, `status=${r.status}`);
+    const snmp = (r.body.snmpReports ?? [])[0];
+    check("SNMP report captured", Boolean(snmp) && snmp.port === 3161, JSON.stringify((r.body.snmpReports ?? []).slice(0, 1)));
+    check("SNMP default communities 'public'+'private' both accepted", (snmp?.defaultCommunities ?? []).includes("public") && snmp.defaultCommunities.includes("private"));
+    check("SNMPv3 noAuthNoPriv security level answered (misconfig)", snmp?.v3 === "noAuthNoPriv");
+    check("SNMP sysDescr evidence captured", /Cisco IOS/.test(snmp?.system?.sysDescr ?? ""));
+
+    const dbR = r.body.dbReports ?? [];
+    const mongoReport = dbR.find((x) => x.port === 3160);
+    const mariaReport = dbR.find((x) => x.port === 3162);
+    const scramReport = dbR.find((x) => x.port === 3164);
+    check("MongoDB wire protocol detected (OP_MSG hello)", mongoReport?.protocol === "mongo" && mongoReport.reachable === true);
+    check("MongoDB auth NOT enforced (listDatabases answered)", mongoReport?.mongo?.authEnabled === false);
+    check("MongoDB version + inventory read", mongoReport?.mongo?.version === "4.0.10" && (mongoReport?.mongo?.databases ?? []).includes("bankdb"));
+    check("MariaDB wire protocol detected (handshake)", mariaReport?.protocol === "mysql" && (mariaReport?.mysql?.version ?? "").startsWith("5.5.62"));
+    check("MariaDB root/empty rejected (auth enforced)", mariaReport?.mysql?.authEnabled === true && mariaReport?.mysql?.rootEmpty !== true);
+    check("MariaDB credentialed login via stored encrypted credential", mariaReport?.mysql?.loginOk === true);
+    check("MongoDB SCRAM auth enforced (code 13)", scramReport?.mongo?.authEnabled === true);
+    check("MongoDB SCRAM-SHA-256 credentialed login", scramReport?.mongo?.scramOk === true && scramReport?.mongo?.version === "5.0.5");
+
+    const snmpVulns = (await jfetch("/api/vapt/vulnerabilities?q=SNMP", authed(cbeAdmin))).body.vulnerabilities;
+    check("SNMP findings tracked (2 defaults + v3 noAuth = 3, live evidence)", snmpVulns.filter((v) => v.evidence?.mode === "snmp-live").length >= 3, `n=${snmpVulns.length}`);
+    const mongoNoAuthVulns = (await jfetch("/api/vapt/vulnerabilities?q=without authentication", authed(cbeAdmin))).body.vulnerabilities;
+    check("MongoDB no-auth finding (critical, live evidence)", mongoNoAuthVulns.some((v) => /MongoDB accepts administrative commands/.test(v.title) && v.severity === "critical" && v.evidence?.mode === "db-live"), `n=${mongoNoAuthVulns.length}`);
+    const eolVulns = (await jfetch("/api/vapt/vulnerabilities?q=end-of-life", authed(cbeAdmin))).body.vulnerabilities;
+    check("database EOL findings tracked (4.0 / 5.5 / 5.0 lines)", eolVulns.filter((v) => v.evidence?.mode === "db-live").length >= 3, `n=${eolVulns.length}`);
+
+    // credential lastUsedAt stamped by the scan
+    const assetsAfter = (await jfetch("/api/vapt/assets", authed(cbeAdmin))).body.assets;
+    const mariaAfter = assetsAfter.find((a) => a.identifier === "127.0.0.1:3162");
+    check("credential lastUsedAt stamped after credentialed scan", mariaAfter?.credentials?.some((c) => c.kind === "mysql" && c.lastUsedAt !== null));
+  }
+
+  // ── 4g. EASM discovery — REAL certificate-transparency + DNS run ──────
+  //        (passive OSINT; authorization-gated like every scan)
+  r = await jfetch("/api/vapt/discovery", jbody(cbeAdmin, { domain: "example.net" }));
+  check("discovery outside approved scope REJECTED 403", r.status === 403, `status=${r.status}`);
+  r = await jfetch("/api/vapt/discovery", jbody(cbeAdmin, { domain: "cbe.com.et" }));
+  check("EASM discovery run 201 (live CT or labelled bundled snapshot)", r.status === 201, `status=${r.status} ${JSON.stringify(r.body).slice(0, 140)}`);
+    check("discovery source honestly labelled", r.status === 201 && (r.body.source === "live-ct" || r.body.source === "bundled-ct-snapshot"), `source=${r.body.source}`);
+  check("real hostnames discovered under cbe.com.et", (r.body.counts?.total ?? 0) >= 10, `total=${r.body.counts?.total}`);
+  check("discovered hostnames classified (managed/shadow)", r.body.hosts?.every((h) => typeof h.managed === "boolean" && typeof h.inScope === "boolean"));
+  const registry = (await jfetch("/api/vapt/discovery", authed(cbeAdmin))).body;
+  check("EASM registry persists discoveries", (registry.counts?.total ?? 0) >= 10, `total=${registry.counts?.total}`);
+  check("shadow-IT signal present (resolved, unmanaged)", (registry.counts?.shadow ?? 0) >= 1, `shadow=${registry.counts?.shadow}`);
+  const auditRows = (await jfetch("/api/vapt/audit", authed(cbeAdmin))).body;
+  const discoveryAudited = (auditRows.chain ?? auditRows.rows ?? []).some((row) => row.type === "DISCOVERY_RUN" && (row.target ?? "").includes("cbe.com.et"));
+  check("discovery run recorded in the hash-chained audit log", discoveryAudited);
+
   // ── 4f. Hash-chained audit log + tamper check ────────────────────────────
   r = await jfetch("/api/vapt/audit", authed(cbeAdmin));
   check("GET /api/vapt/audit returns the chain", r.status === 200 && (r.body.chain ?? []).length >= 3, `rows=${r.body.chain?.length ?? 0}`);
@@ -439,4 +507,6 @@ try {
 const failed = results.filter((r) => r.startsWith("FAIL"));
 console.log(results.join("\n"));
 console.log(`\n${results.length - failed.length}/${results.length} checks passed`);
-if (failed.length) process.exit(1);
+// undici keep-alive sockets would otherwise hold the process open on a
+// fully-green run — exit explicitly in BOTH outcomes.
+process.exit(failed.length ? 1 : 0);

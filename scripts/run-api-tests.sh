@@ -20,6 +20,7 @@ cleanup() {
   pkill -f 'bun --hot' 2>/dev/null
 }
 trap cleanup EXIT
+trap cleanup TERM INT
 
 cleanup; sleep 1
 

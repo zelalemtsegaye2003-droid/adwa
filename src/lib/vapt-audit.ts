@@ -27,7 +27,9 @@ export type VaptAuditType =
   | "FINDING_AUTOCLOSED" // not re-observed on rescan → verified fixed
   | "CHECK_CREATED"
   | "CHECK_TESTED"
-  | "CHECK_REJECTED"; // custom-check test-run blocked at the authorization gate
+  | "CHECK_REJECTED" // custom-check test-run blocked at the authorization gate
+  | "DISCOVERY_RUN" // EASM certificate-transparency + DNS discovery run
+  | "DISCOVERY_REJECTED"; // EASM run blocked — domain outside approved scope
 
 export interface VaptAuditInput {
   type: VaptAuditType;

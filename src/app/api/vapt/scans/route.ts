@@ -15,6 +15,9 @@ import {
 } from "@/lib/vapt-engine";
 import { runInfraScan, infraVulnsFromReport, SAFE_DEFAULT, findingFingerprint } from "@/lib/vapt-netengine";
 import { extractTarget, authorizingScope, scopeIsLive, targetMatches, parseScopeTargets } from "@/lib/vapt-scope";
+import { runSnmpAudit, snmpVulnsFromReport } from "@/lib/vapt-snmp";
+import { auditDatabase, dbVulnsFromReport, type DbCredentials } from "@/lib/vapt-db-audit";
+import { decryptSecret } from "@/lib/auth/crypto";
 import { appendVaptAudit } from "@/lib/vapt-audit";
 import { createHash } from "crypto";
 
@@ -93,8 +96,14 @@ export async function GET(req: NextRequest) {
  *  Engines (all live):
  *   INFRA → real TCP port scan + banner/TLS/HTTP service detection → offline
  *           CVE-feed version matching (live-fetched CVSS/EPSS/KEV data)
+ *   SNMP  → real SNMPv1/v2c GET + RFC 3412/3414 v3 USM probes (read-only) for
+ *           NETWORK/FIREWALL assets — default-community and noAuthNoPriv
+ *           misconfigurations come back as evidence-backed findings
+ *   DB    → credentialed database audit (MongoDB OP_MSG + SCRAM-SHA-256,
+ *           MySQL/MariaDB handshake + mysql_native_password) for DATABASE
+ *           assets — auth-enforcement probes + release-line EOL findings
  *   DAST  → real non-destructive HTTP checks against WEBAPP/API assets
- *   FULL  → both; DISCOVERY → port-level reachability only
+ *   FULL  → all of the above; DISCOVERY → port-level reachability only
  *
  *  Unified finding identity: fingerprint = sha256(asset ‖ rule ‖ location) —
  *  duplicates are counted as `known`; open findings NOT re-observed by a FULL
@@ -262,7 +271,22 @@ export async function POST(req: NextRequest) {
   const unreachable: string[] = [];
   const engineNotes: string[] = [];
   const dastReports: unknown[] = [];
+  const snmpReports: unknown[] = [];
+  const dbReports: unknown[] = [];
   const infraReports: { asset: string; host: string; openPorts: number[]; banners: { port: number; banner: string }[]; serviceChecks: unknown[] }[] = [];
+
+  // Stored scan credentials (AES-256-GCM at rest) — decrypted only inside
+  // the engine calls below, never logged, never echoed in findings.
+  const credRows = await db.vaptCredential.findMany({ where: { assetId: { in: assets.map((a) => a.id) } } });
+  const credentialsByAsset: Record<string, typeof credRows> = {};
+  for (const c of credRows) (credentialsByAsset[c.assetId] ??= []).push(c);
+  const decryptCred = (ciphertext: string): string | null => {
+    try {
+      return decryptSecret(ciphertext);
+    } catch {
+      return null;
+    }
+  };
 
   const persist = async (assetId: string, asset: { criticality: string; surface: string; environment: string }, draft: VulnDraft, ruleKey: string, location: string) => {
     const fp = findingFingerprint(assetId, ruleKey, location);
@@ -334,6 +358,107 @@ export async function POST(req: NextRequest) {
           }
         } else {
           engineNotes.push(`${asset.name}: identifier is not scannable by the infra engine`);
+        }
+      }
+
+      // ── REAL SNMP device audit (NETWORK/FIREWALL) — NBE "network device
+      //    assessment via SNMPv1/v2c/v3". Read-only GETs; port from the
+      //    identifier (host:port) or the standard 161/udp.
+      if ((asset.kind === "NETWORK" || asset.kind === "FIREWALL") && (scanType === "INFRA" || scanType === "FULL")) {
+        const host = cand.host ?? cand.domain;
+        const snmpPort = cand.port ?? 161;
+        if (host) {
+          const snmpCreds = credentialsByAsset[asset.id] ?? [];
+          const extraCommunities: string[] = [];
+          let v3User: string | undefined;
+          let credNote = "";
+          for (const c of snmpCreds) {
+            if (c.kind === "snmp" && c.username === "community") {
+              const val = decryptCred(c.secretCiphertext);
+              if (val) extraCommunities.push(val);
+              else credNote = " (stored community unreadable — AUTH_SECRET changed?)";
+            }
+            if (c.kind === "snmp-v3") v3User = c.username;
+          }
+          if (snmpCreds.length) {
+            await db.vaptCredential.updateMany({ where: { id: { in: snmpCreds.map((c) => c.id) } }, data: { lastUsedAt: now } });
+          }
+          const snmp = await runSnmpAudit(host, snmpPort, { extraCommunities, v3User, timeoutMs: 1_500 });
+          snmpReports.push({
+            asset: asset.name,
+            host,
+            port: snmpPort,
+            reachable: snmp.reachable,
+            versions: snmp.versions,
+            defaultCommunities: snmp.defaultCommunities,
+            system: snmp.system,
+            v3: snmp.v3,
+          });
+          if (!snmp.reachable) {
+            engineNotes.push(`${asset.name}: no SNMP agent answered on udp/${snmpPort}${credNote}`);
+          } else {
+            infraReal = true;
+            const drafts = snmpVulnsFromReport(snmp);
+            for (const d of drafts) {
+              await persist(asset.id, asset, d, d.cveId ?? d.title, `udp:${snmpPort}`);
+            }
+          }
+        }
+      }
+
+      // ── REAL credentialed DB audit (DATABASE) — MongoDB OP_MSG + SCRAM-
+      //    SHA-256 / MySQL-MariaDB handshake + native password. Port from the
+      //    identifier (host:port) or the observed open default DB ports.
+      if (asset.kind === "DATABASE" && (scanType === "INFRA" || scanType === "FULL")) {
+        const host = cand.host ?? cand.domain;
+        if (host) {
+          const infraReport = infraReports.find((r) => r.host === host);
+          const defaultDbPorts = [27017, 3306, 1433, 5432, 1521];
+          const dbPorts = cand.port ? [cand.port] : defaultDbPorts.filter((p) => infraReport?.openPorts.includes(p));
+          if (!dbPorts.length) {
+            engineNotes.push(`${asset.name}: no database port observed (no credentialed DB audit)`);
+          } else {
+            const dbCreds: DbCredentials = {};
+            const credIds: string[] = [];
+            for (const c of credentialsByAsset[asset.id] ?? []) {
+              if (c.kind !== "mongo" && c.kind !== "mysql") continue;
+              const val = decryptCred(c.secretCiphertext);
+              if (!val) {
+                engineNotes.push(`${asset.name}: stored ${c.kind} credential unreadable (AUTH_SECRET changed?)`);
+                continue;
+              }
+              credIds.push(c.id);
+              dbCreds[c.kind as "mongo" | "mysql"] = { user: c.username, password: val };
+            }
+            if (credIds.length) {
+              await db.vaptCredential.updateMany({ where: { id: { in: credIds } }, data: { lastUsedAt: now } });
+            }
+            for (const dbPort of dbPorts) {
+              const report = await auditDatabase(host, dbPort, dbCreds, 2_500);
+              dbReports.push({
+                asset: asset.name,
+                host,
+                port: dbPort,
+                protocol: report.protocol,
+                reachable: report.reachable,
+                mongo: report.mongo
+                  ? { authEnabled: report.mongo.authEnabled, version: report.mongo.version, databases: report.mongo.databases, scramOk: report.mongo.scramOk }
+                  : undefined,
+                mysql: report.mysql
+                  ? { authEnabled: report.mysql.authEnabled, version: report.mysql.version, loginOk: report.mysql.loginOk }
+                  : undefined,
+              });
+              if (!report.protocol) {
+                engineNotes.push(`${asset.name}:${dbPort}: no database wire protocol detected`);
+                continue;
+              }
+              infraReal = true;
+              const drafts = dbVulnsFromReport(report);
+              for (const d of drafts) {
+                await persist(asset.id, asset, d, d.cveId ?? d.title, `db:${dbPort}`);
+              }
+            }
+          }
         }
       }
 
@@ -433,7 +558,7 @@ export async function POST(req: NextRequest) {
       detail: `VAPT ${scanType} scan "${completed.name}" for ${org.name}: ${assets.length} target(s), ${newCount} new, ${knownCount} known, ${autoClosedCount} auto-closed${infraReal ? ", live INFRA" : ""}${dastReal ? ", live DAST" : ""}.`,
     });
 
-    return NextResponse.json({ scan: { ...completed, summary }, dastReports, infraReports }, { status: 201 });
+    return NextResponse.json({ scan: { ...completed, summary }, dastReports, snmpReports, dbReports, infraReports }, { status: 201 });
   } catch (err) {
     const failed = await db.vaptScan.update({
       where: { id: scan.id },

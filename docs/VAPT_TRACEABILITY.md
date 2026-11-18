@@ -36,8 +36,8 @@ The plan's architecture principles were implemented natively rather than literal
 
 | Req | Status | Notes |
 |---|---|---|
-| Asset registry + discovery jobs (Nmap-style sweep) | **Met** (registry) / **Partial** (sweep) | Registry CRUD + managed/shadow-IT flagging in place; port-sweep import = engine's TCP scan feeding `lastSeenAt`; DNS/CT-certificate enumeration planned. |
-| EASM from org name / root domain | **Planned** | Seed-driven registry today. |
+| Asset registry + discovery jobs (Nmap-style sweep) | **Met** (registry) / **Partial** (sweep) | Registry CRUD + managed/shadow-IT flagging in place; port-sweep import = engine's TCP scan feeding `lastSeenAt`. |
+| EASM from org name / root domain | **Met** | **LIVE**: certificate-transparency (crt.sh) + DNS discovery (`src/lib/vapt-easm.ts`, `POST /api/vapt/discovery`), authorization-gated, shadow-IT classification, hash-chained `DISCOVERY_RUN` audit; real capture bundled (`scripts/assets/easm-cbe.com.et-fixture.json`, 23 hostnames under cbe.com.et, 8 resolving). |
 | Cloud auto-discovery, dynamic tags, CMDB import | **Partial** | Tags + smart groups exist; cloud connectors planned. |
 
 ## §Phase 3 Vulnerability assessment engine — core
@@ -48,8 +48,8 @@ The plan's architecture principles were implemented natively rather than literal
 | Feed sync: NVD/CISA within 24 h; feed-lag metric | **Partial** | Offline snapshot built by `scripts/fetch-vapt-feed.ts` from **live NVD API 2.0 / FIRST EPSS / CISA KEV records** (asOf 2026-11-18); scheduled hourly sync = roadmap |
 | Zero-day-style heuristic checks | **Met** (honestly labelled) | misconfiguration/exposure heuristics detect *indicators*, documented as such |
 | Safe-scan mode (parallelism, timeouts, service-aware) | **Met** | SAFE_DEFAULT config |
-| Network devices (SSH/Telnet/SNMP; Telnet itself flagged) | **Met** | Telnet/FTP exposure findings from observed ports |
-| Database auditing (credentialed) | **Planned** | MySQL version banner detected; credentialed modules roadmap |
+| Network devices (SSH/Telnet/SNMP; Telnet itself flagged) | **Met** | Telnet/FTP exposure findings from observed ports; **SNMP now native**: real BER/UDP v1/v2c GET audit (default communities = findings) + RFC 3412/3414 v3 USM probes (`src/lib/vapt-snmp.ts`); read-only GETs only — no SET operation exists by design. |
+| Database auditing (credentialed) | **Partial → live for MongoDB + MySQL/MariaDB** | Real wire-protocol audits: MongoDB OP_MSG + SCRAM-SHA-256 credentialed login (mutual-auth verified), MySQL/MariaDB handshake + `mysql_native_password` credentialed login; auth-enforcement probes, empty-password root probe, release-line EOL from the server's own version (`src/lib/vapt-db-audit.ts`, encrypted `VaptCredential` store). Oracle/MSSQL/Postgres adapters = roadmap. |
 | Custom check engine (YAML, matchers, sandboxed, versioned, test-run) | **Met** | `src/lib/vapt-checks.ts` + `/api/vapt/checks` + test-run endpoint (declarative matchers, no execution surface) |
 | SSL/TLS audit (protocols, ciphers, chain, expiry windows) | **Met** | TLS 1.0/1.1 acceptance + cert expiry (30-day band) — cipher-suites enumeration partial |
 | Authenticated scanning (SSH/WinRM), vault integration, Go agent | **Planned** | Roadmap (SAFE MVP needs none) |

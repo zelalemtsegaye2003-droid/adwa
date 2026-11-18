@@ -1,0 +1,253 @@
+{
+ "asOf": "2026-11-18",
+ "domain": "cbe.com.et",
+ "source": "crt.sh certificate-transparency logs (live capture) + live DNS resolution",
+ "hosts": [
+  {
+   "name": "cbe0000-00-bigip-01.cbe.com.et",
+   "ct": {
+    "entryId": 3981428711,
+    "issuer": "C=US, O=DigiCert Inc, CN=DigiCert TLS RSA SHA256 2020 CA1",
+    "notBefore": "2021-01-25T00:00:00"
+   },
+   "ipAddresses": [],
+   "resolved": false
+  },
+  {
+   "name": "cbe0000-00-bigip-02.cbe.com.et",
+   "ct": {
+    "entryId": 3981428818,
+    "issuer": "C=US, O=DigiCert Inc, CN=DigiCert TLS RSA SHA256 2020 CA1",
+    "notBefore": "2021-01-25T00:00:00"
+   },
+   "ipAddresses": [],
+   "resolved": false
+  },
+  {
+   "name": "cbe0000-00-wsa01.cbe.com.et",
+   "ct": {
+    "entryId": 4053977983,
+    "issuer": "C=US, O=DigiCert Inc, CN=DigiCert TLS RSA SHA256 2020 CA1",
+    "notBefore": "2021-02-09T00:00:00"
+   },
+   "ipAddresses": [],
+   "resolved": false
+  },
+  {
+   "name": "cbe0000-00-wsa02.cbe.com.et",
+   "ct": {
+    "entryId": 4054073626,
+    "issuer": "C=US, O=DigiCert Inc, CN=DigiCert TLS RSA SHA256 2020 CA1",
+    "notBefore": "2021-02-09T00:00:00"
+   },
+   "ipAddresses": [],
+   "resolved": false
+  },
+  {
+   "name": "cbe0002-00-bigip-01.cbe.com.et",
+   "ct": {
+    "entryId": 3981428674,
+    "issuer": "C=US, O=DigiCert Inc, CN=DigiCert TLS RSA SHA256 2020 CA1",
+    "notBefore": "2021-01-25T00:00:00"
+   },
+   "ipAddresses": [],
+   "resolved": false
+  },
+  {
+   "name": "cbe0002-00-bigip-02.cbe.com.et",
+   "ct": {
+    "entryId": 3981428830,
+    "issuer": "C=US, O=DigiCert Inc, CN=DigiCert TLS RSA SHA256 2020 CA1",
+    "notBefore": "2021-01-25T00:00:00"
+   },
+   "ipAddresses": [],
+   "resolved": false
+  },
+  {
+   "name": "cbe0002-00-wsa01.cbe.com.et",
+   "ct": {
+    "entryId": 4093639528,
+    "issuer": "C=US, O=DigiCert Inc, CN=DigiCert TLS RSA SHA256 2020 CA1",
+    "notBefore": "2021-02-17T00:00:00"
+   },
+   "ipAddresses": [],
+   "resolved": false
+  },
+  {
+   "name": "cbe0002-00-wsa02.cbe.com.et",
+   "ct": {
+    "entryId": 4102788849,
+    "issuer": "C=US, O=DigiCert Inc, CN=DigiCert TLS RSA SHA256 2020 CA1",
+    "notBefore": "2021-02-19T00:00:00"
+   },
+   "ipAddresses": [],
+   "resolved": false
+  },
+  {
+   "name": "cbeschoolpay.cbe.com.et",
+   "ct": {
+    "entryId": 29716112174,
+    "issuer": "C=US, O=Let's Encrypt, CN=YR2",
+    "notBefore": "2026-08-25T23:58:30"
+   },
+   "ipAddresses": [
+    "196.189.126.213"
+   ],
+   "resolved": true
+  },
+  {
+   "name": "gs.cbe.com.et",
+   "ct": {
+    "entryId": 23917532466,
+    "issuer": "C=US, O=Let's Encrypt, CN=E7",
+    "notBefore": "2026-01-22T12:38:00"
+   },
+   "ipAddresses": [],
+   "resolved": false
+  },
+  {
+   "name": "henoncmsadm.cbe.com.et",
+   "ct": {
+    "entryId": 29603670146,
+    "issuer": "C=US, O=Let's Encrypt, CN=YR2",
+    "notBefore": "2026-09-19T09:27:58"
+   },
+   "ipAddresses": [
+    "196.189.126.213"
+   ],
+   "resolved": true
+  },
+  {
+   "name": "henonhigheredu.cbe.com.et",
+   "ct": {
+    "entryId": 29192547961,
+    "issuer": "C=US, O=Let's Encrypt, CN=YR1",
+    "notBefore": "2026-08-26T12:48:25"
+   },
+   "ipAddresses": [
+    "196.189.126.213"
+   ],
+   "resolved": true
+  },
+  {
+   "name": "henonschool.cbe.com.et",
+   "ct": {
+    "entryId": 29716098316,
+    "issuer": "C=US, O=Let's Encrypt, CN=YR2",
+    "notBefore": "2026-08-25T23:58:05"
+   },
+   "ipAddresses": [
+    "196.189.126.213"
+   ],
+   "resolved": true
+  },
+  {
+   "name": "henonsmsadm.cbe.com.et",
+   "ct": {
+    "entryId": 29120401118,
+    "issuer": "C=US, O=Let's Encrypt, CN=YR1",
+    "notBefore": "2026-08-27T05:39:55"
+   },
+   "ipAddresses": [
+    "196.189.126.213"
+   ],
+   "resolved": true
+  },
+  {
+   "name": "henonteacher.cbe.com.et",
+   "ct": {
+    "entryId": 29079006214,
+    "issuer": "C=US, O=Let's Encrypt, CN=YR2",
+    "notBefore": "2026-08-25T23:58:59"
+   },
+   "ipAddresses": [
+    "196.189.126.213"
+   ],
+   "resolved": true
+  },
+  {
+   "name": "henonteacherhigher.cbe.com.et",
+   "ct": {
+    "entryId": 18128906559,
+    "issuer": "C=US, O=Let's Encrypt, CN=R11",
+    "notBefore": "2025-04-29T13:26:00"
+   },
+   "ipAddresses": [
+    "196.189.126.213"
+   ],
+   "resolved": true
+  },
+  {
+   "name": "jobs.cbe.com.et",
+   "ct": {
+    "entryId": 6091077786,
+    "issuer": "C=US, O=DigiCert Inc, CN=DigiCert TLS RSA SHA256 2020 CA1",
+    "notBefore": "2022-02-02T00:00:00"
+   },
+   "ipAddresses": [],
+   "resolved": false
+  },
+  {
+   "name": "mail.cbe.com.et",
+   "ct": {
+    "entryId": 11817320,
+    "issuer": "C=US, O=Symantec Corporation, OU=Symantec Trust Network, CN=Symantec Class 3 EV SSL CA - G3",
+    "notBefore": "2016-01-04T00:00:00"
+   },
+   "ipAddresses": [
+    "213.55.103.175"
+   ],
+   "resolved": true
+  },
+  {
+   "name": "mfashiftdev.cbe.com.et",
+   "ct": {
+    "entryId": 18399683676,
+    "issuer": "C=US, O=Let's Encrypt, CN=R10",
+    "notBefore": "2025-05-14T10:08:13"
+   },
+   "ipAddresses": [],
+   "resolved": false
+  },
+  {
+   "name": "mfashifttest.cbe.com.et",
+   "ct": {
+    "entryId": 8703091427,
+    "issuer": "C=US, O=Let's Encrypt, CN=R3",
+    "notBefore": "2023-02-10T06:05:02"
+   },
+   "ipAddresses": [],
+   "resolved": false
+  },
+  {
+   "name": "mfaswift.cbe.com.et",
+   "ct": {
+    "entryId": 8954100440,
+    "issuer": "C=US, O=Let's Encrypt, CN=R3",
+    "notBefore": "2023-03-20T06:40:10"
+   },
+   "ipAddresses": [],
+   "resolved": false
+  },
+  {
+   "name": "obj.cbe.com.et",
+   "ct": {
+    "entryId": 23916351318,
+    "issuer": "C=US, O=Let's Encrypt, CN=E8",
+    "notBefore": "2026-01-22T11:10:32"
+   },
+   "ipAddresses": [],
+   "resolved": false
+  },
+  {
+   "name": "sm.cbe.com.et",
+   "ct": {
+    "entryId": 23929362908,
+    "issuer": "C=US, O=Let's Encrypt, CN=E8",
+    "notBefore": "2026-01-23T04:25:11"
+   },
+   "ipAddresses": [],
+   "resolved": false
+  }
+ ]
+}

@@ -22,6 +22,9 @@
  * Usage: bun scripts/seed-vapt.ts
  */
 import { PrismaClient } from "@prisma/client";
+import { readFileSync } from "fs";
+import { join } from "path";
+import { encryptSecret } from "../src/lib/auth/crypto";
 import { VAPT_CATALOGUE, KIND_PLATFORMS, type CatalogueEntry } from "../src/lib/vapt-data";
 import {
   buildSimulatedFindings,
@@ -42,9 +45,16 @@ const DAY = 86_400_000;
 const now = () => new Date();
 const ago = (days: number, hours = 0) => new Date(Date.now() - days * DAY - hours * 3_600_000);
 
+interface CredentialSpec {
+  kind: string;
+  username: string;
+  secret?: string;
+}
+
 interface AssetSpec {
   name: string; kind: string; identifier: string; environment: string; surface: string;
   criticality: string; platform?: string; tags?: string[]; managed?: boolean; notes?: string;
+  credentials?: CredentialSpec[];
 }
 
 const ORG_SPEC: Record<string, AssetSpec[]> = {
@@ -124,6 +134,8 @@ async function main() {
   await db.vaptAsset.deleteMany();
   await db.vaptCustomCheck.deleteMany();
   await db.vaptScope.deleteMany();
+  await db.vaptCredential.deleteMany();
+  await db.vaptDiscovery.deleteMany();
   // Remove mirror scans from earlier seed runs (promotion containers).
   await db.scan.deleteMany({ where: { mode: "vapt" } });
 
@@ -175,10 +187,21 @@ async function main() {
 
   // ── 1b. Vulnerable lab-target assets (true-functionality demo — the REAL
   //        engine detects them when mini-services/vuln-lab is running) ─────
-  const labAssets = [
+  const labAssets: AssetSpec[] = [
     { name: "VULN-LAB web app (Apache 2.4.49 banner)", kind: "WEBAPP", identifier: "http://127.0.0.1:3060", environment: "DEV", surface: "INTERNAL", criticality: "medium", platform: "Apache httpd 2.4.49 (lab)", tags: ["lab", "vulnerable-by-design"] },
     { name: "VULN-LAB multi-service host", kind: "SERVER", identifier: "127.0.0.1", environment: "DEV", surface: "INTERNAL", criticality: "medium", platform: "Mixed lab services (vsftpd/ProFTPD/OpenSSH/Redis)", tags: ["lab", "vulnerable-by-design"] },
+    // Protocol labs (mini-services/vuln-lab/protocol-labs.ts) for the
+    // credentialed-audit engines: SNMP v1/v2c/v3, MongoDB no-auth + SCRAM,
+    // MariaDB with mysql_native_password auth.
+    // No snmp-v3 credential by design: the engine's RFC 3412 probe uses the
+    // anonymous noAuthNoPriv security level, and this legacy lab device
+    // answers it — the misconfig finding the acceptance test asserts.
+    { name: "VULN-LAB SNMP device (udp/3161)", kind: "NETWORK", identifier: "127.0.0.1:3161", environment: "DEV", surface: "INTERNAL", criticality: "medium", platform: "Cisco IOS 12.2(55)SE5 (lab)", tags: ["lab", "vulnerable-by-design"] },
+    { name: "VULN-LAB MongoDB no-auth (tcp/3160)", kind: "DATABASE", identifier: "127.0.0.1:3160", environment: "DEV", surface: "INTERNAL", criticality: "medium", platform: "MongoDB 4.0 (lab)", tags: ["lab", "vulnerable-by-design"] },
+    { name: "VULN-LAB MariaDB (tcp/3162)", kind: "DATABASE", identifier: "127.0.0.1:3162", environment: "DEV", surface: "INTERNAL", criticality: "medium", platform: "MariaDB 5.5 (lab)", tags: ["lab", "vulnerable-by-design"], credentials: [{ kind: "mysql", username: "audit", secret: "AdwaAudit2026!" }] },
+    { name: "VULN-LAB MongoDB SCRAM auth (tcp/3164)", kind: "DATABASE", identifier: "127.0.0.1:3164", environment: "DEV", surface: "INTERNAL", criticality: "medium", platform: "MongoDB 5.0 (lab)", tags: ["lab", "vulnerable-by-design"], credentials: [{ kind: "mongo", username: "audit", secret: "AdwaAudit2026!" }] },
   ];
+  let credCount = 0;
   for (const spec of labAssets) {
     const a = await db.vaptAsset.create({
       data: {
@@ -191,9 +214,19 @@ async function main() {
         firstSeenAt: ago(30), lastSeenAt: ago(0),
       },
     });
+    // Scan credentials — AES-256-GCM at rest (plan §1 envelope encryption).
+    for (const c of spec.credentials ?? []) {
+      if (c.kind === "snmp-v3") {
+        // USM principal only (the engine probes noAuthNoPriv security level)
+        await db.vaptCredential.create({ data: { assetId: a.id, kind: c.kind, username: c.username, secretCiphertext: encryptSecret("(noAuthNoPriv probe)") } });
+      } else if (c.secret) {
+        await db.vaptCredential.create({ data: { assetId: a.id, kind: c.kind, username: c.username, secretCiphertext: encryptSecret(c.secret) } });
+      }
+      credCount++;
+    }
     assetIds[`CBE/${spec.name}`] = { id: a.id, spec, orgId: orgMap.CBE.id };
   }
-  console.log(`  + ${labAssets.length} vulnerable lab-target asset(s) (CBE, engine acceptance)`);
+  console.log(`  + ${labAssets.length} vulnerable lab-target asset(s) (CBE, engine acceptance)${credCount ? ` + ${credCount} encrypted scan credential(s)` : ""}`);
 
   // ── 1c. Authorization scopes (the plan §1 gate — APPROVED via four-eyes) ─
   console.log("── Authorization scopes (four-eyes) ──");
@@ -250,6 +283,39 @@ async function main() {
     },
   });
   console.log(`  + Dashen scope "${dashenScope.name}" APPROVED (covers 10.9.0.0/24 only — out-of-scope rejections demonstrable)`);
+
+  // ── 1e. EASM discoveries — REAL captured certificate-transparency + DNS
+  //        data (scripts/assets/easm-cbe-fixture.json: live crt.sh capture +
+  //        live A-record resolution for cbe.com.et — public passive OSINT).
+  //        None of these hostnames are registered assets → the tender's
+  //        "unmanaged / shadow-IT" EASM signal, with real evidence.
+  console.log("── EASM discoveries (real CT-log capture: cbe.com.et) ──");
+  try {
+    const fixture = JSON.parse(readFileSync(join(__dirname, "assets/easm-cbe.com.et-fixture.json"), "utf8")) as {
+      asOf: string; domain: string;
+      hosts: { name: string; ct: { entryId: number; issuer: string; notBefore?: string }; ipAddresses: string[]; resolved: boolean }[];
+    };
+    for (const h of fixture.hosts) {
+      await db.vaptDiscovery.create({
+        data: {
+          organizationId: orgMap.CBE.id,
+          domain: fixture.domain,
+          name: h.name,
+          ipAddresses: JSON.stringify(h.ipAddresses),
+          sources: JSON.stringify([{ ct: h.ct }]),
+          resolved: h.resolved,
+          inScope: true, // the approved CBE scope covers the cbe.com.et zone
+          managed: false, // none of these hostnames are registered assets → shadow-IT
+          firstSeenAt: ago(3),
+          lastSeenAt: ago(0),
+        },
+      });
+    }
+    const resolving = fixture.hosts.filter((h) => h.resolved).length;
+    console.log(`  + ${fixture.hosts.length} discovered hostname(s) under ${fixture.domain} (${resolving} resolving, all unmanaged/shadow) — CT capture as of ${fixture.asOf}`);
+  } catch (e) {
+    console.log(`  ? EASM fixture not loaded (${(e as Error).message}) — discovery registry left empty`);
+  }
 
   // ── 1d. Sample custom check (declarative YAML, sandboxed) ───────────────
   const sampleCheck = await db.vaptCustomCheck.create({

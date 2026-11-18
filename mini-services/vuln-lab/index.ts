@@ -15,10 +15,15 @@
  *   :3022  SSH    — "SSH-2.0-OpenSSH_7.2p2 Ubuntu-4ubuntu2.2, OpenSSL 1.0.1e"
  *                  (CVE-2023-38408 range + CVE-2014-0160 range)
  *
+ * Protocol labs (protocol-labs.ts) for the credentialed-audit engines:
+ *   udp/3161 SNMP agent · tcp/3160 MongoDB no-auth · tcp/3162 MariaDB auth ·
+ *   tcp/3164 MongoDB SCRAM-SHA-256 auth — see protocol-labs.ts header.
+ *
  * Start:  bun mini-services/vuln-lab/index.ts   (auto-started by dev.sh)
  */
 import net from "net";
 import http from "http";
+import { startProtocolLabs } from "./protocol-labs";
 
 const HOST = "127.0.0.1";
 
@@ -38,6 +43,7 @@ const httpServer = http.createServer((req, res) => {
   });
   res.end("<html><body>Adwa VAPT lab target — vulnerable-by-design</body></html>");
 });
+httpServer.on("error", (e: NodeJS.ErrnoException) => console.error(`  http lab :3060 not started (${e.code}) — already running?`));
 httpServer.listen(3060, HOST);
 
 // ── generic banner greeter ──────────────────────────────────────────────────
@@ -55,6 +61,7 @@ function greeter(port: number, banner: string, handlers?: (line: string, sock: n
     });
     sock.on("error", () => sock.destroy());
   });
+  server.on("error", (e: NodeJS.ErrnoException) => console.error(`  lab :${port} not started (${e.code}) — already running?`));
   server.listen(port, HOST);
 }
 
@@ -81,6 +88,10 @@ greeter(3062, "", (line, sock) => {
 // ── :3022 SSH greeting carrying OpenSSH + OpenSSL versions ─────────────────
 greeter(3022, "SSH-2.0-OpenSSH_7.2p2 Ubuntu-4ubuntu2.2, OpenSSL 1.0.1e 14 Mar 2012\r\n");
 
+// ── credentialed-audit protocol labs ────────────────────────────────────────
+startProtocolLabs();
+
 console.log("Adwa VAPT lab target up — 127.0.0.1:3060(http) :3021(vsftpd) :3061(proftpd) :3062(redis) :3022(ssh)");
+console.log("  protocol labs: udp/3161(snmp) tcp/3160(mongo no-auth) tcp/3162(mariadb auth) tcp/3164(mongo scram)");
 // Keep the process alive.
 setInterval(() => {}, 60_000);

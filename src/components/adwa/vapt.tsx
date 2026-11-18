@@ -18,7 +18,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid } from "recharts";
 import {
   Crosshair, Server, Globe, AlertTriangle, Flame, ShieldCheck, Radar, Bug, Plus, Pencil, Trash2,
-  Zap, Eye, FileJson, Timer, ShieldAlert, CheckCircle2, RefreshCw,
+  Zap, Eye, FileJson, Timer, ShieldAlert, CheckCircle2, RefreshCw, KeyRound,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useI18n } from "@/lib/i18n";
@@ -28,6 +28,7 @@ import { SeverityBadge, SlaBadge, fmtDate } from "./shared";
 import { AdPathsTab } from "./vapt-adpaths";
 import { BidMatrixTab } from "./vapt-bidmatrix";
 import { ScopesTab } from "./vapt-scopes";
+import { DiscoveryTab } from "./vapt-discovery";
 
 // ── DTOs (mirror /api/vapt/* responses) ──────────────────────────────────────
 
@@ -36,6 +37,7 @@ interface OverviewDTO {
   organizationId: string | null;
   slaPolicy: { critical: number; high: number; medium: number; low: number; dueSoonWindowDays: number };
   assets: { total: number; unmanaged: number; external: number; byKind: Record<string, number> };
+  easm?: { discoveredHostnames: number; resolving: number; shadowUnmanaged: number; outsideApprovedScope: number };
   vulnerabilities: {
     total: number; critical: number; high: number; medium: number; low: number; kev: number;
     open: number; inProgress: number; remediated: number; accepted: number;
@@ -58,6 +60,7 @@ interface AssetRowDTO {
   criticality: string; osOrPlatform: string | null; tags: string[]; managed: boolean; notes: string | null;
   lastSeenAt: string; organization: { id: string; name: string; nameAm: string } | null;
   vulnCount: number; openCount: number; criticalOpen: number; kevOpen: number; topPriority: number;
+  credentials?: { id: string; kind: string; username: string; lastUsedAt: string | null; createdAt: string }[];
 }
 
 interface VulnRowDTO {
@@ -208,6 +211,7 @@ export function VaptView({ canManage, isSuperAdmin }: { canManage: boolean; isSu
           <TabsTrigger value="adpaths">{t("vaptTabAd")}</TabsTrigger>
           <TabsTrigger value="bidmatrix">{t("vaptTabBid")}</TabsTrigger>
           <TabsTrigger value="scopes">{t("vaptTabScopes")}</TabsTrigger>
+          <TabsTrigger value="discovery">{t("vaptTabDiscovery")}</TabsTrigger>
         </TabsList>
 
         <TabsContent value="overview" className="mt-4">
@@ -231,6 +235,9 @@ export function VaptView({ canManage, isSuperAdmin }: { canManage: boolean; isSu
         <TabsContent value="scopes" className="mt-4">
           <ScopesTab canManage={canManage} />
         </TabsContent>
+        <TabsContent value="discovery" className="mt-4">
+          <DiscoveryTab canManage={canManage} />
+        </TabsContent>
       </Tabs>
     </div>
   );
@@ -246,6 +253,7 @@ function OverviewTab({ data }: { data: OverviewDTO | null }) {
   const v = data.vulnerabilities;
   const kpis = [
     { icon: Server, label: t("vaptAssetsMonitored"), value: data.assets.total, sub: `${data.assets.unmanaged} ${t("vaptShadowIt")} · ${data.assets.external} ${t("vaptExternalSurface")}` },
+    { icon: Radar, label: t("vaptEasmCard"), value: data.easm?.discoveredHostnames ?? 0, sub: `${data.easm?.shadowUnmanaged ?? 0} ${t("vaptEasmCountShadow").toLowerCase()} · ${data.easm?.resolving ?? 0} ${t("vaptEasmCountResolved").toLowerCase()}` },
     { icon: ShieldAlert, label: t("vaptExposureScore"), value: v.exposureScore.toFixed(1), sub: `${t("vaptAvgPriority")}: ${v.avgPriority?.toFixed(1) ?? "—"}` },
     { icon: Bug, label: t("vaptOpenVulns"), value: v.open + v.inProgress, sub: `${v.critical} ${t("critical").toLowerCase()} · ${v.high} ${t("high").toLowerCase()} · ${v.medium} ${t("medium").toLowerCase()} · ${v.low} ${t("vaptLow")}` },
     { icon: Timer, label: t("vaptOverdueCard"), value: v.overdue, sub: `${v.dueSoon} ${t("slaDueSoonCard")}` },
@@ -534,6 +542,12 @@ function AssetsTab({ assets, canManage, isSuperAdmin, orgs, onChanged }: {
                         <p className="text-sm font-medium">{a.name}</p>
                         <p className="text-xs text-muted-foreground">{a.osOrPlatform ?? t(KIND_LABEL[a.kind] ?? a.kind)}</p>
                         {!a.managed && <Badge variant="outline" className="mt-1 bg-orange-50 text-orange-800 border-orange-300 dark:bg-orange-950/60 dark:text-orange-300 dark:border-orange-800">{t("vaptShadowIt")}</Badge>}
+                        {(a.credentials?.length ?? 0) > 0 && (
+                          <Badge variant="outline" className="mt-1 gap-1 bg-emerald-500/10 text-emerald-700 dark:text-emerald-400" title={a.credentials!.map((c) => `${c.kind}:${c.username}`).join(" · ")}>
+                            <KeyRound className="h-3 w-3" />
+                            {a.credentials!.length} {t("vaptAssetCreds")}
+                          </Badge>
+                        )}
                       </TableCell>
                       <TableCell><KindBadge kind={a.kind} /></TableCell>
                       <TableCell className="font-mono text-xs max-w-44 truncate">{a.identifier}</TableCell>

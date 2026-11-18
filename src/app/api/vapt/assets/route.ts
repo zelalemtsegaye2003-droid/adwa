@@ -4,6 +4,7 @@ import { requireAuthAny, parseBody } from "@/lib/auth/guard";
 import { can } from "@/lib/auth/rbac";
 import { audit } from "@/lib/auth/audit";
 import { clientIp } from "@/lib/auth/rate-limit";
+import { encryptSecret } from "@/lib/auth/crypto";
 
 export const runtime = "nodejs";
 
@@ -11,6 +12,7 @@ const KINDS = ["SERVER", "NETWORK", "FIREWALL", "DATABASE", "AD_IDENTITY", "WEBA
 const ENVIRONMENTS = ["PROD", "UAT", "DEV", "DMZ", "EXTERNAL"];
 const SURFACES = ["INTERNAL", "EXTERNAL"];
 const CRITICALITIES = ["critical", "high", "medium", "low"];
+const CRED_KINDS = ["snmp", "snmp-v3", "mongo", "mysql"]; // wire protocols the live engines speak
 
 /** A web/API asset's identifier must be an http(s) URL — the DAST engine's target. */
 function validateIdentifier(kind: string, identifier: string): string | null {
@@ -30,6 +32,12 @@ function validateIdentifier(kind: string, identifier: string): string | null {
   return null;
 }
 
+interface CredentialInput {
+  kind: string;
+  username: string;
+  secret: string;
+}
+
 interface AssetBody {
   organizationId?: string;
   name: string;
@@ -42,6 +50,7 @@ interface AssetBody {
   tags?: string[];
   managed?: boolean;
   notes?: string;
+  credentials?: CredentialInput[];
 }
 
 function assetSchema(data: unknown): AssetBody | null {
@@ -50,6 +59,19 @@ function assetSchema(data: unknown): AssetBody | null {
   if (typeof d.name !== "string" || !d.name.trim()) return null;
   if (typeof d.kind !== "string" || !KINDS.includes(d.kind)) return null;
   if (typeof d.identifier !== "string") return null;
+  let credentials: CredentialInput[] | undefined;
+  if (Array.isArray(d.credentials)) {
+    const list = (d.credentials as unknown[]).filter(
+      (c): c is CredentialInput =>
+        typeof c === "object" && c !== null &&
+        typeof (c as CredentialInput).kind === "string" && CRED_KINDS.includes((c as CredentialInput).kind) &&
+        typeof (c as CredentialInput).username === "string" && (c as CredentialInput).username.trim().length > 0 && (c as CredentialInput).username.length <= 64 &&
+        typeof (c as CredentialInput).secret === "string" && (c as CredentialInput).secret.length > 0 && (c as CredentialInput).secret.length <= 128
+    );
+    if (d.credentials.length && !list.length) return null; // malformed input → 400
+    if (list.length > 4) return null;
+    credentials = list.map((c) => ({ kind: c.kind, username: c.username.trim(), secret: c.secret }));
+  }
   return {
     organizationId: typeof d.organizationId === "string" ? d.organizationId : undefined,
     name: d.name.trim().slice(0, 120),
@@ -62,6 +84,7 @@ function assetSchema(data: unknown): AssetBody | null {
     tags: Array.isArray(d.tags) ? d.tags.filter((t) => typeof t === "string" && t.trim()).map((t) => String(t).trim().slice(0, 30)).slice(0, 12) : [],
     managed: typeof d.managed === "boolean" ? d.managed : true,
     notes: typeof d.notes === "string" ? d.notes.trim().slice(0, 400) : undefined,
+    credentials,
   };
 }
 
@@ -84,6 +107,7 @@ export async function GET(req: NextRequest) {
     include: {
       organization: { select: { id: true, name: true, nameAm: true } },
       vulnerabilities: { select: { severity: true, status: true, priorityScore: true, kev: true } },
+      credentials: { select: { id: true, kind: true, username: true, lastUsedAt: true, createdAt: true } },
     },
   });
 
@@ -105,6 +129,7 @@ export async function GET(req: NextRequest) {
         notes: a.notes,
         lastSeenAt: a.lastSeenAt,
         organization: a.organization,
+        credentials: a.credentials.map((c) => ({ id: c.id, kind: c.kind, username: c.username, lastUsedAt: c.lastUsedAt, createdAt: c.createdAt })),
         vulnCount: a.vulnerabilities.length,
         openCount: openish.length,
         criticalOpen: openish.filter((v) => v.severity === "critical").length,
@@ -161,6 +186,9 @@ export async function POST(req: NextRequest) {
       tags: JSON.stringify(body.tags ?? []),
       managed: body.managed ?? true,
       notes: body.notes ?? null,
+      ...(body.credentials?.length
+        ? { credentials: { create: body.credentials.map((c) => ({ kind: c.kind, username: c.username, secretCiphertext: encryptSecret(c.secret) })) } }
+        : {}),
     },
   });
 
@@ -171,7 +199,7 @@ export async function POST(req: NextRequest) {
     organizationId,
     ip: clientIp(req.headers),
     userAgent: req.headers.get("user-agent"),
-    detail: `Asset "${asset.name}" (${asset.kind}, ${asset.identifier}, ${asset.surface}/${asset.environment}) registered for ${org.name}.`,
+    detail: `Asset "${asset.name}" (${asset.kind}, ${asset.identifier}, ${asset.surface}/${asset.environment}) registered for ${org.name}${body.credentials?.length ? ` with ${body.credentials.length} encrypted scan credential(s)` : ""}.`,
   });
 
   return NextResponse.json({ asset }, { status: 201 });

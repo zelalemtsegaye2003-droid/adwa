@@ -59,6 +59,7 @@ model Organization {
   vaptVulnerabilities VaptVulnerability[]
   vaptScopes      VaptScope[]
   vaptCustomChecks VaptCustomCheck[]
+  vaptDiscoveries VaptDiscovery[] // EASM: certificate-transparency discoveries
 }
 
 // Machine-readable obligation catalogue, scoped to a framework
@@ -804,6 +805,7 @@ model VaptAsset {
   createdAt      DateTime       @default(now())
   updatedAt      DateTime       @updatedAt
   vulnerabilities VaptVulnerability[]
+  credentials    VaptCredential[]
 
   @@index([organizationId])
   @@index([kind])
@@ -911,6 +913,44 @@ model VaptCustomCheck {
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 
+  @@index([organizationId])
+}
+
+// Scan credential for one asset — the plan's §1 envelope-encryption rule:
+// the secret is AES-256-GCM ciphertext (encryptSecret), never plaintext, and
+// API responses only ever echo the kind + username.
+model VaptCredential {
+  id               String    @id @default(cuid())
+  assetId          String
+  asset            VaptAsset @relation(fields: [assetId], references: [id], onDelete: Cascade)
+  kind             String // snmp | mongo | mysql | (future: ssh, mssql, ...)
+  username         String // user / v3 principal / community label
+  secretCiphertext String // AES-256-GCM iv:ct:tag — never plaintext, never logged
+  lastUsedAt       DateTime?
+  createdAt        DateTime  @default(now())
+
+  @@unique([assetId, kind, username])
+  @@index([assetId])
+}
+
+// One externally discovered hostname (EASM pass #2/#5): certificate-
+// transparency + DNS evidence, classified against approved scopes — the
+// unmanaged / shadow-IT registry the tender asks EASM to surface.
+model VaptDiscovery {
+  id             String   @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  domain         String // queried root domain
+  name           String // discovered hostname
+  ipAddresses    String   @default("[]") // JSON string[] (current A records)
+  sources        String   @default("[]") // JSON [{ct:{entryId,issuer,notBefore}}]
+  resolved       Boolean  @default(false)
+  inScope        Boolean  @default(false) // inside an approved live scope
+  managed        Boolean  @default(true) // matches a registered asset
+  firstSeenAt    DateTime @default(now())
+  lastSeenAt     DateTime @default(now())
+
+  @@unique([organizationId, domain, name])
   @@index([organizationId])
 }
 
