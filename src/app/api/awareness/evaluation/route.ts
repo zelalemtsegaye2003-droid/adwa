@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { requireAuth } from "@/lib/auth/guard";
-import { anovaOneWay, gainHistogram, groupStat, pairedT, type ScorePair } from "@/lib/awareness-engine";
-import { resolveInstrument } from "@/lib/awareness-server";
+import { anovaOneWay, gainHistogram, groupStat, pairedT, type ScorePair } from "@/lib/awareness/awareness-engine";
+import { resolveInstrument } from "@/lib/awareness/awareness-server";
 
 export const runtime = "nodejs";
 

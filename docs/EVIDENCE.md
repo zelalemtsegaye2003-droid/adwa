@@ -51,7 +51,7 @@ blocked), `FILE_MISSING`.
 
 Storage root: `DATA_DIR/evidence/<orgId>/` when `DATA_DIR` is set (the
 compose stack mounts a named volume at `/data`), else `./.data/evidence/`
-(see `src/lib/evidence.ts → dataRoot()`).
+(see `src/lib/compliance/evidence.ts → dataRoot()`).
 
 ## Data model (`prisma/schema.prisma` → `EvidenceDocument`)
 

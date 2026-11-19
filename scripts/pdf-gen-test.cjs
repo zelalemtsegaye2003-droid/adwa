@@ -1,7 +1,7 @@
 // Standalone generator test — renders the seeded CBE Q4 scan to EN + AM PDFs.
 const { PrismaClient } = require("@prisma/client");
 const db = new PrismaClient();
-const { generateReportPdf } = require(process.cwd() + "/src/lib/report-pdf.ts");
+const { generateReportPdf } = require(process.cwd() + "/src/lib/compliance/report-pdf.ts");
 
 (async () => {
   const scan = await db.scan.findFirst({

@@ -10,9 +10,9 @@
 // users and their organization links survive re-seeding.
 // Run: bun prisma/seed.ts
 import { PrismaClient } from "@prisma/client";
-import { RULES } from "../src/lib/rules-data";
-import { NBE_RULES } from "../src/lib/nbe-rules-data";
-import { evaluate, pillarConfFromJson, type PillarConf, type Answer } from "../src/lib/engine";
+import { RULES } from "../src/lib/compliance/rules-data";
+import { NBE_RULES } from "../src/lib/compliance/nbe-rules-data";
+import { evaluate, pillarConfFromJson, type PillarConf, type Answer } from "../src/lib/compliance/engine";
 import { assertSeedAllowed } from "../scripts/seed-guard";
 
 const db = new PrismaClient();

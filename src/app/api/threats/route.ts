@@ -7,7 +7,7 @@ import { clientIp } from "@/lib/auth/rate-limit";
 import {
   INDICATOR_TYPES, THREAT_CATEGORIES, TLP_MARKINGS,
   classifySensitivity, hybridSharingDecision,
-} from "@/lib/soc-engine";
+} from "@/lib/soc/soc-engine";
 
 export const runtime = "nodejs";
 

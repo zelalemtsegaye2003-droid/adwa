@@ -9,7 +9,7 @@
  *   - EPSS probability               → FIRST API (api.first.org)
  *   - KEV membership                 → CISA KEV catalog JSON feed
  *
- * Output: src/lib/vapt-feed-snapshot.json — the curated service-matchable
+ * Output: src/lib/vapt/vapt-feed-snapshot.json — the curated service-matchable
  * CVE feed (banner → product/version → affected-range match).
  *
  * Affected version ranges are encoded from the published advisories (verified
@@ -208,5 +208,5 @@ const snapshot = {
   })),
 };
 
-writeFileSync("src/lib/vapt-feed-snapshot.json", JSON.stringify(snapshot, null, 2));
-console.log(`\nWrote src/lib/vapt-feed-snapshot.json — ${snapshot.entries.length} entries, asOf ${snapshot.asOf}`);
+writeFileSync("src/lib/vapt/vapt-feed-snapshot.json", JSON.stringify(snapshot, null, 2));
+console.log(`\nWrote src/lib/vapt/vapt-feed-snapshot.json — ${snapshot.entries.length} entries, asOf ${snapshot.asOf}`);

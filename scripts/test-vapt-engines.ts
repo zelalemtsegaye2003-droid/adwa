@@ -4,9 +4,9 @@
  * (starts its own lab instances on 127.0.0.1 — the ports are the same ones
  * the vuln-lab uses; ensure it is not already running.)
  */
-import { runSnmpAudit, snmpVulnsFromReport } from "../src/lib/vapt-snmp";
-import { auditDatabase, dbVulnsFromReport } from "../src/lib/vapt-db-audit";
-import { discoverSubdomains, type CrtShEntry } from "../src/lib/vapt-easm";
+import { runSnmpAudit, snmpVulnsFromReport } from "../src/lib/vapt/vapt-snmp";
+import { auditDatabase, dbVulnsFromReport } from "../src/lib/vapt/vapt-db-audit";
+import { discoverSubdomains, type CrtShEntry } from "../src/lib/vapt/vapt-easm";
 import { startProtocolLabs } from "../mini-services/vuln-lab/protocol-labs";
 
 let pass = 0;

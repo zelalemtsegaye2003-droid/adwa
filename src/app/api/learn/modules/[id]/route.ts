@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
-import { publicQuestion } from "@/lib/awareness-server";
+import { publicQuestion } from "@/lib/awareness/awareness-server";
 
 export const runtime = "nodejs";
 

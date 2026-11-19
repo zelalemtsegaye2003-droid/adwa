@@ -18,8 +18,8 @@ import {
   vtEndpointPath,
   parseVtReport,
   enrichVirusTotal,
-} from "../src/lib/intel-feeds";
-import { parseEpssResponse, epssProvenanceNote } from "../src/lib/vapt-epss";
+} from "../src/lib/soc/intel-feeds";
+import { parseEpssResponse, epssProvenanceNote } from "../src/lib/vapt/vapt-epss";
 
 let pass = 0;
 let fail = 0;

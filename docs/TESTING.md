@@ -1,12 +1,14 @@
 # Adwa Cyber — Testing Guide
 
-743+36 checks across 16 suites, all green. Three runner scripts,
+861 checks across 19 suites, all green. Three runner scripts,
 each self-contained (they start/stop their own dev stack because background
 processes do not survive between shell calls in some environments):
 
 ```bash
-bash scripts/run-api-tests.sh       # 12 API suites — 561 checks
-bash scripts/ci-run-auth-suites.sh  # 4 auth suites — 180 checks
+bash scripts/run-api-tests.sh       # 14 API suites — 643 checks
+bash scripts/ci-run-auth-suites.sh  # 4 auth suites — 180 checks (needs the
+                                    #   mock-google env from .env.example
+                                    #   and the :81 Caddy dev gateway)
 bash scripts/run-recovery-tests.sh  # recovery suite — 38 checks
 ```
 
@@ -23,7 +25,8 @@ Suites are deterministic; several depend on seeded fixtures. The runner
 |---|---|---|
 | `ethiocert-bind-test` | 26 | `seed-soc.cjs` (deterministic indicators) |
 | `soc-test` | 91 | `seed-soc.cjs` (RQ3 latencies 6/8/21 min, median 8) |
-| `intel-feeds-test` | 36 | `seed-soc.cjs` — public-intel connectors: CISA KEV + Spamhaus DROP ingest (LIVE or labelled SNAPSHOT — both accepted, environment-independent), dedupe, RBAC, keyed feeds honestly skipped; see `.env.example` for the optional keys |
+| `intel-feeds-test` | 19 | `seed-soc.cjs` — public-intel connectors: CISA KEV + Spamhaus DROP ingest (LIVE or labelled SNAPSHOT — both accepted, environment-independent), dedupe, RBAC, keyed feeds honestly skipped; optional keys (`.env.example`) activate the URLhaus/ThreatFox/OTX checks and add more |
+| `misp-live-test` | 19 | app restarted with `MISP_URL` + `MISP_API_KEY` pointed at the mock (:3030) — TLP-aware private-exchange ingest |
 | `sla-test` | 32 | `seed-sla.cjs` (Wasasa overdue + "historical" scan) |
 | `report-test` | 25 | completed demo scan (base `db:seed`) |
 | `rules-engine-test` | 27 | `seed-evidence-links.cjs` (ART17-02, NBE-05/12/17/21/24/28 links, NBE-14 manual) |
@@ -33,7 +36,7 @@ Suites are deterministic; several depend on seeded fixtures. The runner
 | `trackc-test` | 36 | `seed-trackc.cjs` (4 operators, mixed gate states, ACFS 13 preconditions) |
 | `awareness-test` | 82 | `seed-awareness.cjs` (5 schools, 15 modules, RCT dataset) |
 | `awareness-tools-api-test` | 32 | base seed only |
-| `vapt-test` | 83 | `seed-vapt.ts` (44 assets, ~120 CVEs, 4 promoted criticals) — also runs a REAL live DAST scan against the dev server itself (http://localhost:3000) |
+| `vapt-test` | 140 | `seed-vapt.ts` (44 assets, ~120 CVEs, 4 promoted criticals) — also runs a REAL live DAST scan against the dev server itself (http://localhost:3000), the credentialed SNMP/DB audits and the AD attack-path + bid-matrix checks |
 | `test-auth` / `test-owasp` / `test-compliance` / `test-google` | 54 / 67 / 44 / 15 | base seed + demo users; mock Google on :3010 |
 | `test-password-reset` | 38 | demo users; dev-server console mail log at `/tmp/adwa-dev.log` |
 

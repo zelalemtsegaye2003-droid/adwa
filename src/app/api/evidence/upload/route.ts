@@ -26,7 +26,7 @@ import {
   sha256Hex,
   EVIDENCE_CATEGORIES,
   type EvidenceCategory,
-} from "@/lib/evidence";
+} from "@/lib/compliance/evidence";
 
 const MAX = { title: 200, description: 1000, tags: 400 };
 

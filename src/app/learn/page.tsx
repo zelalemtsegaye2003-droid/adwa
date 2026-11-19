@@ -10,7 +10,7 @@ import {
 } from "lucide-react";
 import { I18nProvider, useI18n } from "@/lib/i18n";
 import { LearnToolsGrid, LearnToolRunner } from "@/components/adwa/learn-tools";
-import { AUDIENCE_LABELS, type Audience, type ToolId } from "@/lib/awareness-tools";
+import { AUDIENCE_LABELS, type Audience, type ToolId } from "@/lib/awareness/awareness-tools";
 
 // ── DTOs (mirror the /api/learn contracts) ──────────────────────────────────
 

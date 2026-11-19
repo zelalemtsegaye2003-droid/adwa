@@ -211,11 +211,14 @@
 
   <!-- L4 ENGINES -->
   <div class="layer l4">
-    <div class="layer-bar"><span class="lname">Domain engines</span><span class="ldesc">the compliance logic — transparent and regulator-auditable by design</span></div>
+    <div class="layer-bar"><span class="lname">Domain engines</span><span class="ldesc">domain modules — src/lib/{compliance, vapt, soc, ethio, awareness, governance} — regulator-auditable by design</span></div>
     <div class="chips">
       <div class="chip engine"><div class="ct">Compliance engine</div><div class="cd">pillar-weighted scoring (Legal 35 / Technical 30 / Organisational 20 / Awareness 15) · risk-ranked findings · remediation plan</div></div>
       <div class="chip engine"><div class="ct">Rules engine</div><div class="cd">NBE SBB/83/2022 30 obligations · evidence coverage SATISFIED / STALE / GAP · freshness policies</div></div>
+      <div class="chip engine"><div class="ct">VAPT engines</div><div class="cd">real TCP/TLS/banner DAST · credentialed SNMP + MongoDB/MariaDB wire audits · CT-log EASM · CVSS+EPSS+KEV prioritisation · scope gate</div></div>
       <div class="chip engine"><div class="ct">SOC engine</div><div class="cd">NIST SP 800-61 lifecycle · alert prioritisation (severity × sector × confidence × freshness) · hybrid TLP sharing + anonymisation</div></div>
+      <div class="chip engine"><div class="ct">Threat-intel connectors</div><div class="cd">CISA KEV · abuse.ch URLhaus/ThreatFox · Spamhaus DROP · AlienVault OTX · GreyNoise + VirusTotal enrichment · self-hosted MISP</div></div>
+      <div class="chip engine"><div class="ct">Ethio ecosystem adapters</div><div class="cd">Ethio-CERT public API + INSA web (bilingual) · national legal corpus · ITU GCI posture · NBE directives</div></div>
       <div class="chip engine"><div class="ct">Awareness engine</div><div class="cd">Amharic-first curriculum · RQ2 treatment/control evaluation · consent register</div></div>
       <div class="chip engine"><div class="ct">SLA engine</div><div class="cd">corrective-action deadlines 30/60/90 d (Procl. 1426/2026) · on-time vs late closure proof</div></div>
       <div class="chip engine"><div class="ct">Track C gate enforcement</div><div class="cd">8 blocking criteria · CII double gate (MOU × INSA) · ACFS register — 409 + audit on gated actions</div></div>
@@ -251,9 +254,12 @@
         <div class="sg-label">Integrations</div>
         <div class="chips">
           <div class="chip engine"><div class="ct">Google OAuth 2.0 / OIDC</div><div class="cd">real provider via GOOGLE_CLIENT_ID/SECRET</div></div>
-          <div class="chip engine mock"><div class="ct">Mock Google provider</div><div class="cd">mini-services/mock-google :3010 — dev sign-in flow</div></div>
-          <div class="chip engine"><div class="ct">Ethio-CERT exchange</div><div class="cd">live adapter: national feed ingest + anonymised upward reports (SHA-256 receipts)</div></div>
+          <div class="chip engine mock"><div class="ct">Mock Google provider</div><div class="cd">mini-services/mock-google :3010 — dev sign-in flow via :81 gateway</div></div>
+          <div class="chip engine"><div class="ct">Ethio-CERT exchange + public API</div><div class="cd">live adapters: national feed ingest + anonymised upward reports (SHA-256 receipts) · public advisories/alerts/regs/GCI + INSA web</div></div>
           <div class="chip engine mock"><div class="ct">Mock Ethio-CERT exchange</div><div class="cd">mini-services/mock-ethiocert :3020 — pilot binding</div></div>
+          <div class="chip engine"><div class="ct">Public threat feeds</div><div class="cd">NVD · FIRST EPSS · CISA KEV · abuse.ch URLhaus/ThreatFox · Spamhaus DROP · AlienVault OTX — live with labelled snapshot fallback</div></div>
+          <div class="chip engine"><div class="ct">MISP private exchange</div><div class="cd">self-hosted REST connector — TLP markings honoured (AMBER+/RED stay in-tenant)</div></div>
+          <div class="chip engine mock"><div class="ct">Mock MISP + vulnerable lab</div><div class="cd">mini-services/mock-misp :3030 · mini-services/vuln-lab :3060 — deterministic CI doubles</div></div>
           <div class="chip engine mock"><div class="ct">SMTP mail</div><div class="cd">console transport until SMTP_HOST is set (D3)</div></div>
           <div class="chip engine mock"><div class="ct">Built-in SVG captcha</div><div class="cd">replaced by hCaptcha / reCAPTCHA in production (D4)</div></div>
         </div>
@@ -262,7 +268,7 @@
         <div class="sg-label">Operations</div>
         <div class="chips">
           <div class="chip engine"><div class="ct">Docker Compose</div><div class="cd">app + PostgreSQL 16 (health-checked) + Caddy auto-HTTPS · guarded idempotent seeds on boot</div></div>
-          <div class="chip engine"><div class="ct">CI — every push</div><div class="cd">lint → zero-error typecheck → production build → 683-check battery → compose boot/health smoke</div></div>
+          <div class="chip engine"><div class="ct">CI — every push</div><div class="cd">lint → zero-error typecheck → production build → 643+218-check battery → compose boot/health smoke</div></div>
           <div class="chip engine"><div class="ct">Backup + restore drills</div><div class="cd">backup-db.sh / restore-db.sh · restore-drill.sh proves recoverability</div></div>
           <div class="chip engine"><div class="ct">Runbooks</div><div class="cd">docs/: DEPLOY · OPS · INCIDENT (NIST 800-61, SEV levels) · PILOT_ONBOARDING (90 min)</div></div>
         </div>

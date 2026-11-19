@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireAuthAny } from "@/lib/auth/guard";
-import { bindingStatus } from "@/lib/ethiocert-client";
+import { bindingStatus } from "@/lib/ethio/ethiocert-client";
 import {
   aggregateEthioMode,
   ethioWebConfig,
@@ -10,7 +10,7 @@ import {
   getEthioCertNews,
   getEthioCertRegulations,
   getInsaNews,
-} from "@/lib/ethiocert-web";
+} from "@/lib/ethio/ethiocert-web";
 import {
   ETHIOCERT_CONTACT,
   ETHIOCERT_SERVICES,
@@ -19,7 +19,7 @@ import {
   INSA_PRODUCTS,
   INSA_STATS,
   NBE_ITEMS,
-} from "@/lib/ethio-landscape";
+} from "@/lib/ethio/ethio-landscape";
 
 export const runtime = "nodejs";
 

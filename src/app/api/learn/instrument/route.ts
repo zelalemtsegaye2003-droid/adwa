@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { publicQuestion, resolveInstrument } from "@/lib/awareness-server";
+import { publicQuestion, resolveInstrument } from "@/lib/awareness/awareness-server";
 
 export const runtime = "nodejs";
 

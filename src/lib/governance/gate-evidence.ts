@@ -7,7 +7,7 @@
  * an EHRC due-diligence report belongs to the venture's institutional
  * posture, never to a bank tenant.
  *
- * The storage model mirrors the tenant vault's security posture (src/lib/evidence.ts):
+ * The storage model mirrors the tenant vault's security posture (src/lib/compliance/evidence.ts):
  *  - files stored outside the web root under a server-generated storedName
  *    (random hex + allow-listed extension) — original filenames are metadata
  *    only, so path traversal is structurally impossible;
@@ -20,9 +20,9 @@
 import { createHash } from "crypto";
 import fs from "fs";
 import path from "path";
-import { checkFileType, makeStoredName, dataRoot } from "./evidence";
+import { checkFileType, makeStoredName, dataRoot } from "../compliance/evidence";
 
-export { formatBytes } from "./evidence-shared";
+export { formatBytes } from "../compliance/evidence-shared";
 
 const STORAGE_ROOT = dataRoot("gate-evidence");
 

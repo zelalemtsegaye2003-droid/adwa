@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
-import { evaluate, auditTimeComparison, pillarConfFromJson, type Answer } from "@/lib/engine";
-import { slaDueDate } from "@/lib/sla";
+import { evaluate, auditTimeComparison, pillarConfFromJson, type Answer } from "@/lib/compliance/engine";
+import { slaDueDate } from "@/lib/compliance/sla";
 import { requireAuthAny } from "@/lib/auth/guard";
 import { can } from "@/lib/auth/rbac";
 import { audit } from "@/lib/auth/audit";

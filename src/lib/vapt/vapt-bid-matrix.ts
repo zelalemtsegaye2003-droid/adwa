@@ -81,7 +81,7 @@ export const BID_REQUIREMENTS: BidRequirement[] = [
     mandatory: true, status: "partial",
     response: "Comply in part. The scan engine is software-only and licensed per-tenant (not per-engine); an unlimited number of internal scan targets is included. Physical remote engine appliances ship with the enterprise edition within the subscription term.",
     capability: "Hybrid engine: in-process DAST worker + simulated distributed engines; per-tenant licensing model with unlimited scan targets.",
-    evidence: "src/lib/vapt-engine.ts (engineMode DAST/SIM); prisma/schema.prisma VaptScan.engineMode",
+    evidence: "src/lib/vapt/vapt-engine.ts (engineMode DAST/SIM); prisma/schema.prisma VaptScan.engineMode",
     note: "Remote engine appliances — enterprise edition roadmap (year 1 of term).",
   },
   {
@@ -118,7 +118,7 @@ export const BID_REQUIREMENTS: BidRequirement[] = [
     mandatory: true, status: "full",
     response: "Comply. EASM discovery is LIVE: certificate-transparency log queries (crt.sh) plus DNS resolution enumerate every hostname ever issued under an authorized root domain, classify each against approved scopes and the registered inventory (managed vs shadow), and persist the external-attack-surface registry. The run itself is authorization-gated like every scan, with an air-gap-tolerant fallback to a bundled real CT snapshot when the live source is unreachable.",
     capability: "CT-log + DNS discovery engine, scope/managed classification, shadow-IT registry, hash-chained DISCOVERY_RUN audit trail.",
-    evidence: "POST/GET /api/vapt/discovery; src/lib/vapt-easm.ts; VaptDiscovery model; live capture scripts/assets/easm-cbe.com.et-fixture.json",
+    evidence: "POST/GET /api/vapt/discovery; src/lib/vapt/vapt-easm.ts; VaptDiscovery model; live capture scripts/assets/easm-cbe.com.et-fixture.json",
     note: "Cloud-account discovery (B3) is a separate roadmap line.",
   },
   {
@@ -163,7 +163,7 @@ export const BID_REQUIREMENTS: BidRequirement[] = [
     mandatory: true, status: "partial",
     response: "Comply in part. The reference catalogue (44 curated NVD/CISA-aligned CVEs incl. KEV entries) is bundled and versioned per release; automated NVD sync within 24h ships with the enterprise feed service.",
     capability: "Bundled CVE reference catalogue versioned with each release.",
-    evidence: "src/lib/vapt-data.ts (CVE_CATALOGUE); docs/VAPT.md §catalogue",
+    evidence: "src/lib/vapt/vapt-data.ts (CVE_CATALOGUE); docs/VAPT.md §catalogue",
     note: "Automated NVD feed sync — enterprise feed service, roadmap.",
   },
   {
@@ -172,7 +172,7 @@ export const BID_REQUIREMENTS: BidRequirement[] = [
     mandatory: true, status: "partial",
     response: "Comply in part. The live DAST engine detects configuration and logic weaknesses without a CVE signature (headers, TLS posture, exposed paths, cookie flags); heuristic host-based zero-day detection is an engine-2 roadmap item.",
     capability: "Signature-less DAST checks (headers/TLS/exposure logic) run against live targets.",
-    evidence: "src/lib/vapt-engine.ts runDastProbe (DAST_* findings without CVE ids)",
+    evidence: "src/lib/vapt/vapt-engine.ts runDastProbe (DAST_* findings without CVE ids)",
     note: "Behavioural host heuristics — engine v2 roadmap.",
   },
   {
@@ -189,7 +189,7 @@ export const BID_REQUIREMENTS: BidRequirement[] = [
     mandatory: true, status: "partial",
     response: "Comply in part — the SNMP wire protocol is implemented natively today: SNMPv1/v2c GET audits (default community strings public/private answered are evidence-backed findings) plus SNMPv3 RFC 3412/3414 USM probes (engine-ID discovery; agents answering at the noAuthNoPriv security level are findings, agents enforcing USM authentication are recorded as secure posture). SSH/Telnet transport exposure (cleartext protocol findings, version banners) is live; credentialed SSH/Telnet configuration audit ships with engine v2.",
     capability: "Real BER/UDP SNMP client + v3 USM ladder (read-only GETs only — no SET operations exist by design); SSH/Telnet banner findings.",
-    evidence: "src/lib/vapt-snmp.ts; mini-services/vuln-lab/protocol-labs.ts (SNMP agent); vapt-test sections 'SNMP' (140-check suite)",
+    evidence: "src/lib/vapt/vapt-snmp.ts; mini-services/vuln-lab/protocol-labs.ts (SNMP agent); vapt-test sections 'SNMP' (140-check suite)",
     note: "Credentialed SSH device config audit — engine v2 roadmap.",
   },
   {
@@ -198,7 +198,7 @@ export const BID_REQUIREMENTS: BidRequirement[] = [
     mandatory: true, status: "partial",
     response: "Comply in part — MongoDB and MySQL/MariaDB are audited over their real wire protocols today: MongoDB OP_MSG with SCRAM-SHA-256 credentialed login (RFC 5802/7677, mutual-auth signature verified), MySQL/MariaDB protocol-10 handshake with mysql_native_password credentialed login. Audit posture checks: authentication enforcement (administrative commands without credentials answered = critical finding), classic empty-password root probe, release-line end-of-life from the server's own reported version. Oracle, MSSQL and PostgreSQL adapters ship with engine v2.",
     capability: "BSON/OP_MSG + MySQL wire clients with encrypted-at-rest scan credentials (AES-256-GCM), protocol auto-detection, EOL posture findings.",
-    evidence: "src/lib/vapt-db-audit.ts; VaptCredential model; protocol labs tcp/3160-3164; vapt-test sections 'DB-audit'",
+    evidence: "src/lib/vapt/vapt-db-audit.ts; VaptCredential model; protocol labs tcp/3160-3164; vapt-test sections 'DB-audit'",
     note: "Oracle/MSSQL/Postgres adapters — engine v2 roadmap.",
   },
   {
@@ -207,7 +207,7 @@ export const BID_REQUIREMENTS: BidRequirement[] = [
     mandatory: true, status: "full",
     response: "Comply. Custom local checks are supported: additional control checks are authored as data-driven catalogue entries and local DAST rules (header/TLS/path assertions) extensible without vendor intervention.",
     capability: "Data-driven check catalogue + custom DAST probe rules.",
-    evidence: "src/lib/vapt-data.ts (catalogue entries); vapt-engine.ts DAST probe table",
+    evidence: "src/lib/vapt/vapt-data.ts (catalogue entries); vapt-engine.ts DAST probe table",
   },
   {
     id: "C7", section: "C",
@@ -281,7 +281,7 @@ export const BID_REQUIREMENTS: BidRequirement[] = [
     mandatory: true, status: "full",
     response: "Comply. DAST is included in the base platform at no extra cost — real, live crawl-and-probe scanning of web targets with honest engine labelling (not a canned report).",
     capability: "Live DAST engine in base platform.",
-    evidence: "src/lib/vapt-engine.ts runDastScan; Scans tab (engine=dast, live badge)",
+    evidence: "src/lib/vapt/vapt-engine.ts runDastScan; Scans tab (engine=dast, live badge)",
   },
   {
     id: "E2", section: "E",
@@ -391,7 +391,7 @@ export const BID_REQUIREMENTS: BidRequirement[] = [
     mandatory: true, status: "partial",
     response: "Comply in part. The AD Attack Paths module audits AD posture continuously (tiering violations, roastable accounts, delegation abuse, stale credentials) with graph analytics; scheduled Entra ID tenant sync ships with the identity connector.",
     capability: "AD posture auditing via attack-path graph (17-node demo topology, tier-0 exposure scoring).",
-    evidence: "AD Attack Paths tab; GET /api/vapt/ad-paths; src/lib/vapt-ad-engine.ts",
+    evidence: "AD Attack Paths tab; GET /api/vapt/ad-paths; src/lib/vapt/vapt-ad-engine.ts",
     note: "Entra ID sync — identity connector roadmap.",
   },
   {
@@ -519,7 +519,7 @@ export const BID_REQUIREMENTS: BidRequirement[] = [
     mandatory: true, status: "full",
     response: "Comply. Adwa Cyber's dynamic priority score combines CVSS base, EPSS exploit probability, KEV active-exploitation state and asset business context (weighted 45/25/15/15) into P1–P4 classes.",
     capability: "Context-aware priority engine (P1–P4).",
-    evidence: "src/lib/vapt-engine.ts computePriority; Overview priority mix chart",
+    evidence: "src/lib/vapt/vapt-engine.ts computePriority; Overview priority mix chart",
   },
   {
     id: "J2", section: "J",
@@ -551,7 +551,7 @@ export const BID_REQUIREMENTS: BidRequirement[] = [
     mandatory: true, status: "partial",
     response: "Comply in part. The platform ingests national threat exchange feeds (Ethio-CERT) and maintains KEV/EPSS threat context per finding; dark-web monitoring feeds are offered through the threat-intel add-on within the term.",
     capability: "Ethio-CERT feed ingestion + KEV/EPSS context per finding.",
-    evidence: "src/lib/ethiocert-feed.ts; SOC module threat panel",
+    evidence: "src/lib/ethio/ethiocert-feed.ts; SOC module threat panel",
     note: "Dark-web chatter feeds — threat-intel add-on roadmap.",
   },
 
@@ -579,7 +579,7 @@ export const BID_REQUIREMENTS: BidRequirement[] = [
     mandatory: true, status: "full",
     response: "Comply. Every finding carries an SLA due date by severity (30/60/90/180 days), due-soon/overdue states, remediation tracking with timestamps, and cross-module SLA visibility via promotion into the Findings module.",
     capability: "Per-finding SLA clocks + overdue/due-soon KPIs + promotion.",
-    evidence: "src/lib/sla.ts; Vulns tab SLA columns; Findings module banner",
+    evidence: "src/lib/compliance/sla.ts; Vulns tab SLA columns; Findings module banner",
   },
 
   // ── L. Compliance, Reporting & Governance ─────────────────────────────────
@@ -598,7 +598,7 @@ export const BID_REQUIREMENTS: BidRequirement[] = [
     mandatory: true, status: "full",
     response: "Comply. The platform's compliance module ships the NBE regulatory rule set plus ISO/IEC 27001:2022 control mappings, NIST CSF-aligned structure (Identify/Protect/Detect/Respond/Recover), and evidence-gated compliance scoring reusable as PCI-DSS/HIPAA-style templates.",
     capability: "Compliance module with rule packs + framework mapping + gate evidence.",
-    evidence: "src/lib/nbe-rules-data.ts (77 rules); gates; /api/rules; docs/EVIDENCE.md",
+    evidence: "src/lib/compliance/nbe-rules-data.ts (77 rules); gates; /api/rules; docs/EVIDENCE.md",
   },
   {
     id: "L4", section: "L",

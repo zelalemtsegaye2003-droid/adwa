@@ -1,7 +1,7 @@
 /** Quick sanity check of the bid matrix + AD attack-path engines. */
-import { BID_REQUIREMENTS, bidMatrixSummary, bidMatrixCsv } from "../src/lib/vapt-bid-matrix";
-import { AD_NODES, AD_EDGES } from "../src/lib/vapt-ad-paths";
-import { computeAdAttackPaths } from "../src/lib/vapt-ad-engine";
+import { BID_REQUIREMENTS, bidMatrixSummary, bidMatrixCsv } from "../src/lib/vapt/vapt-bid-matrix";
+import { AD_NODES, AD_EDGES } from "../src/lib/vapt/vapt-ad-paths";
+import { computeAdAttackPaths } from "../src/lib/vapt/vapt-ad-engine";
 
 const s = bidMatrixSummary();
 console.log("BID matrix:", JSON.stringify({

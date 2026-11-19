@@ -20,7 +20,7 @@ import {
 import { toast } from "sonner";
 import { useI18n } from "@/lib/i18n";
 import { api, ApiCallError } from "@/lib/auth-client";
-import { ACFS_STATUS_LABELS, ACFS_DOMAINS } from "@/lib/acfs-gates";
+import { ACFS_STATUS_LABELS, ACFS_DOMAINS } from "@/lib/governance/acfs-gates";
 
 // ── DTOs ─────────────────────────────────────────────────────────────────────
 

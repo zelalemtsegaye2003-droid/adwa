@@ -3,7 +3,7 @@ import { db } from "@/lib/db";
 import { requireAuth } from "@/lib/auth/guard";
 import { audit } from "@/lib/auth/audit";
 import { clientIp } from "@/lib/auth/rate-limit";
-import { GATE_STATUSES, canTransitionGate } from "@/lib/gates";
+import { GATE_STATUSES, canTransitionGate } from "@/lib/governance/gates";
 
 export const runtime = "nodejs";
 

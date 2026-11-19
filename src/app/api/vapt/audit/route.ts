@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { requireAuthAny } from "@/lib/auth/guard";
 import { can } from "@/lib/auth/rbac";
-import { verifyVaptAuditChain } from "@/lib/vapt-audit";
+import { verifyVaptAuditChain } from "@/lib/vapt/vapt-audit";
 
 export const runtime = "nodejs";
 

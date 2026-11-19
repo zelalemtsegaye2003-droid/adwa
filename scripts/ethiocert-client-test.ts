@@ -1,7 +1,7 @@
 /**
  * Adwa Cyber — Ethio-CERT exchange client unit verification.
  * ---------------------------------------------------------------------
- * Exercises src/lib/ethiocert-client.ts directly (no dev server):
+ * Exercises src/lib/ethio/ethiocert-client.ts directly (no dev server):
  *   1. Fixture mode when ETHIOCERT_API_URL is unset (pilot fall-back)
  *   2. LIVE mode against an inline exchange (feed parsing + invalid skipping,
  *      report delivery with receipt)
@@ -17,7 +17,7 @@ import {
   EthioCertError,
   fetchNationalFeed,
   parseFeedEntry,
-} from "../src/lib/ethiocert-client";
+} from "../src/lib/ethio/ethiocert-client";
 
 let passed = 0;
 const results: string[] = [];

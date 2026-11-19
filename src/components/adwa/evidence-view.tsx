@@ -42,7 +42,7 @@ import { useToast } from "@/hooks/use-toast";
 import {
   EVIDENCE_CATEGORIES, CATEGORY_LABELS, MAX_FILE_BYTES, ACCEPTED_EXTENSIONS,
   formatBytes, fileExt, isPreviewable, type EvidenceCategory,
-} from "@/lib/evidence-shared";
+} from "@/lib/compliance/evidence-shared";
 
 // ── DTOs ─────────────────────────────────────────────────────────────────────
 

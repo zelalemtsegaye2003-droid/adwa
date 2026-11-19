@@ -4,7 +4,7 @@ import { requireAuthAny, parseBody } from "@/lib/auth/guard";
 import { can } from "@/lib/auth/rbac";
 import { audit } from "@/lib/auth/audit";
 import { clientIp } from "@/lib/auth/rate-limit";
-import { prioritise } from "@/lib/vapt-engine";
+import { prioritise } from "@/lib/vapt/vapt-engine";
 
 export const runtime = "nodejs";
 

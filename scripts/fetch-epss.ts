@@ -17,7 +17,7 @@
  */
 import { readFileSync, writeFileSync } from "fs";
 
-const SNAPSHOT = "src/lib/vapt-feed-snapshot.json";
+const SNAPSHOT = "src/lib/vapt/vapt-feed-snapshot.json";
 
 interface FeedEntry {
   cve: string;

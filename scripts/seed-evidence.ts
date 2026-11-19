@@ -12,7 +12,7 @@ import { PrismaClient } from "@prisma/client";
 import { createHash, randomBytes } from "crypto";
 import fs from "fs";
 import path from "path";
-import { dataRoot } from "../src/lib/evidence";
+import { dataRoot } from "../src/lib/compliance/evidence";
 import { assertSeedAllowed } from "./seed-guard";
 
 const db = new PrismaClient();

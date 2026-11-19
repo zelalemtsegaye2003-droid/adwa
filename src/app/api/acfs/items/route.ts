@@ -3,7 +3,7 @@ import { db } from "@/lib/db";
 import { requireAuth, parseBody } from "@/lib/auth/guard";
 import { audit } from "@/lib/auth/audit";
 import { clientIp } from "@/lib/auth/rate-limit";
-import { ACFS_DOMAINS, ACFS_STATUSES } from "@/lib/acfs-gates";
+import { ACFS_DOMAINS, ACFS_STATUSES } from "@/lib/governance/acfs-gates";
 
 export const runtime = "nodejs";
 

@@ -4,8 +4,8 @@ import { requireAuthAny } from "@/lib/auth/guard";
 import { can } from "@/lib/auth/rbac";
 import { audit } from "@/lib/auth/audit";
 import { clientIp } from "@/lib/auth/rate-limit";
-import { EVIDENCE_CATEGORIES, type EvidenceCategory } from "@/lib/evidence";
-import { autoLinkEvidence } from "@/lib/rules-engine";
+import { EVIDENCE_CATEGORIES, type EvidenceCategory } from "@/lib/compliance/evidence";
+import { autoLinkEvidence } from "@/lib/compliance/rules-engine";
 
 export const runtime = "nodejs";
 

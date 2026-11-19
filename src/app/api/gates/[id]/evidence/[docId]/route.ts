@@ -3,7 +3,7 @@ import { db } from "@/lib/db";
 import { requireAuth } from "@/lib/auth/guard";
 import { audit } from "@/lib/auth/audit";
 import { clientIp } from "@/lib/auth/rate-limit";
-import { readGateEvidenceFile, verifyChecksum } from "@/lib/gate-evidence";
+import { readGateEvidenceFile, verifyChecksum } from "@/lib/governance/gate-evidence";
 
 export const runtime = "nodejs";
 

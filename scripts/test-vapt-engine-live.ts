@@ -1,6 +1,6 @@
 /** Engine smoke test: run the REAL infra scan against the lab target. */
-import { runInfraScan, infraVulnsFromReport, SAFE_DEFAULT } from "../src/lib/vapt-netengine";
-import { runDastScan, dastVulnsFromReport } from "../src/lib/vapt-engine";
+import { runInfraScan, infraVulnsFromReport, SAFE_DEFAULT } from "../src/lib/vapt/vapt-netengine";
+import { runDastScan, dastVulnsFromReport } from "../src/lib/vapt/vapt-engine";
 
 const HOST = "127.0.0.1";
 const PORTS = [3021, 3022, 3060, 3061, 3062];

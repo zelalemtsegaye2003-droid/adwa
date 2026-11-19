@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { requireAuth } from "@/lib/auth/guard";
 import { can } from "@/lib/auth/rbac";
-import { getCoverageForOrg } from "@/lib/rules-engine";
+import { getCoverageForOrg } from "@/lib/compliance/rules-engine";
 
 /**
  * GET /api/rules/coverage — evidence coverage per obligation for one org.

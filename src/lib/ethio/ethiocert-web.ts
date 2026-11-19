@@ -24,14 +24,14 @@
  *  B. INSA public web (HTML — institutional news on the home page):
  *       https://www.insa.gov.et  (/blog/<slug> headlines)
  *
- * Honesty model (same convention as src/lib/intel-feeds.ts):
+ * Honesty model (same convention as src/lib/soc/intel-feeds.ts):
  *   mode "live"     fetched and parsed just now (60 s in-process cache)
  *   mode "snapshot" source unreachable (or ETHIO_WEB_OFF) → the bundled
  *                  labelled snapshot captured from the real sources is
  *                  served, with capture date + degradation reason.
  *                  Never invented content.
  *
- * The structured exchange client (src/lib/ethiocert-client.ts,
+ * The structured exchange client (src/lib/ethio/ethiocert-client.ts,
  * {ETHIOCERT_API_URL}/feed + /reports, bearer-key bilateral sync) remains
  * the official integration path for when Ethio-CERT grants API keys; this
  * module is the public layer every deployment can read immediately.

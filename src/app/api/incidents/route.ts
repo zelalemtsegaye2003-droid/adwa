@@ -4,7 +4,7 @@ import { requireAuthAny } from "@/lib/auth/guard";
 import { can } from "@/lib/auth/rbac";
 import { audit } from "@/lib/auth/audit";
 import { clientIp } from "@/lib/auth/rate-limit";
-import { prioritiseIncident, INCIDENT_CATEGORIES, DETECTION_METHODS, INCIDENT_SOURCES } from "@/lib/soc-engine";
+import { prioritiseIncident, INCIDENT_CATEGORIES, DETECTION_METHODS, INCIDENT_SOURCES } from "@/lib/soc/soc-engine";
 
 export const runtime = "nodejs";
 

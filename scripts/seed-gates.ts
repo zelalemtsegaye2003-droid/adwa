@@ -5,7 +5,7 @@
  * Usage: npx tsx scripts/seed-gates.ts
  */
 import { PrismaClient } from "@prisma/client";
-import { GATE_CRITERIA } from "../src/lib/gates";
+import { GATE_CRITERIA } from "../src/lib/governance/gates";
 import { assertSeedAllowed } from "./seed-guard";
 
 const db = new PrismaClient();

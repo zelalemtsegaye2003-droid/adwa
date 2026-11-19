@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { requireAuthAny } from "@/lib/auth/guard";
 import { can } from "@/lib/auth/rbac";
-import { evaluateCiiGate } from "@/lib/cii-engine";
+import { evaluateCiiGate } from "@/lib/governance/cii-engine";
 
 export const runtime = "nodejs";
 

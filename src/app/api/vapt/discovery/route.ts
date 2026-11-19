@@ -4,9 +4,9 @@ import { requireAuthAny, parseBody } from "@/lib/auth/guard";
 import { can } from "@/lib/auth/rbac";
 import { audit } from "@/lib/auth/audit";
 import { clientIp } from "@/lib/auth/rate-limit";
-import { scopeIsLive, parseScopeTargets, targetMatches, extractTarget } from "@/lib/vapt-scope";
-import { discoverSubdomains, type CrtShEntry, type Fetcher } from "@/lib/vapt-easm";
-import { appendVaptAudit } from "@/lib/vapt-audit";
+import { scopeIsLive, parseScopeTargets, targetMatches, extractTarget } from "@/lib/vapt/vapt-scope";
+import { discoverSubdomains, type CrtShEntry, type Fetcher } from "@/lib/vapt/vapt-easm";
+import { appendVaptAudit } from "@/lib/vapt/vapt-audit";
 import { existsSync, readFileSync } from "fs";
 import { join } from "path";
 

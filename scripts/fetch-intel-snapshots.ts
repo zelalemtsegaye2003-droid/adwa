@@ -12,8 +12,8 @@
  *                  (full hijacked-netblock list; attribution header preserved)
  *
  * Output:
- *   src/lib/intel-snapshots/kev.json
- *   src/lib/intel-snapshots/spamhaus-drop.json
+ *   src/lib/soc/intel-snapshots/kev.json
+ *   src/lib/soc/intel-snapshots/spamhaus-drop.json
  *
  * A failed live fetch is an ERROR (exit 1) — the previous snapshot is left
  * untouched, never silently overwritten with stale or partial data. The
@@ -73,7 +73,7 @@ try {
         : `CISA KEV catalog snapshot — RECENT ADDITIONS subset (entries added within the last ${days} days, ${subset.length} of ${catalogCount} catalog entries). Captured verbatim from the live CISA JSON feed. Public domain (CISA terms of use). The live connector ingests the full catalog.`,
     entries: subset.map((v) => v as Record<string, unknown>),
   };
-  writeFileSync("src/lib/intel-snapshots/kev.json", JSON.stringify(snapshot, null, 2));
+  writeFileSync("src/lib/soc/intel-snapshots/kev.json", JSON.stringify(snapshot, null, 2));
   console.log(`  Wrote kev.json — ${subset.length} entries (catalog v${catalogVersion}, ${catalogCount} total, dateReleased ${body.dateReleased ?? "?"})`);
   kevWritten = true;
 } catch (err) {
@@ -119,7 +119,7 @@ try {
     note: "Captured verbatim from the live Spamhaus DROP feed (full list). Terms: The Spamhaus Project SLU — DROP is published for free operational use; keep the attribution header.",
     entries,
   };
-  writeFileSync("src/lib/intel-snapshots/spamhaus-drop.json", JSON.stringify(snapshot, null, 2));
+  writeFileSync("src/lib/soc/intel-snapshots/spamhaus-drop.json", JSON.stringify(snapshot, null, 2));
   console.log(`  Wrote spamhaus-drop.json — ${entries.length} netblocks (list ${lastModified || listHeader})`);
   dropWritten = true;
 } catch (err) {

@@ -19,7 +19,7 @@
  * This service MUST NOT be exposed in production.
  */
 import { createHash } from "crypto";
-import { ETHIOCERT_FEED } from "../../src/lib/ethiocert-feed";
+import { ETHIOCERT_FEED } from "../../src/lib/ethio/ethiocert-feed";
 
 const PORT = Number(process.env.MOCK_PORT ?? 3020);
 const API_KEY = process.env.ETHIOCERT_MOCK_KEY ?? "adwa-dev-ethiocert-key";

@@ -25,7 +25,7 @@ import {
   FOOTPRINT_QUESTIONS, scoreFootprint,
   FLAG_POSTS,
   INCIDENT_TYPES, buildReportChecklist,
-} from "../src/lib/awareness-tools";
+} from "../src/lib/awareness/awareness-tools";
 
 const results: string[] = [];
 const check = (name: string, cond: boolean, extra = "") =>

@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { requireAuth } from "@/lib/auth/guard";
 import { can } from "@/lib/auth/rbac";
-import { slaInfo, summarizeSla } from "@/lib/sla";
+import { slaInfo, summarizeSla } from "@/lib/compliance/sla";
 
 /**
  * GET /api/stats — platform or tenant analytics.

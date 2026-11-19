@@ -4,8 +4,8 @@ import { requireAuthAny, parseBody } from "@/lib/auth/guard";
 import { can } from "@/lib/auth/rbac";
 import { audit } from "@/lib/auth/audit";
 import { clientIp } from "@/lib/auth/rate-limit";
-import { parseScopeTargets } from "@/lib/vapt-scope";
-import { appendVaptAudit } from "@/lib/vapt-audit";
+import { parseScopeTargets } from "@/lib/vapt/vapt-scope";
+import { appendVaptAudit } from "@/lib/vapt/vapt-audit";
 
 export const runtime = "nodejs";
 

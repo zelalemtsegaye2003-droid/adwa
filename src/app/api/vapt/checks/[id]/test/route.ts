@@ -4,11 +4,11 @@ import { requireAuthAny, parseBody } from "@/lib/auth/guard";
 import { can } from "@/lib/auth/rbac";
 import { audit } from "@/lib/auth/audit";
 import { clientIp } from "@/lib/auth/rate-limit";
-import { parseCheckYaml, evaluateCheck } from "@/lib/vapt-checks";
-import { runInfraScan, SAFE_DEFAULT } from "@/lib/vapt-netengine";
-import { runDastScan } from "@/lib/vapt-engine";
-import { extractTarget, authorizingScope } from "@/lib/vapt-scope";
-import { appendVaptAudit } from "@/lib/vapt-audit";
+import { parseCheckYaml, evaluateCheck } from "@/lib/vapt/vapt-checks";
+import { runInfraScan, SAFE_DEFAULT } from "@/lib/vapt/vapt-netengine";
+import { runDastScan } from "@/lib/vapt/vapt-engine";
+import { extractTarget, authorizingScope } from "@/lib/vapt/vapt-scope";
+import { appendVaptAudit } from "@/lib/vapt/vapt-audit";
 
 export const runtime = "nodejs";
 

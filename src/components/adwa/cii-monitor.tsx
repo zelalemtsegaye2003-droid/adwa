@@ -35,7 +35,7 @@ import {
   CII_MOU_STATUSES, CII_AUTH_STATUSES, CII_SYSTEM_READINESS,
   CII_SYSTEM_CATEGORIES, CII_SECTORS,
   type CiiMouStatus, type CiiAuthStatus, type CiiSystemReadiness,
-} from "@/lib/cii-engine";
+} from "@/lib/governance/cii-engine";
 
 // ── DTOs ─────────────────────────────────────────────────────────────────────
 

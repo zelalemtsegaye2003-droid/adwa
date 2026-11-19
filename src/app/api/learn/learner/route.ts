@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
-import { learnRateLimit, learnerByCodes } from "@/lib/awareness-server";
+import { learnRateLimit, learnerByCodes } from "@/lib/awareness/awareness-server";
 
 export const runtime = "nodejs";
 

@@ -3,7 +3,7 @@ import { db } from "@/lib/db";
 import { requireAuth } from "@/lib/auth/guard";
 import { audit } from "@/lib/auth/audit";
 import { clientIp } from "@/lib/auth/rate-limit";
-import { evaluateCiiGate, CII_SYSTEM_READINESS } from "@/lib/cii-engine";
+import { evaluateCiiGate, CII_SYSTEM_READINESS } from "@/lib/governance/cii-engine";
 
 export const runtime = "nodejs";
 

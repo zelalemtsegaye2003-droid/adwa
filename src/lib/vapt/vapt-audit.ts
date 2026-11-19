@@ -11,7 +11,7 @@
  * mismatch pins the exact tampered row and every later row also fails.
  */
 import { createHash } from "crypto";
-import { db } from "./db";
+import { db } from "../db";
 
 export type VaptAuditType =
   | "SCOPE_CREATED"

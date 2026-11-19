@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireAuthAny } from "@/lib/auth/guard";
 import { can } from "@/lib/auth/rbac";
-import { AD_EDGES, AD_NODES, AD_DOMAIN } from "@/lib/vapt-ad-paths";
-import { computeAdAttackPaths } from "@/lib/vapt-ad-engine";
+import { AD_EDGES, AD_NODES, AD_DOMAIN } from "@/lib/vapt/vapt-ad-paths";
+import { computeAdAttackPaths } from "@/lib/vapt/vapt-ad-engine";
 
 export const runtime = "nodejs";
 

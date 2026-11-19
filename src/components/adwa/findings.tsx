@@ -13,7 +13,7 @@ import { AlertTriangle, Clock3, ShieldCheck, TimerOff } from "lucide-react";
 import { toast } from "sonner";
 import { useI18n } from "@/lib/i18n";
 import { api, ApiCallError } from "@/lib/auth-client";
-import { slaInfo } from "@/lib/sla";
+import { slaInfo } from "@/lib/compliance/sla";
 import { SeverityBadge, StatusBadge, FrameworkBadge, SlaBadge, type ScanBriefDTO, type ScanDetailDTO, type ResultDTO } from "./shared";
 
 export function FindingsView() {

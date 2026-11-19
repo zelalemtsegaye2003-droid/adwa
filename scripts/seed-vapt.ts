@@ -25,7 +25,7 @@ import { PrismaClient } from "@prisma/client";
 import { readFileSync } from "fs";
 import { join } from "path";
 import { encryptSecret } from "../src/lib/auth/crypto";
-import { VAPT_CATALOGUE, KIND_PLATFORMS, type CatalogueEntry } from "../src/lib/vapt-data";
+import { VAPT_CATALOGUE, KIND_PLATFORMS, type CatalogueEntry } from "../src/lib/vapt/vapt-data";
 import {
   buildSimulatedFindings,
   prioritise,
@@ -33,7 +33,7 @@ import {
   vaptSlaDueDate,
   summariseVulns,
   type VulnDraft,
-} from "../src/lib/vapt-engine";
+} from "../src/lib/vapt/vapt-engine";
 import { assertSeedAllowed } from "./seed-guard";
 
 const db = new PrismaClient();

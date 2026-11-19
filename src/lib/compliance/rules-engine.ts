@@ -14,7 +14,7 @@
  * This module is server-only (imports nothing Node-specific today but is
  * intended for API routes); pure helpers are exported for unit testing.
  */
-import { db } from "./db";
+import { db } from "../db";
 import type { EvidenceCategory } from "./evidence-shared";
 
 // ── Freshness policy ─────────────────────────────────────────────────────────

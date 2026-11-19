@@ -39,7 +39,7 @@ if (process.env.NODE_ENV === "production") {
 const path = require("path");
 const fs = require("fs");
 function loadArrays() {
-  const src = fs.readFileSync(path.join(__dirname, "..", "src", "lib", "awareness-data.ts"), "utf8");
+  const src = fs.readFileSync(path.join(__dirname, "..", "src", "lib", "awareness", "awareness-data.ts"), "utf8");
   // Strip TS types/exports and evaluate the array literal. The array body is
   // plain data (no imports), so a parenthesised eval is safe here.
   function loadOne(name) {

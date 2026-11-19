@@ -19,6 +19,11 @@ cleanup() {
   pkill -f 'mini-services/mock' 2>/dev/null
   pkill -f 'mini-services/vuln-lab' 2>/dev/null
   pkill -f 'bun --hot' 2>/dev/null
+  # bun children can carry unmatchable cmdlines ("bun index.ts") — kill by
+  # port so no leaked listener can hold the calling shell open.
+  for p in 3000 3010 3020 3030 3060; do
+    lsof -ti:$p 2>/dev/null | xargs -r kill -9 2>/dev/null
+  done
 }
 trap cleanup EXIT
 trap cleanup TERM INT
@@ -77,7 +82,24 @@ for s in "${SUITES[@]}"; do
   # SOC-dependent suites need deterministic incident/indicator state (the
   # suites themselves mutate the lifecycle as part of the test).
   case "$s" in
-    ethiocert-bind-test|soc-test|intel-feeds-test) node scripts/seed-soc.cjs > /dev/null || { FAILED=1; echo "seed-soc failed"; continue; } ;;
+    ethiocert-bind-test)
+      # This suite binds the national-exchange synchronisation layer to the
+      # Ethio-CERT mock (:3020) — restart the app carrying the binding env;
+      # the next suite's restart returns to the honest unconfigured default.
+      pkill -f 'next dev' 2>/dev/null
+      pkill -f 'next-server' 2>/dev/null
+      sleep 2
+      node scripts/seed-soc.cjs > /dev/null || { FAILED=1; echo "seed-soc failed"; continue; }
+      ETHIOCERT_API_URL=http://localhost:3020 ETHIOCERT_API_KEY=adwa-dev-ethiocert-key nohup bun run dev > "$LOG" 2>&1 &
+      ok=0
+      for i in $(seq 1 60); do
+        a=$(curl -s -o /dev/null -w '%{http_code}' --max-time 3 http://localhost:3000/ 2>/dev/null)
+        [ "$a" = "200" ] && ok=1 && break
+        sleep 2
+      done
+      if [ "$ok" != "1" ]; then echo "APP FAILED TO RESTART WITH ETHIOCERT BINDING"; FAILED=1; continue; fi
+      ;;
+    soc-test|intel-feeds-test) node scripts/seed-soc.cjs > /dev/null || { FAILED=1; echo "seed-soc failed"; continue; } ;;
     misp-live-test)
       # This suite binds the self-hosted MISP connector to the mock (:3030) —
       # restart the app carrying the binding env; the next suite's restart

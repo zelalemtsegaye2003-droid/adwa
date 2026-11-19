@@ -12,15 +12,15 @@ import {
   vaptSlaDueDate,
   summariseVulns,
   type VulnDraft,
-} from "@/lib/vapt-engine";
-import { runInfraScan, infraVulnsFromReport, SAFE_DEFAULT, findingFingerprint } from "@/lib/vapt-netengine";
-import { extractTarget, authorizingScope, scopeIsLive, targetMatches, parseScopeTargets } from "@/lib/vapt-scope";
-import { runSnmpAudit, snmpVulnsFromReport } from "@/lib/vapt-snmp";
-import { auditDatabase, dbVulnsFromReport, type DbCredentials } from "@/lib/vapt-db-audit";
+} from "@/lib/vapt/vapt-engine";
+import { runInfraScan, infraVulnsFromReport, SAFE_DEFAULT, findingFingerprint } from "@/lib/vapt/vapt-netengine";
+import { extractTarget, authorizingScope, scopeIsLive, targetMatches, parseScopeTargets } from "@/lib/vapt/vapt-scope";
+import { runSnmpAudit, snmpVulnsFromReport } from "@/lib/vapt/vapt-snmp";
+import { auditDatabase, dbVulnsFromReport, type DbCredentials } from "@/lib/vapt/vapt-db-audit";
 import { decryptSecret } from "@/lib/auth/crypto";
-import { appendVaptAudit } from "@/lib/vapt-audit";
-import { FEED_AS_OF } from "@/lib/vapt-cve-feed";
-import { epssFor, epssProvenanceNote } from "@/lib/vapt-epss";
+import { appendVaptAudit } from "@/lib/vapt/vapt-audit";
+import { FEED_AS_OF } from "@/lib/vapt/vapt-cve-feed";
+import { epssFor, epssProvenanceNote } from "@/lib/vapt/vapt-epss";
 import { createHash } from "crypto";
 
 export const runtime = "nodejs";

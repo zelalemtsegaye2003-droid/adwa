@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireAuthAny } from "@/lib/auth/guard";
-import { BID_REQUIREMENTS, BID_SECTIONS, bidMatrixCsv, bidMatrixSummary } from "@/lib/vapt-bid-matrix";
+import { BID_REQUIREMENTS, BID_SECTIONS, bidMatrixCsv, bidMatrixSummary } from "@/lib/vapt/vapt-bid-matrix";
 
 export const runtime = "nodejs";
 

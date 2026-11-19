@@ -36,7 +36,7 @@ import {
   parseAdvisoriesHtml,
   parseInsaNewsHtml,
   regulationSnapshot,
-} from "../src/lib/ethiocert-web";
+} from "../src/lib/ethio/ethiocert-web";
 import {
   ETHIOCERT_CONTACT,
   ETHIOCERT_SERVICES,
@@ -45,7 +45,7 @@ import {
   INSA_PRODUCTS,
   INSA_STATS,
   NBE_ITEMS,
-} from "../src/lib/ethio-landscape";
+} from "../src/lib/ethio/ethio-landscape";
 
 let pass = 0;
 let fail = 0;

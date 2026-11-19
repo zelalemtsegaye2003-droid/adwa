@@ -3,7 +3,7 @@ import { db } from "@/lib/db";
 import { requireAuthAny } from "@/lib/auth/guard";
 import { audit } from "@/lib/auth/audit";
 import { clientIp } from "@/lib/auth/rate-limit";
-import { IntelFeedError, enrichIpGreynoise, enrichVirusTotal, vtTargetKind } from "@/lib/intel-feeds";
+import { IntelFeedError, enrichIpGreynoise, enrichVirusTotal, vtTargetKind } from "@/lib/soc/intel-feeds";
 
 export const runtime = "nodejs";
 

@@ -3,14 +3,14 @@ import { db } from "@/lib/db";
 import { requireAuth } from "@/lib/auth/guard";
 import { audit } from "@/lib/auth/audit";
 import { clientIp } from "@/lib/auth/rate-limit";
-import { sanitizeDisplayFileName } from "@/lib/evidence";
+import { sanitizeDisplayFileName } from "@/lib/compliance/evidence";
 import {
   checkGateFileType,
   makeStoredName,
   sha256Hex,
   writeGateEvidenceFile,
   formatBytes,
-} from "@/lib/gate-evidence";
+} from "@/lib/governance/gate-evidence";
 
 export const runtime = "nodejs";
 

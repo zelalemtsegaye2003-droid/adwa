@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { requireAuthAny } from "@/lib/auth/guard";
 import { can } from "@/lib/auth/rbac";
-import { EVIDENCE_CATEGORIES, type EvidenceCategory } from "@/lib/evidence";
+import { EVIDENCE_CATEGORIES, type EvidenceCategory } from "@/lib/compliance/evidence";
 
 /**
  * GET /api/evidence — the tenant evidence library with filters + roll-up stats.

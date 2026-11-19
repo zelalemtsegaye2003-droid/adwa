@@ -24,7 +24,7 @@ import {
   FOOTPRINT_QUESTIONS, FOOTPRINT_CATEGORIES, scoreFootprint, type FootprintResult,
   FLAG_POSTS,
   INCIDENT_TYPES, buildReportChecklist,
-} from "@/lib/awareness-tools";
+} from "@/lib/awareness/awareness-tools";
 
 type Pick = (en: string, am: string) => string;
 

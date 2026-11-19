@@ -4,8 +4,8 @@ import { requireAuthAny } from "@/lib/auth/guard";
 import { can } from "@/lib/auth/rbac";
 import {
   notificationLatency, lifecycleTimes, predictThreats, RQ3_TARGET_MINUTES,
-} from "@/lib/soc-engine";
-import { bindingStatus } from "@/lib/ethiocert-client";
+} from "@/lib/soc/soc-engine";
+import { bindingStatus } from "@/lib/ethio/ethiocert-client";
 
 export const runtime = "nodejs";
 

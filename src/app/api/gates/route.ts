@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { requireAuth } from "@/lib/auth/guard";
-import { GATE_PHASES, phaseReadiness, type GatePhase } from "@/lib/gates";
+import { GATE_PHASES, phaseReadiness, type GatePhase } from "@/lib/governance/gates";
 
 export const runtime = "nodejs";
 

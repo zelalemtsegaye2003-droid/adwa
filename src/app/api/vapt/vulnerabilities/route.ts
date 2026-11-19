@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { requireAuthAny } from "@/lib/auth/guard";
 import { can } from "@/lib/auth/rbac";
-import { slaInfo } from "@/lib/sla";
+import { slaInfo } from "@/lib/compliance/sla";
 
 export const runtime = "nodejs";
 

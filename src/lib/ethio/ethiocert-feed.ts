@@ -4,7 +4,7 @@
  * The proposal's Phase 2 includes an Ethio-CERT API synchronisation layer:
  * national intelligence flows DOWN to member organisations, anonymised
  * private-sector intelligence flows UP. The live binding is implemented in
- * src/lib/ethiocert-client.ts (ETHIOCERT_API_URL + ETHIOCERT_API_KEY); this
+ * src/lib/ethio/ethiocert-client.ts (ETHIOCERT_API_URL + ETHIOCERT_API_KEY); this
  * module is the pilot fixture used when no exchange endpoint is configured,
  * and the reference content the development exchange mock
  * (mini-services/mock-ethiocert) serves — so the full downward pipeline

@@ -5,13 +5,13 @@ import { requireAuthAny } from "@/lib/auth/guard";
 import { can } from "@/lib/auth/rbac";
 import { audit } from "@/lib/auth/audit";
 import { clientIp } from "@/lib/auth/rate-limit";
-import { anonymiseForHub, classifySensitivity, hybridSharingDecision, notificationLatency, RQ3_TARGET_MINUTES } from "@/lib/soc-engine";
+import { anonymiseForHub, classifySensitivity, hybridSharingDecision, notificationLatency, RQ3_TARGET_MINUTES } from "@/lib/soc/soc-engine";
 import {
   bindingStatus,
   deliverReport,
   EthioCertError,
   fetchNationalFeed,
-} from "@/lib/ethiocert-client";
+} from "@/lib/ethio/ethiocert-client";
 
 export const runtime = "nodejs";
 

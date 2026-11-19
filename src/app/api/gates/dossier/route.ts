@@ -3,8 +3,8 @@ import { db } from "@/lib/db";
 import { requireAuth } from "@/lib/auth/guard";
 import { audit } from "@/lib/auth/audit";
 import { clientIp } from "@/lib/auth/rate-limit";
-import { GATE_PHASES, phaseReadiness, type GatePhase } from "@/lib/gates";
-import { generateGateDossierPdf, type DossierPhase } from "@/lib/gate-dossier-pdf";
+import { GATE_PHASES, phaseReadiness, type GatePhase } from "@/lib/governance/gates";
+import { generateGateDossierPdf, type DossierPhase } from "@/lib/governance/gate-dossier-pdf";
 
 export const runtime = "nodejs";
 

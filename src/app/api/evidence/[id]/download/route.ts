@@ -4,7 +4,7 @@ import { requireAuthAny } from "@/lib/auth/guard";
 import { can } from "@/lib/auth/rbac";
 import { audit } from "@/lib/auth/audit";
 import { clientIp } from "@/lib/auth/rate-limit";
-import { readEvidenceFile, sha256Hex } from "@/lib/evidence";
+import { readEvidenceFile, sha256Hex } from "@/lib/compliance/evidence";
 
 export const runtime = "nodejs";
 

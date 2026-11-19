@@ -2,7 +2,7 @@
  * Adwa Cyber — VAPT Center engine (NBE/NCB/S/02/2026/27 LOT4).
  *
  * Pure decision logic, deterministic and regulator-auditable like the other
- * Adwa engines (src/lib/engine.ts design stance):
+ * Adwa engines (src/lib/compliance/engine.ts design stance):
  *
  *  1. Prioritisation — "Adwa dynamic risk score" 0..100 combining
  *     CVSS v3.1 base score (technical severity), EPSS (probability of
@@ -22,7 +22,7 @@
  */
 import type { CatalogueEntry, VaptAssetKind, VaptCategory } from "./vapt-data";
 import { VAPT_CATALOGUE } from "./vapt-data";
-import { slaDaysFor } from "./sla";
+import { slaDaysFor } from "../compliance/sla";
 import http from "http";
 import https from "https";
 import type { IncomingMessage } from "http";

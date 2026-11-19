@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { requireAuth, parseBody } from "@/lib/auth/guard";
 import { audit } from "@/lib/auth/audit";
-import { randomCode } from "@/lib/awareness-server";
+import { randomCode } from "@/lib/awareness/awareness-server";
 
 export const runtime = "nodejs";
 

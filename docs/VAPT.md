@@ -12,15 +12,15 @@ module (NBE-anchored corrective actions).
 | Piece | Location |
 |---|---|
 | Data models (`VaptAsset`, `VaptScan`, `VaptVulnerability`, `VaptScope`, `VaptAuditChain`, `VaptCustomCheck`) | `prisma/schema.prisma` (+ postgres variant) |
-| Reference CVE catalogue (44 entries, NVD/CISA-aligned) | `src/lib/vapt-data.ts` |
-| **Offline CVE feed — live-fetched CVSS/EPSS/KEV** | `src/lib/vapt-cve-feed.ts` + `src/lib/vapt-feed-snapshot.json` (built by `scripts/fetch-vapt-feed.ts`) |
-| Engine: prioritisation, SLA, **live DAST** | `src/lib/vapt-engine.ts` |
-| **REAL infrastructure engine** (TCP scan, banners, TLS, safe service checks) | `src/lib/vapt-netengine.ts` |
-| **Authorization gate** (scopes, CIDR/domain/URL matching, four-eyes) | `src/lib/vapt-scope.ts` |
-| **Hash-chained audit log** (append-only, tamper-check) | `src/lib/vapt-audit.ts` |
-| **Custom YAML check engine** (sandboxed declarative matchers) | `src/lib/vapt-checks.ts` |
-| **AD attack-path graph & BFS analysis** | `src/lib/vapt-ad-paths.ts` + `src/lib/vapt-ad-engine.ts` |
-| **Bid capability response matrix (66 tender lines)** | `src/lib/vapt-bid-matrix.ts` |
+| Reference CVE catalogue (44 entries, NVD/CISA-aligned) | `src/lib/vapt/vapt-data.ts` |
+| **Offline CVE feed — live-fetched CVSS/EPSS/KEV** | `src/lib/vapt/vapt-cve-feed.ts` + `src/lib/vapt/vapt-feed-snapshot.json` (built by `scripts/fetch-vapt-feed.ts`) |
+| Engine: prioritisation, SLA, **live DAST** | `src/lib/vapt/vapt-engine.ts` |
+| **REAL infrastructure engine** (TCP scan, banners, TLS, safe service checks) | `src/lib/vapt/vapt-netengine.ts` |
+| **Authorization gate** (scopes, CIDR/domain/URL matching, four-eyes) | `src/lib/vapt/vapt-scope.ts` |
+| **Hash-chained audit log** (append-only, tamper-check) | `src/lib/vapt/vapt-audit.ts` |
+| **Custom YAML check engine** (sandboxed declarative matchers) | `src/lib/vapt/vapt-checks.ts` |
+| **AD attack-path graph & BFS analysis** | `src/lib/vapt/vapt-ad-paths.ts` + `src/lib/vapt/vapt-ad-engine.ts` |
+| **Bid capability response matrix (66 tender lines)** | `src/lib/vapt/vapt-bid-matrix.ts` |
 | API routes | `src/app/api/vapt/{overview,assets,scans,scopes,vulnerabilities,checks,audit,ad-paths,bid-matrix}` |
 | Custom-check live test-run | `src/app/api/vapt/checks/[id]/test/route.ts` |
 | Promotion into Findings | `src/app/api/vapt/vulnerabilities/[id]/promote/route.ts` |
@@ -48,7 +48,7 @@ rejected at the API level and written to the hash-chained audit log as
 
 ### 2. Live engines
 
-- **INFRA (real).** `src/lib/vapt-netengine.ts` — TCP connect port scan
+- **INFRA (real).** `src/lib/vapt/vapt-netengine.ts` — TCP connect port scan
   (concurrency-limited, per-host throttling), a SAFE service-detection ladder
   (passive greeting read → HTTP HEAD → Redis PING), TLS posture probes
   (deprecated-protocol acceptance via pinned handshakes + certificate expiry
@@ -65,7 +65,7 @@ rejected at the API level and written to the hash-chained audit log as
   (`http://localhost:3000`) is a registered demo target — it genuinely passes
   its own hardening checks and yields the plaintext-transport finding.
 - **Offline feed (live-fetched data).** `scripts/fetch-vapt-feed.ts` builds
-  `src/lib/vapt-feed-snapshot.json` from **live** NVD API 2.0 (primary CVSS
+  `src/lib/vapt/vapt-feed-snapshot.json` from **live** NVD API 2.0 (primary CVSS
   v3.1 records), the FIRST EPSS API and KEV membership via the NVD
   `cisaExploitAdd` field, with per-entry source citations and an `asOf` date
   (content freshness — the air-gap pattern from plan §Phase 1).
@@ -79,7 +79,7 @@ verified-fixed (remediation proven by absence); seeded reference history is
 never silently closed this way.
 
 The old simulated-catalogue path is retained only as labelled reference data
-(`src/lib/vapt-data.ts`) — scan `engineMode` is now always `live`.
+(`src/lib/vapt/vapt-data.ts`) — scan `engineMode` is now always `live`.
 
 ### 4. Custom checks — sandboxed YAML matchers with a LIVE test-run
 

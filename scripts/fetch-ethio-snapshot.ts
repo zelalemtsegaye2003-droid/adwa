@@ -10,8 +10,8 @@
  *   INSA home page (HTML)        https://www.insa.gov.et
  *
  * Output:
- *   src/lib/ethio-snapshots/ethiocert-api.json   (all API endpoints, mapped)
- *   src/lib/ethio-snapshots/insa-news.json       (parsed headlines)
+ *   src/lib/ethio/ethio-snapshots/ethiocert-api.json   (all API endpoints, mapped)
+ *   src/lib/ethio/ethio-snapshots/insa-news.json       (parsed headlines)
  *
  * Empty capture states are VALID: at the 2026-11-19 baseline the advisories
  * endpoint answers {"results":[],"message":"No advisories found for the
@@ -28,8 +28,8 @@ import { writeFileSync } from "fs";
 const SITE = "https://www.ethiocert.gov.et";
 const API = `${SITE}/api`;
 const INSA_URL = "https://www.insa.gov.et";
-const OUT_API = "src/lib/ethio-snapshots/ethiocert-api.json";
-const OUT_INSA = "src/lib/ethio-snapshots/insa-news.json";
+const OUT_API = "src/lib/ethio/ethio-snapshots/ethiocert-api.json";
+const OUT_INSA = "src/lib/ethio/ethio-snapshots/insa-news.json";
 
 const UA = "Mozilla/5.0 (compatible; AdwaCyberIntel/1.0; national CERT situational awareness)";
 const capturedAt = new Date().toISOString();
@@ -81,7 +81,7 @@ try {
   const gciLatest = (await getJson(`${API}/gci/latest`)) as { latest?: unknown };
 
   // Map through the platform module so snapshot == runtime parsing exactly.
-  const m = await import("../src/lib/ethiocert-web");
+  const m = await import( "../src/lib/ethio/ethiocert-web");
   const advisories = adv.en.map((r) => m.mapAdvisoryRow(r, SITE, adv.am.get(String(r.id)))).filter(Boolean);
   const alertEntries = alerts.en.map((r) => m.mapAlertRow(r, SITE, alerts.am.get(String(r.id)))).filter(Boolean);
   const newsEntries = news.en.map((r) => m.mapNewsRow(r, SITE, news.am.get(String(r.id)))).filter(Boolean);
@@ -115,7 +115,7 @@ console.log(`Capturing INSA national news (${INSA_URL}) …`);
 let insaWritten = false;
 try {
   const html = await fetchPage(INSA_URL);
-  const { parseInsaNewsHtml } = await import("../src/lib/ethiocert-web");
+  const { parseInsaNewsHtml } = await import( "../src/lib/ethio/ethiocert-web");
   const entries = parseInsaNewsHtml(html, INSA_URL);
   const payload = {
     sourceUrl: INSA_URL,

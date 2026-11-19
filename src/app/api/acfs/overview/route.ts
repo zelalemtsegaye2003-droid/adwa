@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { requireAuth } from "@/lib/auth/guard";
-import { evaluateAcfsGate, ACFS_DOMAIN_META } from "@/lib/acfs-gates";
+import { evaluateAcfsGate, ACFS_DOMAIN_META } from "@/lib/governance/acfs-gates";
 
 export const runtime = "nodejs";
 

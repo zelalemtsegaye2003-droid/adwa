@@ -3,8 +3,8 @@ import { db } from "@/lib/db";
 import { requireAuthAny, parseBody } from "@/lib/auth/guard";
 import { audit } from "@/lib/auth/audit";
 import { clientIp } from "@/lib/auth/rate-limit";
-import { appendVaptAudit } from "@/lib/vapt-audit";
-import { scopeIsLive } from "@/lib/vapt-scope";
+import { appendVaptAudit } from "@/lib/vapt/vapt-audit";
+import { scopeIsLive } from "@/lib/vapt/vapt-scope";
 
 export const runtime = "nodejs";
 
