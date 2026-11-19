@@ -17,6 +17,7 @@
  * fixture, which would mask a broken national binding from supervisors.
  */
 import { ETHIOCERT_FEED, type FeedEntry } from "./ethiocert-feed";
+import { fetchWithTimeout, isTimeout } from "../feed-kernel";
 
 // ── configuration ───────────────────────────────────────────────────────────
 
@@ -131,13 +132,9 @@ export async function fetchNationalFeed(): Promise<NationalFeedResult> {
   const endpoint = `${c.url}/feed`;
   let res: Response;
   try {
-    res = await fetch(endpoint, {
-      headers: { ...requireLiveEndpoint().headers },
-      signal: AbortSignal.timeout(c.timeoutMs),
-      cache: "no-store",
-    });
+    res = await fetchWithTimeout(endpoint, { headers: { ...requireLiveEndpoint().headers } }, c.timeoutMs);
   } catch (err) {
-    const timedOut = err instanceof Error && err.name === "TimeoutError";
+    const timedOut = isTimeout(err);
     throw new EthioCertError(
       "ETHIOCERT_UNREACHABLE",
       timedOut ? `Exchange timed out after ${c.timeoutMs} ms.` : `Exchange unreachable: ${(err as Error).message}`,
@@ -202,17 +199,20 @@ export async function deliverReport(payloadJson: string): Promise<DeliveryResult
   const endpoint = `${c.url}/reports`;
   let res: Response;
   try {
-    res = await fetch(endpoint, {
-      method: "POST",
-      headers: {
-        ...requireLiveEndpoint().headers,
-        "Content-Type": "application/json",
+    res = await fetchWithTimeout(
+      endpoint,
+      {
+        method: "POST",
+        headers: {
+          ...requireLiveEndpoint().headers,
+          "Content-Type": "application/json",
+        },
+        body: payloadJson,
       },
-      body: payloadJson,
-      signal: AbortSignal.timeout(c.timeoutMs),
-    });
+      c.timeoutMs
+    );
   } catch (err) {
-    const timedOut = err instanceof Error && err.name === "TimeoutError";
+    const timedOut = isTimeout(err);
     throw new EthioCertError(
       "ETHIOCERT_UNREACHABLE",
       timedOut ? `Exchange timed out after ${c.timeoutMs} ms.` : `Exchange unreachable: ${(err as Error).message}`,

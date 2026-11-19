@@ -45,6 +45,7 @@
  */
 import insaNewsSnapshotJson from "./ethio-snapshots/insa-news.json";
 import ethiocertApiSnapshotJson from "./ethio-snapshots/ethiocert-api.json";
+import { fetchWithTimeout, isTimeout, makeTtlCache } from "../feed-kernel";
 
 // ── configuration ───────────────────────────────────────────────────────────
 
@@ -418,8 +419,8 @@ export class EthioWebError extends Error {
 }
 
 /** 60-second in-process cache — a dashboard load should not hammer a national API. */
-const apiCache = new Map<string, { at: number; body: unknown }>();
 const API_CACHE_TTL_MS = 60_000;
+const apiCache = makeTtlCache<unknown>(API_CACHE_TTL_MS);
 
 interface DrfList {
   count?: number;
@@ -432,20 +433,19 @@ async function apiGet(path: string): Promise<unknown> {
   const url = `${c.apiBase}${path}`;
   if (c.disabled) throw new EthioWebError("ETHIO_WEB_OFF", "Live Ethio web adapter disabled (ETHIO_WEB_OFF).", url);
   const cached = apiCache.get(url);
-  if (cached && Date.now() - cached.at < API_CACHE_TTL_MS) return cached.body;
+  if (cached !== undefined) return cached;
   let res: Response;
   try {
-    res = await fetch(url, {
-      headers: { Accept: "application/json", "User-Agent": USER_AGENT },
-      redirect: "follow",
-      cache: "no-store",
-      signal: AbortSignal.timeout(c.timeoutMs),
-    });
+    res = await fetchWithTimeout(
+      url,
+      { headers: { Accept: "application/json" }, redirect: "follow" },
+      c.timeoutMs,
+      USER_AGENT
+    );
   } catch (err) {
-    const timedOut = err instanceof Error && err.name === "TimeoutError";
     throw new EthioWebError(
       "ETHIO_WEB_UNREACHABLE",
-      timedOut ? `${url} timed out after ${c.timeoutMs} ms.` : `${url} unreachable: ${(err as Error).message}`,
+      isTimeout(err) ? `${url} timed out after ${c.timeoutMs} ms.` : `${url} unreachable: ${(err as Error).message}`,
       url
     );
   }
@@ -456,7 +456,7 @@ async function apiGet(path: string): Promise<unknown> {
   } catch {
     throw new EthioWebError("ETHIO_WEB_EMPTY", `${url} returned a non-JSON body.`, url);
   }
-  apiCache.set(url, { at: Date.now(), body });
+  apiCache.set(url, body);
   return body;
 }
 
@@ -465,17 +465,16 @@ async function fetchPage(url: string): Promise<string> {
   if (c.disabled) throw new EthioWebError("ETHIO_WEB_OFF", "Live Ethio web adapter disabled (ETHIO_WEB_OFF).", url);
   let res: Response;
   try {
-    res = await fetch(url, {
-      headers: { Accept: "text/html,application/xhtml+xml", "User-Agent": USER_AGENT },
-      redirect: "follow",
-      cache: "no-store",
-      signal: AbortSignal.timeout(c.timeoutMs),
-    });
+    res = await fetchWithTimeout(
+      url,
+      { headers: { Accept: "text/html,application/xhtml+xml" }, redirect: "follow" },
+      c.timeoutMs,
+      USER_AGENT
+    );
   } catch (err) {
-    const timedOut = err instanceof Error && err.name === "TimeoutError";
     throw new EthioWebError(
       "ETHIO_WEB_UNREACHABLE",
-      timedOut ? `${url} timed out after ${c.timeoutMs} ms.` : `${url} unreachable: ${(err as Error).message}`,
+      isTimeout(err) ? `${url} timed out after ${c.timeoutMs} ms.` : `${url} unreachable: ${(err as Error).message}`,
       url
     );
   }

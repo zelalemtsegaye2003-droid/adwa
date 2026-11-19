@@ -148,17 +148,16 @@ const IPV4_CIDR_RE = /^\d{1,3}(\.\d{1,3}){3}\/\d{1,2}$/;
 
 // ── fetch helper ────────────────────────────────────────────────────────────
 
+import { fetchWithTimeout as kernelFetch, isTimeout } from "../feed-kernel";
+
+/** One policy for every outbound feed request (src/lib/feed-kernel.ts): the
+ * threat-intel UA identifies us to sources with attribution terms. */
 async function fetchWithTimeout(url: string, init: RequestInit, timeoutMs: number): Promise<Response> {
-  return fetch(url, {
-    ...init,
-    cache: "no-store",
-    signal: AbortSignal.timeout(timeoutMs),
-    headers: { "User-Agent": "AdwaSec/1.0 (threat-intel feed sync)", ...(init.headers ?? {}) },
-  });
+  return kernelFetch(url, init, timeoutMs, "AdwaSec/1.0 (threat-intel feed sync)");
 }
 
 function networkError(feed: IntelFeedId, endpoint: string, err: unknown): IntelFeedError {
-  const timedOut = err instanceof Error && err.name === "TimeoutError";
+  const timedOut = isTimeout(err);
   return new IntelFeedError(
     feed,
     "UNREACHABLE",

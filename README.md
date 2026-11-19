@@ -260,7 +260,9 @@ prisma/schema.prisma        Organization, Rule, Scan, ScanResult, User,
                               CiiOperator/Mou/Authorization/System, AcfsGateItem/Decision
 prisma/schema.postgres.prisma  PostgreSQL variant (kept in sync — used by Docker)
 src/lib/                    platform core: db, env, api-error, utils, i18n,
-                            tab-theme, auth-client, auth/ (jwt, totp, crypto,
+                            tab-theme, auth-client, feed-kernel (the shared
+                            feed fetch/timeout/TTL-cache policy every
+                            connector uses), auth/ (jwt, totp, crypto,
                             session, guard, rbac, captcha, google, rate-limit,
                             audit, passwords, mail, tokens)
 src/lib/compliance/         rules-data (47 obligations) · nbe-rules-data ·

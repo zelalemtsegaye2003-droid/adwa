@@ -25,6 +25,8 @@
  * CVE ids).
  */
 
+import { fetchWithTimeout } from "../feed-kernel";
+
 export const EPSS_URL = "https://api.first.org/data/v1/epss";
 
 export interface EpssScore {
@@ -87,11 +89,12 @@ async function fetchEpssBatch(cves: string[]): Promise<Map<string, EpssScore>> {
   const cfg = epssConfig();
   const out = new Map<string, EpssScore>();
   const url = `${EPSS_URL}?cve=${cves.map((c) => encodeURIComponent(c)).join(",")}`;
-  const res = await fetch(url, {
-    cache: "no-store",
-    signal: AbortSignal.timeout(cfg.timeoutMs),
-    headers: { Accept: "application/json", "User-Agent": "AdwaSec/1.0 (VAPT EPSS enrichment)" },
-  });
+  const res = await fetchWithTimeout(
+    url,
+    { headers: { Accept: "application/json" } },
+    cfg.timeoutMs,
+    "AdwaSec/1.0 (VAPT EPSS enrichment)"
+  );
   if (!res.ok) throw new Error(`EPSS API HTTP ${res.status}.`);
   const body = await res.json();
   for (const score of parseEpssResponse(body)) out.set(score.cve, score);

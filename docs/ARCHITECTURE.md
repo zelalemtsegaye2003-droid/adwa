@@ -48,7 +48,7 @@ review (typecheck keeps it honest).
 
 | Folder | Modules | Domain |
 |---|---|---|
-| *(root)* | `db`, `env`, `api-error`, `utils`, `i18n`, `tab-theme`, `auth-client`, `auth/*` | **Platform core** — database handle, boot-time env validation, canonical errors, bilingual runtime, identity |
+| *(root)* | `db`, `env`, `api-error`, `utils`, `i18n`, `tab-theme`, `auth-client`, `feed-kernel`, `auth/*` | **Platform core** — database handle, boot-time env validation, canonical errors, bilingual runtime, identity, shared feed fetch/cache policy (`feed-kernel.ts`: every outbound feed request goes through `fetchWithTimeout` — no-store, hard timeout, identifying User-Agent — plus `makeTtlCache`) |
 | `vapt/` | `vapt-engine`, `vapt-netengine`, `vapt-snmp`, `vapt-db-audit`, `vapt-easm`, `vapt-checks`, `vapt-cve-feed`, `vapt-epss`, `vapt-scope`, `vapt-audit`, `vapt-data` (+ feed snapshot), `vapt-ad-engine`, `vapt-ad-paths`, `vapt-bid-matrix` | **VAPT Center** — real network/TLS/banner DAST, credentialed SNMP/MongoDB/MariaDB audits, CT-log EASM, CVE/EPSS/KEV enrichment, authorization gate, hash-chained audit |
 | `soc/` | `soc-engine`, `intel-feeds` (+ `intel-snapshots/`) | **SOC / threat intelligence** — NIST 800-61 lifecycle, public-feed connectors (CISA KEV, abuse.ch URLhaus/ThreatFox, Spamhaus DROP, AlienVault OTX), GreyNoise/VirusTotal enrichment, MISP private exchange, national-exchange sync |
 | `ethio/` | `ethiocert-client`, `ethiocert-web`, `ethiocert-feed`, `ethio-landscape` (+ `ethio-snapshots/`) | **Ethiopian ecosystem** — Ethio-CERT public API + web adapters (bilingual, INSA headlines), national legal corpus, ITU GCI posture, NBE directives |
@@ -99,8 +99,11 @@ implements the same shape:
 - **Keys only in env** — never in the repository; absence of a key degrades
   to an honest "key required" state, never a fabricated run.
 
-A future consolidation (see §7) extracts the fetch/cache/degrade boilerplate
-into one platform-level kernel the connectors share.
+A shared kernel (`src/lib/feed-kernel.ts`) owns the mechanical half —
+`fetchWithTimeout` (no-store, hard timeout, identifying User-Agent) and
+`makeTtlCache` — and every connector above uses it; the domain-specific
+half (parsing, snapshot fallback, honesty labels) stays in the owning
+domain module, deliberately.
 
 ## 6. Scaling evolution — what to change, and when
 
@@ -122,9 +125,7 @@ simplicity than on elastic scale.
 
 ## 7. Near-term refactoring roadmap (post-pilot)
 
-1. **Feed kernel** — extract `fetchWithPolicy` + TTL cache + degrade wrapper
-   into one platform module; connectors keep only their parsing. Removes the
-   last duplicated boilerplate across ~10 connectors.
+1. ~~**Feed kernel**~~ — **done**: `src/lib/feed-kernel.ts` (`fetchWithTimeout` + `makeTtlCache` + `isTimeout`) is the single policy used by the Ethio-CERT web/exchange adapters, EPSS and every intel-feed connector; new connectors should import it instead of hand-rolling a fetch wrapper.
 2. **Service layer for routes** — thin `guard → service → Prisma` wrappers
    so route handlers stop repeating auth/tenant checks; purely mechanical.
 3. **Open API surface** — a versioned, documented REST contract (OpenAPI
