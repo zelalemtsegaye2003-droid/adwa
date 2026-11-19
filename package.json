@@ -26,6 +26,7 @@
     "seed:demo": "bun run db:seed && bun run seed:users && bun run seed:evidence && bun run seed:evidence-links && bun run seed:soc && bun run seed:vapt && bun run seed:awareness && bun run seed:sla && bun run seed:gates && bun run seed:trackc && bun run seed:gate-evidence",
     "test:integration": "bash scripts/run-api-tests.sh",
     "intel:snapshots": "bun scripts/fetch-intel-snapshots.ts",
+    "ethio:snapshot": "bun scripts/fetch-ethio-snapshot.ts",
     "vapt:epss": "bun scripts/fetch-epss.ts"
   },
   "dependencies": {

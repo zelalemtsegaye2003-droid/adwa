@@ -1,0 +1,269 @@
+{
+  "sourceUrl": "https://www.ethiocert.gov.et/api",
+  "capturedAt": "2026-11-19T05:02:11.427Z",
+  "capturedBy": "scripts/fetch-ethio-snapshot.ts (bun run ethio:snapshot)",
+  "captureMethod": "Live capture from https://www.ethiocert.gov.et/api (en+am) on 2026-11-19; GCI from /gci/timeline + /gci/latest.",
+  "advisories": {
+    "entries": [],
+    "note": "No advisories found for the specified criteria"
+  },
+  "alerts": {
+    "entries": [
+      {
+        "id": "alert-10",
+        "titleEn": "ምርጫ የሳይበር ደህንነት ስጋቶችና መፍትሄዎች",
+        "url": "https://www.ethiocert.gov.et/alerts",
+        "date": "2026-03-25",
+        "severity": "medium",
+        "summaryEn": "ምርጫ እና መሰል ሀገራዊ ሁነቶች ላይ የሳይበር ጥቃቶች ከቴክኖሎጂ ባለፈ ማህበራዊ ሰላምን ማደፍረስ ላይ ያተኩራሉ። በሀገራችን ትልልቅ ሁነቶች (እንደ ብሔራዊ ምርጫ፣ የሰላም ንግግሮች ) ሲከናወኑ የሳይበር ጥቃቶች ለየት ያለ መልክ ይይዛሉ። 🔍 በኢትዮጵያ የሚስተዋሉ ተግዳሮቶች 1. የሐሰት መረጃ ስርጭት (Fake News): በፌስቡክና በቴሌግራም የሐሰት ገጾችን በመክፈት፣ በም…"
+      },
+      {
+        "id": "alert-9",
+        "titleEn": "Is your phone charger stealing your data? 🔌",
+        "url": "https://www.ethiocert.gov.et/alerts",
+        "date": "2026-02-16",
+        "severity": "medium",
+        "summaryEn": "☀️ Happy Monday! Is your phone charger stealing your data? 🔌 We hope you had a great Sunday! ☕ As you start your week, watch out for a hidden threat called \"Juice Jacking.\" 🕵️‍♂️ ⚠️ The Threat: Cybercriminals can modify public USB chargi…"
+      },
+      {
+        "id": "alert-8",
+        "titleEn": "🛡️ የማክሰኞ የሳይበር ንቃት፡",
+        "url": "https://www.ethiocert.gov.et/alerts",
+        "date": "2026-02-10",
+        "severity": "medium",
+        "summaryEn": "በዲጂታል ዓለም ውስጥ ንቁ መሆን ከምንም በላይ አስፈላጊ ነው። የእርስዎን የግል እና የድርጅት መረጃዎችን ከአደጋ ለመጠበቅ የሚከተሉትን ነጥቦች ይተግብሩ፦ 1. የታመነ እና ህጋዊ Antivirus ይጠቀሙ 🛡️💻 ጥራት ያለው የጸረ-ቫይረስ (Antivirus) ሶፍትዌር መጫን ኮምፒውተርዎን እና ሞባይልዎን ከMalware፣ Virus፣ Spyware እና Ransomware በታማኝነት ይ…"
+      },
+      {
+        "id": "alert-7",
+        "titleEn": "🛡 የሰኞ የሳይበር ንቃት",
+        "url": "https://www.ethiocert.gov.et/alerts",
+        "date": "2026-02-09",
+        "severity": "high",
+        "summaryEn": "🛡 የሰኞ የሳይበር ንቃት፦ የፋይናንስ እና የማህበራዊ ሚዲያ ደህንነት ለተሻለ የሥራ ሳምንት! መልካም አዲስ የሥራ ሳምንት ለሁላችሁም! ዛሬ በዲጂታል ትስስር ዓለም ውስጥ፣ የድርጅቶችም ሆኑ የባለሙያዎች ደህንነት በሁለት ዋና ዋና ምሶሶዎች ላይ የተመሰረተ ነው፦ በፋይናንስ ተዓማኒነት እና በዲጂታል ማንነት ጥበቃ። እንደ EthioCERT፣ በዚህ ሳምንት ትኩረት ሊሰጣቸው የሚገቡ ወ…"
+      },
+      {
+        "id": "alert-6",
+        "titleEn": "🛡 በዲጂታል የገንዘብ ዝውውር ወቅት ሳይበር ደህንነቶን ያረጋግጡ!",
+        "url": "https://www.ethiocert.gov.et/alerts",
+        "date": "2026-02-05",
+        "severity": "high",
+        "summaryEn": "በአሁኑ ወቅት በኢትዮጵያ የዲጂታል ክፍያና የገንዘብ ዝውውር የዕለት ተዕለት ሕይወታችን አካል ሆኗል። እንደ telebirr፣ CBEBirr፣ M-PESA እና ሌሎች የባንክ መተግበሪያዎች (Mobile Banking) ሕይወታችንን ቢያቀልሉም፣ የሳይበር ወንጀለኞችም ትኩረታቸውን ወደነዚህ መድረኮች አድርገዋል። ታዲያ በዲጂታል ዓለም ገንዘባችንን በሰላም ለማንቀሳቀስ ምን ማድረግ ይኖርብናል…"
+      }
+    ]
+  },
+  "news": {
+    "entries": [
+      {
+        "id": "news-132",
+        "titleEn": "Even after 8 years, '123456' is still the world's #1 password!",
+        "titleAm": "ከ8 ዓመታት በኋላም '123456' የዓለም ቀዳሚው የይለፍ ቃል ሆኗል!",
+        "url": "https://www.ethiocert.gov.et/news",
+        "date": "2026-11-18",
+        "summaryEn": "Eight years have passed since NordPass released its first annual list of the most commonly used passwords, yet in all that time, the world has learned nothing about password security. NordPass has unveiled its eighth edition of the most co…"
+      },
+      {
+        "id": "news-131",
+        "titleEn": "New system stops rogue AI models in seconds",
+        "titleAm": "አሳሳቢ ባህሪ ያሳዩ የኤአይ ሞዴሎችን በሰከንዶች የሚያስቆም ሥርዓት ተዘረጋ",
+        "url": "https://www.ethiocert.gov.et/news",
+        "date": "2026-11-16",
+        "summaryEn": "In 2019, OpenAI decided not to release a new model to the public due to concerns discovered during its research that \"the technology could be used for malicious purposes.\" Months after some models deployed in its research laboratories exhi…"
+      },
+      {
+        "id": "news-130",
+        "titleEn": "Africa Becomes the World's Leading Continent in Cyber Attack Vulnerability, Check Point Announces.",
+        "titleAm": "አፍሪካ በሳይበር ጥቃት ተጋላጭነት በዓለም ቀዳሚው አህጉር መሆኗን ቼክ ፖይንት (Check Point) አስታወቀ።",
+        "url": "https://www.ethiocert.gov.et/news",
+        "date": "2026-11-12",
+        "summaryEn": "Africa has become the world’s most targeted continent for cyber attacks, according to Check Point Research’s latest threat intelligence report. In October 2026, organizations in Africa faced an average of 3,834 attacks per week, representi…"
+      },
+      {
+        "id": "news-129",
+        "titleEn": "How was the largest cyberattack in crypto history executed?",
+        "titleAm": "በክሪፕቶ ታሪክ ትልቁ የሳይበር ጥቃት እንዴት ተፈጸመ?",
+        "url": "https://www.ethiocert.gov.et/news",
+        "date": "2026-11-04",
+        "summaryEn": "Binance announced on Tuesday that a historic $6.43 billion wealth theft from the world's largest cryptocurrency exchange market was the result of a \"sophisticated, multi-stage campaign\" involving a modified Homebrew application and a socia…"
+      },
+      {
+        "id": "news-128",
+        "titleEn": "The entity behind the Binance heist has been identified.",
+        "titleAm": "ከባይናንስ ዝርፊያ ጀርባ ያለው አካል ታወቀ።",
+        "url": "https://www.ethiocert.gov.et/news",
+        "date": "2026-11-02",
+        "summaryEn": "The U.S. Federal Bureau of Investigation (FBI) has officially announced that the theft of over $6 billion worth of virtual assets stolen from Binance was carried out by a hacking group operating with North Korea known as TraderTraitor. The…"
+      },
+      {
+        "id": "news-127",
+        "titleEn": "The Largest Cyber Attack in Crypto History",
+        "titleAm": "በክሪፕቶ ታሪክ ትልቁ የሳይበር ጥቃት",
+        "url": "https://www.ethiocert.gov.et/news",
+        "date": "2026-10-30",
+        "summaryEn": "What is said to be the largest heist in crypto history, amounting to $6.3 billion (£4.7 billion), has been committed against Binance, the world's largest digital currency exchange platform. The institution announced that it is investigatin…"
+      },
+      {
+        "id": "news-126",
+        "titleEn": "Cybersecurity experts are urging parents to exercise extreme caution before uploading their children's photos to artificial intelligence (AI) tools.",
+        "titleAm": "የሳይበር ባለሙያዎች ወላጆች የልጆቻቸውን ፎቶዎች ወደ አርቲፊሻል ኢንተለጀንስ (AI) መሣሪያዎች ከመጫናቸው በፊት ከፍተኛ ጥንቃቄ እንዲያደርጉ አሳሰቡ።",
+        "url": "https://www.ethiocert.gov.et/news",
+        "date": "2026-10-19",
+        "summaryEn": "According to experts, when parents upload photos to AI platforms, they lack awareness regarding where the images are stored, how they are retrieved, or how they might be reused. It has been highlighted that uploaded photos could be used to…"
+      },
+      {
+        "id": "news-125",
+        "titleEn": "Android phones arriving with pre-installed malware that cannot be uninstalled",
+        "titleAm": "Uninstall መደረግ የማይችሉ  malware ተጭኖባቸው የሚመጡ አነስተኛ ዋጋ ያላቸው  Android ስልኮች።",
+        "url": "https://www.ethiocert.gov.et/news",
+        "date": "2026-10-14",
+        "summaryEn": "People who buy low-cost Android phones from online marketplaces may be carrying malware that was placed on the device before it reached them, security researcher Bitdefender has found. The cyberattack campaign, dubbed \"Midnight Mimosa,\" ru…"
+      },
+      {
+        "id": "news-123",
+        "titleEn": "7th National Cybersecurity Month Launched Under the Theme \"Aware Citizen for a Secure Nation\"",
+        "titleAm": "‎7ኛው ሀገር አቀፍ የሳይበር ደህንነት ወር ''ንቁ ዜጋ ደህንነቷ ለተጠበቀ ሀገር'' በሚል መሪ ቃል መከበር ጀምሯል።",
+        "url": "https://www.ethiocert.gov.et/news",
+        "date": "2026-10-13",
+        "summaryEn": "The 7th National Cybersecurity Month has officially commenced, running from Tikimt 1 to 30, 2019 E.C. (October 11 to November 9, 2026), under the theme \"Aware Citizen for a Secure Nation.\" Speaking at the opening event, Deputy Prime Minist…"
+      },
+      {
+        "id": "news-122",
+        "titleEn": "7th National Cybersecurity Month Launched Under Theme \"An Active Citizen for a Secure Nation.",
+        "titleAm": "7ኛው ሀገር አቀፍ የሳይበር ደህንነት ወር \"ንቁ ዜጋ ደህንነቷ ለተጠበቀ ሀገር\" በሚል መሪ ቃል እንደሚከበር ተገለፀ።",
+        "url": "https://www.ethiocert.gov.et/news",
+        "date": "2026-10-09",
+        "summaryEn": "Under the theme \"An Active Citizen for a Secure Nation,\" the Director General of the Information Network Security Administration (INSA), Mrs. Tigist Hamid, gave a press conference regarding the upcoming 7th National Cybersecurity Month, wh…"
+      }
+    ]
+  },
+  "regulations": {
+    "entries": [
+      {
+        "id": "reg-21",
+        "titleEn": "Information Technology Procamation",
+        "year": 2024,
+        "url": "https://www.ethiocert.gov.et/media/regulations/2025/information_technology_procamation.pdf",
+        "type": "Proclamation"
+      },
+      {
+        "id": "reg-14",
+        "titleEn": "Ethiopian National cyber security policy Amharic Version",
+        "year": 2024,
+        "url": "https://www.ethiocert.gov.et/media/regulations/2025/Ethiopian_National_cyber_security_policy_Amharic_kRB8Dwz.pdf",
+        "type": "Policy"
+      },
+      {
+        "id": "reg-12",
+        "titleEn": "Ethiopia National Cybersecurity policy  2024 English Version",
+        "year": 2024,
+        "url": "https://www.ethiocert.gov.et/media/regulations/2025/Ethiopia_National_Cybersecurity_policy__2024.BBpdf_XJX0S0D.pdf",
+        "type": "Policy"
+      },
+      {
+        "id": "reg-15",
+        "titleEn": "Cryptography Products Control Directive",
+        "year": 2023,
+        "url": "https://www.ethiocert.gov.et/media/regulations/2025/Cryptography_Products_Control_Directive_.pdf",
+        "type": "Directive"
+      },
+      {
+        "id": "reg-17",
+        "titleEn": "Guidelines for Controlling the Transfer and Use of Cryptographic Products",
+        "year": 2022,
+        "url": "https://www.ethiocert.gov.et/media/regulations/2025/Guidelines_for_Controlling_the_Transfer_and_Use_of_Cryptographic_Products.pdf",
+        "type": "Directive"
+      },
+      {
+        "id": "reg-16",
+        "titleEn": "Guidelines for preventing and controlling technological security threats",
+        "year": 2019,
+        "url": "https://www.ethiocert.gov.et/media/regulations/2025/Technology_Security_Threat.pdf",
+        "type": "Directive"
+      },
+      {
+        "id": "reg-18",
+        "titleEn": "Electronic Transactions Proclamation",
+        "year": 2019,
+        "url": "https://www.ethiocert.gov.et/media/regulations/2025/1205_2012_%E1%8B%A8%E1%8A%A2%E1%88%8C%E1%8A%AD%E1%89%B5%E1%88%AE%E1%8A%92%E1%8A%AD%E1%88%B5_%E1%89%B5%E1%88%AB%E1%8A%95%E1%8B%9B%E1%8A%AD%E1%88%BD%E1%8A%95_%E1%8A%A0%E1%8B%8B%E1%8C%85.pdf",
+        "type": "Proclamation"
+      },
+      {
+        "id": "reg-20",
+        "titleEn": "Electronic Signature Proclamation",
+        "year": 2018,
+        "url": "https://www.ethiocert.gov.et/media/regulations/2025/Electronic_Signature_Proclamation_No.1072-2018.pdf",
+        "type": "Proclamation"
+      },
+      {
+        "id": "reg-19",
+        "titleEn": "Computer Crime Proclamation",
+        "year": 2016,
+        "url": "https://www.ethiocert.gov.et/media/regulations/2025/Computer_Crime_Proclamation_No._958-2016_dbvASpT.pdf",
+        "type": "Proclamation"
+      }
+    ]
+  },
+  "gci": {
+    "year": 2024,
+    "pillars": {
+      "legal": 18.83,
+      "technical": 14.37,
+      "organizational": 12.12,
+      "capacity": 15.33,
+      "cooperation": 15.69
+    },
+    "timeline": [
+      {
+        "year": 2014,
+        "pillars": {
+          "legal": 0,
+          "technical": 0,
+          "organizational": 0,
+          "capacity": 0,
+          "cooperation": 0.12
+        }
+      },
+      {
+        "year": 2017,
+        "pillars": {
+          "legal": 0,
+          "technical": 0,
+          "organizational": 0,
+          "capacity": 0.26,
+          "cooperation": 0
+        }
+      },
+      {
+        "year": 2018,
+        "pillars": {
+          "legal": 0.28,
+          "technical": 0,
+          "organizational": 0,
+          "capacity": 0,
+          "cooperation": 0
+        }
+      },
+      {
+        "year": 2020,
+        "pillars": {
+          "legal": 11.56,
+          "technical": 4.46,
+          "organizational": 8.03,
+          "capacity": 3.69,
+          "cooperation": 0
+        }
+      },
+      {
+        "year": 2024,
+        "pillars": {
+          "legal": 18.83,
+          "technical": 14.37,
+          "organizational": 12.12,
+          "capacity": 15.33,
+          "cooperation": 15.69
+        }
+      }
+    ],
+    "sourceUrl": "https://www.ethiocert.gov.et/api/gci/latest",
+    "asOf": "2026-11-19T05:02:11.427Z"
+  }
+}

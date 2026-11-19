@@ -11,6 +11,7 @@ import { ShieldCheck, Building2, ScrollText, Timer, TrendingDown, Landmark, Play
 import { useI18n } from "@/lib/i18n";
 import { api } from "@/lib/auth-client";
 import { ScoreRing, SeverityBadge, FrameworkBadge, scoreColor, fmtDate } from "./shared";
+import { EthioLandscape } from "./ethio-landscape";
 
 interface FrameworkSummary {
   id: string; code: string; name: string; nameAm: string;
@@ -83,6 +84,9 @@ export function DashboardView({ onOpenReport, onResumeScan, canRunScans }: { onO
           </Card>
         ))}
       </div>
+
+      {/* Ethiopian cyber landscape — real Ethio-CERT / INSA / NBE sources */}
+      <EthioLandscape />
 
       {/* SLA breach alert — overdue corrective actions (Procl. 1426/2026) */}
       {(stats.sla?.overdue ?? 0) > 0 && (

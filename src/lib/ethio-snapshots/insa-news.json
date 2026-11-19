@@ -1,0 +1,33 @@
+{
+  "sourceUrl": "https://www.insa.gov.et",
+  "capturedAt": "2026-11-19T05:02:11.427Z",
+  "note": "Headlines captured from the INSA home page; where the site truncates a card title, the full title is recovered from the card image's alt text. Links resolve to the site's /blog/<slug> detail pages.",
+  "capturedBy": "scripts/fetch-ethio-snapshot.ts (bun run ethio:snapshot)",
+  "captureMethod": "Live fetch of https://www.insa.gov.et on 2026-11-19; blog-detail anchor extraction found 4 headline(s) with alt-text title recovery.",
+  "entries": [
+    {
+      "id": "insa-8b6421e6",
+      "titleEn": "7th National Cybersecurity Month to Be Celebrated Under the Theme “An Aware Citizen for a Secure Nation”",
+      "url": "https://www.insa.gov.et/blog/7th-National-Cybersecurity-Month-to-Be-Celebrated-Under-the-Theme-%E2%80%9CAn-Aware-Citizen-for-a-Secure-Nation%E2%80%9D",
+      "date": "2026-11-05"
+    },
+    {
+      "id": "insa-21cfa082",
+      "titleEn": "Congratulatory Message on the Formation of the New Government",
+      "url": "https://www.insa.gov.et/blog/Congratulatory-Message-on-the-Formation-of-the-New-Government",
+      "date": "2026-11-05"
+    },
+    {
+      "id": "insa-2608d48b",
+      "titleEn": "Financial Sector Cybersecurity Forum Officially Established",
+      "url": "https://www.insa.gov.et/blog/Financial-Sector-Cybersecurity-Forum-Officially-Established",
+      "date": "2026-11-05"
+    },
+    {
+      "id": "insa-6d9bae69",
+      "titleEn": "The Director General of the Information Network Security Administration (INSA), H.E. Mrs. Tigist Hamid, has extended her warm New Year wishes to all citizens of Ethiopia, as well as to the institution's leadership and staff members.",
+      "url": "https://www.insa.gov.et/blog/The-Director-General-of-the-Information-Network-Security-Administration-%28INSA%29,-H.E.-Mrs.-Tigist-Hamid,-has-extended-her-warm-New-Year-wishes-to-all-citizens-of-Ethiopia,-as-well-as-to-the-institution%27s-leadership-and-staff-members.",
+      "date": "2026-11-05"
+    }
+  ]
+}
