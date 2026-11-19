@@ -68,6 +68,9 @@ jobs:
 
       - name: Install dependencies
         run: bun install --frozen-lockfile
+        
+      - name: Generate Prisma client
+        run: bunx prisma generate  
 
       - name: Init database (full demo dataset — tests depend on it)
         run: |
