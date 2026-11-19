@@ -1,11 +1,11 @@
 # Adwa Cyber — Testing Guide
 
-892 checks across 20 suites, all green. Three runner scripts,
+916 checks across 20 suites, all green. Three runner scripts,
 each self-contained (they start/stop their own dev stack because background
 processes do not survive between shell calls in some environments):
 
 ```bash
-bash scripts/run-api-tests.sh       # 15 API suites — 674 checks
+bash scripts/run-api-tests.sh       # 15 API suites — 698 checks
 bash scripts/ci-run-auth-suites.sh  # 4 auth suites — 180 checks (needs the
                                     #   mock-google env from .env.example
                                     #   and the :81 Caddy dev gateway)
@@ -25,7 +25,7 @@ Suites are deterministic; several depend on seeded fixtures. The runner
 |---|---|---|
 | `ethiocert-bind-test` | 26 | `seed-soc.cjs` (deterministic indicators) |
 | `soc-test` | 91 | `seed-soc.cjs` (RQ3 latencies 6/8/21 min, median 8) |
-| `intel-feeds-test` | 19 | `seed-soc.cjs` — public-intel connectors: CISA KEV + Spamhaus DROP ingest (LIVE or labelled SNAPSHOT — both accepted, environment-independent), dedupe, RBAC, keyed feeds honestly skipped; optional keys (`.env.example`) activate the URLhaus/ThreatFox/OTX checks and add more |
+| `intel-feeds-test` | 43 | `seed-soc.cjs` — public-intel connectors: CISA KEV + Spamhaus DROP ingest (LIVE or labelled SNAPSHOT — both accepted, environment-independent), dedupe, RBAC, keyed feeds honestly skipped; optional keys (`.env.example`) activate the URLhaus/ThreatFox/OTX checks and add more |
 | `misp-live-test` | 19 | app restarted with `MISP_URL` + `MISP_API_KEY` pointed at the mock (:3030) — TLP-aware private-exchange ingest |
 | `sla-test` | 32 | `seed-sla.cjs` (Wasasa overdue + "historical" scan) |
 | `report-test` | 25 | completed demo scan (base `db:seed`) |

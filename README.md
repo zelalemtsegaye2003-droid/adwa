@@ -174,7 +174,7 @@ broken.
 ## Who can do what — end-to-end, per user
 
 **Yes — every role has a complete, working end-to-end path.** No role hits a
-dead end, and every journey below is machine-verified: the 674-check dev battery (+218 auth/OWASP/recovery checks)
+dead end, and every journey below is machine-verified: the 698-check dev battery (+218 auth/OWASP/recovery checks)
 walks each one through the real API (real captcha logins, real HTTP status
 codes, real tenant-isolation probes). The authoritative permission matrix is
 `src/lib/auth/rbac.ts` (reference: `docs/AUTH.md`).
@@ -224,7 +224,7 @@ privilege-escalation path.
 
 ```bash
 bun run test:integration     # alias: bash scripts/run-api-tests.sh
-bash scripts/run-api-tests.sh       # 15 API suites — 674 checks (Ethio-CERT
+bash scripts/run-api-tests.sh       # 15 API suites — 698 checks (Ethio-CERT
                                     #   live binding, SOC, public intel feeds,
                                     #   MISP live binding, SLA, report, rules
                                     #   engine, scan lifecycle incl. WS-2 submit
@@ -239,7 +239,7 @@ bash scripts/run-recovery-tests.sh  # password reset + email verification +
                                     #   logged-in change — 38 checks
 ```
 
-**892 checks across the dev-stack battery, all green**: 674 across the 15
+**916 checks across the dev-stack battery, all green**: 698 across the 15
 API suites (the VAPT suite alone contributes 140 — including the bid-matrix
 66 tender lines and the AD attack-path graph checks; the intel-feeds and
 MISP suites exercise the live public/private feed connectors against the
