@@ -321,7 +321,8 @@ docs/                       ARCHITECTURE (architecture + scaling evolution),
                             EVIDENCE, DEPLOY, TESTING, OPS, USER_GUIDE,
                             PILOT_ONBOARDING, INCIDENT_RUNBOOK,
                             GOOGLE_SSO_SETUP (production Google SSO guide),
-                            PRODUCTION_BINDINGS (Phase 3 go-live checklist)
+                            PRODUCTION_BINDINGS (Phase 3 go-live checklist),
+                            GO_LIVE_CHECKLIST (founder one-hour cutover runbook)
 Dockerfile · docker-compose.yml · deploy/Caddyfile   one-command deploy
 Caddyfile                   dev gateway on :81 (XTransformPort path proxy —
                             needed by the Google OAuth test suite)
@@ -354,8 +355,10 @@ Migrations and idempotent seeds run on boot. Full operations guide
   remove the `GOOGLE_*_URL` overrides.
 - The ordered go-live checklist for every production binding (Google SSO,
   SMTP, Ethio-CERT exchange, keyed feeds, MISP, cron snapshot refresh,
-  kill-switch rollback posture) is `docs/PRODUCTION_BINDINGS.md`; verify the
-  posture any time with `bun run bindings:report` or the System Bindings tab.
+  kill-switch rollback posture) is `docs/PRODUCTION_BINDINGS.md`; the
+  founder-facing one-hour click-by-click cutover version is
+  `docs/GO_LIVE_CHECKLIST.md`. Verify the posture any time with
+  `bun run bindings:report` or the System Bindings tab.
 - Point `DATABASE_URL` at PostgreSQL and switch the Prisma provider.
 - Configure `RECAPTCHA_*` or `HCAPTCHA_*` to replace the built-in captcha
   (dev-only by decision D4 — a determined bot can parse the SVG glyphs).

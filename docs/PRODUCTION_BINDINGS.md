@@ -7,7 +7,9 @@ demo" and "production" — the SAME build is flipped by env vars, and the
 platform honestly reports which mode is active, everywhere, always.
 
 This guide is the ordered checklist an operator follows to take the platform
-live, and how to verify each binding once flipped.
+live, and how to verify each binding once flipped. The founder-facing
+one-hour click-by-click cutover version (Google Console, SMTP provider,
+free intel keys, MISP) is `docs/GO_LIVE_CHECKLIST.md`.
 
 ## The one-glance surfaces
 
