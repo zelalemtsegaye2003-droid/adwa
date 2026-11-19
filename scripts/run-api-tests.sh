@@ -57,7 +57,7 @@ echo ""
 
 SUITES=("$@")
 if [ ${#SUITES[@]} -eq 0 ]; then
-  SUITES=(ethiocert-bind-test soc-test intel-feeds-test misp-live-test sla-test report-test rules-engine-test scan-lifecycle-test evidence-security-test gates-test trackc-test awareness-test awareness-tools-api-test vapt-test)
+  SUITES=(ethiocert-bind-test soc-test intel-feeds-test misp-live-test sla-test report-test rules-engine-test scan-lifecycle-test evidence-security-test gates-test trackc-test awareness-test awareness-tools-api-test vapt-test bindings-test)
 fi
 
 restart_app() {

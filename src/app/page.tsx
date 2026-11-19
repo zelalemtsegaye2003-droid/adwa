@@ -12,7 +12,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { useTheme } from "next-themes";
 import {
   Moon, Sun, ShieldCheck, LayoutDashboard, ScrollText, Building2, ScanLine, Flag,
-  FileText, Languages, Users, LogOut, KeyRound, ChevronUp, FolderLock, Radar, GraduationCap, ShieldAlert, Crosshair,
+  FileText, Languages, Users, LogOut, KeyRound, ChevronUp, FolderLock, Radar, GraduationCap, ShieldAlert, Crosshair, Cable,
 } from "lucide-react";
 import { I18nProvider, useI18n } from "@/lib/i18n";
 import { DashboardView } from "@/components/adwa/dashboard";
@@ -33,9 +33,10 @@ import { AuthGate, useAuth } from "@/components/auth/auth-gate";
 import { MfaSetupDialog, MfaBadge } from "@/components/auth/mfa-setup";
 import { UsersView } from "@/components/auth/users-view";
 import { AuditView } from "@/components/auth/audit-view";
+import { SystemBindingsView } from "@/components/adwa/system-bindings";
 import { ROLE_COLORS, ROLE_SHORT } from "@/lib/auth-client";
 
-type View = "dashboard" | "catalogue" | "organizations" | "scan" | "findings" | "evidence" | "report" | "soc" | "vapt" | "awareness" | "trackc" | "team" | "audit";
+type View = "dashboard" | "catalogue" | "organizations" | "scan" | "findings" | "evidence" | "report" | "soc" | "vapt" | "awareness" | "trackc" | "team" | "audit" | "system";
 
 /** Module masthead — the per-tab hero banner. Visual identity (colour + icon +
  *  tagline) is derived from the module's mission, cf. tab-theme.ts. */
@@ -109,6 +110,7 @@ function Shell() {
     { id: "report", label: t("navReport"), icon: FileText, show: perms.has("scans:view-org") || perms.has("scans:view-all") },
     { id: "team", label: t("team"), icon: Users, show: perms.has("users:view-org") || perms.has("users:view-all") },
     { id: "audit", label: t("auditLog"), icon: KeyRound, show: canSeeAudit },
+    { id: "system", label: t("navSystem"), icon: Cable, show: isSuper },
   ];
 
   const go = (v: View) => {
@@ -307,6 +309,7 @@ function Shell() {
             {view === "trackc" && <TrackCView canManageCii={perms.has("cii:manage")} />}
             {view === "team" && <UsersView canManage={canManageUsers} isSuperAdmin={isSuper} />}
             {view === "audit" && <AuditView isSuperAdmin={isSuper} />}
+            {view === "system" && <SystemBindingsView />}
           </div>
 
           <footer className="mt-auto border-t bg-background/80 backdrop-blur">

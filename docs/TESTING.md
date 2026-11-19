@@ -1,11 +1,11 @@
 # Adwa Cyber — Testing Guide
 
-861 checks across 19 suites, all green. Three runner scripts,
+892 checks across 20 suites, all green. Three runner scripts,
 each self-contained (they start/stop their own dev stack because background
 processes do not survive between shell calls in some environments):
 
 ```bash
-bash scripts/run-api-tests.sh       # 14 API suites — 643 checks
+bash scripts/run-api-tests.sh       # 15 API suites — 674 checks
 bash scripts/ci-run-auth-suites.sh  # 4 auth suites — 180 checks (needs the
                                     #   mock-google env from .env.example
                                     #   and the :81 Caddy dev gateway)
@@ -37,6 +37,7 @@ Suites are deterministic; several depend on seeded fixtures. The runner
 | `awareness-test` | 82 | `seed-awareness.cjs` (5 schools, 15 modules, RCT dataset) |
 | `awareness-tools-api-test` | 32 | base seed only |
 | `vapt-test` | 140 | `seed-vapt.ts` (44 assets, ~120 CVEs, 4 promoted criticals) — also runs a REAL live DAST scan against the dev server itself (http://localhost:3000), the credentialed SNMP/DB audits and the AD attack-path + bid-matrix checks |
+| `bindings-test` | 31 | base seed only — the Phase 3 production bindings registry: RBAC (401/403/200), closed descriptor field set (secret guard), closed status/domain sets, the 14 documented default postures, summary arithmetic and the no-secret-shaped-tokens grep |
 | `test-auth` / `test-owasp` / `test-compliance` / `test-google` | 54 / 67 / 44 / 15 | base seed + demo users; mock Google on :3010 |
 | `test-password-reset` | 38 | demo users; dev-server console mail log at `/tmp/adwa-dev.log` |
 

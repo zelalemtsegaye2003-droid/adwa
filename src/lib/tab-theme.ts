@@ -18,6 +18,7 @@
  *   report      slate     board-grade reporting
  *   team       fuchsia    people & access
  *   audit        zinc      immutable trail
+ *   system        teal     production bindings — infrastructure & ops honesty
  *
  * The hex values double as: sidebar active gradient, hero banner gradient,
  * 3D globe tint and the ambient page tint — one source of truth.
@@ -107,6 +108,12 @@ export const TAB_THEMES: Record<string, TabTheme> = {
     accent: "#3f3f46", accentDeep: "#18181b", accentSoft: "#71717a",
     titleKey: "auditLog", subKey: "auditSub",
     chip: "Hash-chained · immutable",
+  },
+  system: {
+    accent: "#0d9488", accentDeep: "#0f766e", accentSoft: "#5eead4",
+    titleKey: "sysTitle", subKey: "sysSub",
+    chip: "Real-Data Roadmap · Phase 3",
+    liveChip: "Honesty-first",
   },
 };
 

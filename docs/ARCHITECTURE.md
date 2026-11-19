@@ -105,6 +105,27 @@ A shared kernel (`src/lib/feed-kernel.ts`) owns the mechanical half —
 half (parsing, snapshot fallback, honesty labels) stays in the owning
 domain module, deliberately.
 
+**The bindings registry (Phase 3)** extends the same honesty pattern to the
+binding layer itself: one observable surface for every external integration.
+The split follows the platform/domain rule exactly:
+
+- `src/lib/bindings.ts` (platform core, pure) — the descriptor model, the
+  closed status set (`live | mock | fixture | snapshot | unconfigured |
+  disabled`), summary arithmetic and presentation metadata. It imports from
+  **no domain**; it turns a plain `BindingInputs` record (booleans,
+  endpoint hosts, as-of dates — never secret values) into the registry.
+- The **app layer** composes the inputs — the API route
+  (`src/app/api/system/bindings/route.ts`, SUPER_ADMIN via `orgs:manage`)
+  and the ops CLI (`scripts/bindings-report.ts`, `bun run bindings:report`,
+  no app needed) both read the same env-driven status functions the live
+  code paths use (`auth/google`, `auth/mail`, `ethio` clients,
+  `soc/intel-feeds`, `vapt/epss`), so the registry can never disagree with
+  reality.
+
+Operator guide: `docs/PRODUCTION_BINDINGS.md` (the ordered go-live
+checklist — Google SSO, SMTP, the Ethio-CERT exchange, keyed feeds, MISP,
+cron snapshot refresh, kill-switch rollback posture).
+
 ## 6. Scaling evolution — what to change, and when
 
 The platform is built for a pilot; this is the planned, ordered evolution as

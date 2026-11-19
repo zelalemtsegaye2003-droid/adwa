@@ -31,6 +31,7 @@ Bilingual (English / አማርኛ) · Proclamation 1321/2024 · NCSP 2024 · Dig
 | **CII monitoring register (P5)** | 4 named operators (EEP, Ethio Telecom, CBE, Ethiopian Airlines), MOU version lifecycle (DRAFTING→…→ACTIVE), INSA authorisation tracking, registered-system readiness ladder; monitoring is doubly gated per operator (in-force MOU + ACTIVE INSA licence) and advancing a system to MONITORING_AUTHORIZED on a shut gate is refused with 409; tenants get a read-only feed of their own operator |
 | **ACFS precondition register (P4)** | 13 preconditions across 4 domains (EMA partnership, EHRC due diligence, transparency framework, dedicated funding) with SATISFIED-requires-evidence rule, periodic board decisions (REMAINED_LOCKED/UNLOCKED), server-side unlock enforcement — register currently LOCKED |
 | **UI** | Modern per-module shell: each tab themed to its name (palette, iconography, wording), animated 3D ops background (cyber-canvas), a real-intel ticker of 16 verifiable published facts (NIST, CIS, OWASP, FIRST, CISA, Verizon DBIR, IBM) interleaved with the Ethiopian national layer, EN/AM toggle, dark mode |
+| **Production bindings console (Phase 3)** | One honest surface for every external integration — the **System Bindings** tab (SUPER_ADMIN), `GET /api/system/bindings` and `bun run bindings:report`: 14 bindings across identity (Google SSO), mail (SMTP), national (Ethio-CERT exchange + public web), threat intel (KEV/DROP/URLhaus/ThreatFox/OTX/MISP), enrichment (GreyNoise/VirusTotal) and VAPT (live EPSS + offline-first catalogue), each with a closed-set status (live/mock/fixture/snapshot/unconfigured/disabled), the exact env vars that flip it to production, as-of dates and refresh commands — secrets never leave the server (docs/PRODUCTION_BINDINGS.md) |
 | **Audit trail** | Every auth event (logins, MFA, lockouts, token reuse, user CRUD, Google logins) persisted with IP + user agent |
 
 See `docs/AUTH.md` for the full identity-module reference (API surface,
@@ -99,6 +100,8 @@ Refresh the bundled live-source snapshots (offline fallbacks) any time:
 bun run vapt:epss          # NVD + FIRST EPSS + CISA KEV → src/lib/vapt/vapt-feed-snapshot.json
 bun run intel:snapshots    # CISA KEV + Spamhaus DROP → src/lib/soc/intel-snapshots/
 bun run ethio:snapshot     # Ethio-CERT public API + INSA → src/lib/ethio/ethio-snapshots/
+bun run bindings:report    # production bindings registry — the pre-boot
+                           #   go-live checklist (env var names only, never values)
 ```
 
 The runbook for repeating the full self-scan demo (vuln-lab target, exact
@@ -171,7 +174,7 @@ broken.
 ## Who can do what — end-to-end, per user
 
 **Yes — every role has a complete, working end-to-end path.** No role hits a
-dead end, and every journey below is machine-verified: the 643-check dev battery (+218 auth/OWASP/recovery checks)
+dead end, and every journey below is machine-verified: the 674-check dev battery (+218 auth/OWASP/recovery checks)
 walks each one through the real API (real captcha logins, real HTTP status
 codes, real tenant-isolation probes). The authoritative permission matrix is
 `src/lib/auth/rbac.ts` (reference: `docs/AUTH.md`).
@@ -188,7 +191,7 @@ codes, real tenant-isolation probes). The authoritative permission matrix is
 
 | Role | The journey a user can complete, start to finish |
 |---|---|
-| **SUPER_ADMIN**<br>(platform staff) | Onboard an organization → create its first ORG_ADMIN → run an assessment for any tenant → review every tenant's findings/evidence → operate the national threat hub: ingest the Ethio-CERT feed, publish anonymised upward reports with SHA-256 receipts → run the awareness programme (schools, classes, parental-consent register, RQ2 evaluation) → govern Track C (gate board, CII + ACFS registers, funder dossier PDF) → review the platform-wide audit log. |
+| **SUPER_ADMIN**<br>(platform staff) | Onboard an organization → create its first ORG_ADMIN → run an assessment for any tenant → review every tenant's findings/evidence → operate the national threat hub: ingest the Ethio-CERT feed, publish anonymised upward reports with SHA-256 receipts → run the awareness programme (schools, classes, parental-consent register, RQ2 evaluation) → govern Track C (gate board, CII + ACFS registers, funder dossier PDF) → inspect the production bindings registry (every external integration honestly labelled live/mock/fixture/unconfigured, with the env vars that flip each one) → review the platform-wide audit log. |
 | **ORG_ADMIN**<br>(tenant) | Manage the org profile → invite the team and assign the 4 tenant roles → run the 47-question scan (autosave, resume, N/A justification enforced) → work the findings: remediate or waive with SLA deadlines (30/60/90 d) → upload evidence (SHA-256 anchored, tamper-evident) → link evidence to obligations (coverage SATISFIED/STALE/GAP) → generate the bilingual executive PDF → manage the org's SOC incidents and share threat indicators → read the own-org audit trail. |
 | **COMPLIANCE_OFFICER**<br>(tenant) | The full assessment workflow — run scans, work findings, upload/link evidence, generate reports, manage own-org SOC — everything except user management and org settings. This is the daily-driver account; the demo officer has TOTP MFA enabled. |
 | **AUDITOR**<br>(read-only) | Independently verify: browse the catalogue, open any own-org scan, check findings + on-time/late SLA proof, inspect evidence with integrity verification, view the SOC overview and the own-org audit log. Every write attempt returns 403 (verified). |
@@ -221,13 +224,14 @@ privilege-escalation path.
 
 ```bash
 bun run test:integration     # alias: bash scripts/run-api-tests.sh
-bash scripts/run-api-tests.sh       # 14 API suites — 643 checks (Ethio-CERT
+bash scripts/run-api-tests.sh       # 15 API suites — 674 checks (Ethio-CERT
                                     #   live binding, SOC, public intel feeds,
                                     #   MISP live binding, SLA, report, rules
                                     #   engine, scan lifecycle incl. WS-2 submit
                                     #   hardening, evidence security, Track C
                                     #   gate board, CII/ACFS, awareness +
-                                    #   tools, VAPT incl. AD paths + bid matrix)
+                                    #   tools, VAPT incl. AD paths + bid matrix,
+                                    #   production bindings registry)
 bash scripts/ci-run-auth-suites.sh  # auth + OWASP + compliance + Google
                                     #   — 180 checks (needs the mock-google env
                                     #   from .env.example + the :81 gateway)
@@ -235,11 +239,13 @@ bash scripts/run-recovery-tests.sh  # password reset + email verification +
                                     #   logged-in change — 38 checks
 ```
 
-**861 checks across the dev-stack battery, all green**: 643 across the 14
+**892 checks across the dev-stack battery, all green**: 674 across the 15
 API suites (the VAPT suite alone contributes 140 — including the bid-matrix
 66 tender lines and the AD attack-path graph checks; the intel-feeds and
 MISP suites exercise the live public/private feed connectors against the
-mocks) plus the 218-check auth/OWASP/recovery battery. Unit suites for the
+mocks; the bindings suite verifies the Phase 3 production-bindings registry —
+RBAC, the closed honesty field set and the secret-leak guard) plus the
+218-check auth/OWASP/recovery battery. Unit suites for the
 connector adapters and engines add another 155 offline checks
 (Ethio-CERT web adapter 72, VAPT engines 36, awareness tools 47). The same
 battery runs in CI (`.github/workflows/ci.yml`: lint → zero-error typecheck
@@ -262,9 +268,11 @@ prisma/schema.postgres.prisma  PostgreSQL variant (kept in sync — used by Dock
 src/lib/                    platform core: db, env, api-error, utils, i18n,
                             tab-theme, auth-client, feed-kernel (the shared
                             feed fetch/timeout/TTL-cache policy every
-                            connector uses), auth/ (jwt, totp, crypto,
-                            session, guard, rbac, captcha, google, rate-limit,
-                            audit, passwords, mail, tokens)
+                            connector uses), bindings (the production
+                            bindings registry model — Phase 3), auth/ (jwt,
+                            totp, crypto, session, guard, rbac, captcha,
+                            google, rate-limit, audit, passwords, mail,
+                            tokens)
 src/lib/compliance/         rules-data (47 obligations) · nbe-rules-data ·
                             rules-engine · engine (pillar scoring) · evidence ·
                             evidence-shared · sla · report-pdf
@@ -293,13 +301,15 @@ src/app/api/                auth/* · rules · organizations · scans · finding
                             incidents · threats (incl. /threats/ethio) ·
                             awareness · learn · soc · vapt (overview/assets/
                             scans/vulnerabilities/+/ad-paths/bid-matrix/
-                            discovery/checks/audit) · health
+                            discovery/checks/audit) · system/bindings
+                            (production bindings registry) · health
 src/components/adwa/        dashboard, catalogue, scan wizard, findings, report,
                             SOC, VAPT Center (incl. AD attack paths + bid
                             matrix), awareness, Track C (gate board +
                             CII + ACFS), cyber-canvas (3D ops background),
                             tip-ticker (real-intel ribbon), ethio-landscape
-                            (national panel)
+                            (national panel), system-bindings (Phase 3
+                            production bindings console)
 src/components/auth/        login screen (with password reset), MFA setup +
                             password change, users, audit
 docs/architecture.png      system architecture diagram (see above)
@@ -310,7 +320,8 @@ docs/                       ARCHITECTURE (architecture + scaling evolution),
                             DECISIONS, AUTH, VAPT, VAPT_TRACEABILITY,
                             EVIDENCE, DEPLOY, TESTING, OPS, USER_GUIDE,
                             PILOT_ONBOARDING, INCIDENT_RUNBOOK,
-                            GOOGLE_SSO_SETUP (production Google SSO guide)
+                            GOOGLE_SSO_SETUP (production Google SSO guide),
+                            PRODUCTION_BINDINGS (Phase 3 go-live checklist)
 Dockerfile · docker-compose.yml · deploy/Caddyfile   one-command deploy
 Caddyfile                   dev gateway on :81 (XTransformPort path proxy —
                             needed by the Google OAuth test suite)
@@ -341,6 +352,10 @@ Migrations and idempotent seeds run on boot. Full operations guide
   MFA seeds (re-run `bun scripts/fix-mfa-secret.ts` afterwards).
 - Replace the mock Google provider with real `GOOGLE_CLIENT_ID/SECRET` and
   remove the `GOOGLE_*_URL` overrides.
+- The ordered go-live checklist for every production binding (Google SSO,
+  SMTP, Ethio-CERT exchange, keyed feeds, MISP, cron snapshot refresh,
+  kill-switch rollback posture) is `docs/PRODUCTION_BINDINGS.md`; verify the
+  posture any time with `bun run bindings:report` or the System Bindings tab.
 - Point `DATABASE_URL` at PostgreSQL and switch the Prisma provider.
 - Configure `RECAPTCHA_*` or `HCAPTCHA_*` to replace the built-in captcha
   (dev-only by decision D4 — a determined bot can parse the SVG glyphs).

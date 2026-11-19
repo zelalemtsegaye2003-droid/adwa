@@ -82,3 +82,26 @@ Phase 4 (ACFS) and Phase 5 (CII) features exist behind gates that are
 actually evaluates open (`409` + audit); a CII system cannot advance to
 `MONITORING_AUTHORIZED` while its operator's MOU × INSA gate is shut (`409`
 + audit). The platform ships no collection agents — readiness state only.
+
+## D10 — Production posture is one honest registry, never a claim — 2026-11-19
+
+Real-Data Roadmap Phase 3: every production binding (Google SSO, SMTP,
+Ethio-CERT exchange, public + keyed intel feeds, live EPSS) already switches
+on env vars. Rather than letting that fact live in prose — where it can go
+stale and over-claim — the platform now serves it as **data**: a registry of
+14 bindings, each with a closed-set status (`live | mock | fixture |
+snapshot | unconfigured | disabled`), the exact env vars that flip it, and
+as-of dates.
+
+- Model: `src/lib/bindings.ts` (platform core, pure — takes booleans and
+  non-secret strings, imports no domain).
+- Composition at the app layer only: `src/app/api/system/bindings/route.ts`
+  (SUPER_ADMIN via `orgs:manage`) and `scripts/bindings-report.ts`
+  (`bun run bindings:report`, runs without the app — the pre-boot
+  go-live checklist), both reading the same env-driven status functions
+  the live code paths use, so the console can never disagree with reality.
+- Secrets never leave the server: the registry lists env var **names**;
+  the suite (`scripts/bindings-test.mjs`) enforces the closed descriptor
+  field set and greps the response for secret-shaped tokens.
+- Operator guide: `docs/PRODUCTION_BINDINGS.md` — the ordered go-live
+  checklist and the kill-switch rollback posture.

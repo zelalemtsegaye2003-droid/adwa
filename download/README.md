@@ -52,7 +52,10 @@ Everything else is final.
 - `AdwaSec_Real_Data_Review_and_Roadmap.docx` / `.pdf` — what is already
   live, what is still fixture, and the phased plan for real internet data
   everywhere (Phase 1 + Phase 2 implemented: public feeds, self-hosted MISP
-  exchange, VirusTotal reputation, live EPSS at scan time).
+  exchange, VirusTotal reputation, live EPSS at scan time; Phase 3
+  production bindings now observable — the System Bindings registry /
+  `bun run bindings:report` go-live surface, remaining items are pure
+  coordination: INSA credentials, Google Console registration, SMTP).
 - `AdwaSec_SelfScan_Demo_Runbook.docx` / `.pdf` — click-by-click steps for
   the three repeatable self-scan demonstrations.
 - `Adwa_Cyber_Implementation_Roadmap.docx` / `.pdf` — the detailed
